@@ -1648,3 +1648,5 @@ Changes include:
  * The API for the Legacy Module and Core Device Interface Module have been updated.
    - Support for encoders with the Legacy Module is now working.
  * The hardware loop has been updated for better performance.
+"# 2025-2026-decode-season-code" 
+"# 2025-2026-decode-season-code" 
