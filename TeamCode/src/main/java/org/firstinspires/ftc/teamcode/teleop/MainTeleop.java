@@ -5,22 +5,39 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystems.Chassis;
 
+import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+
+
+
 @TeleOp(name="Main")
-public class Main extends OpMode {
+public class MainTeleop extends OpMode {
     private Chassis chassis;
+    private Outtake outtake;
+
 
     @Override
     public void init() {
         chassis = new Chassis(hardwareMap);
+        outtake = new Outtake(hardwareMap);
     }
+
+
 
     @Override
     public void loop() {
         chassis.runMacanumWheels(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+        if (gamepad1.a) {
+            outtake.setLaunchPower(1);
+            outtake.setSideLaunchPower(1);
+
+        } else if (gamepad1.b) {
+            outtake.setLaunchPower(1);
+            outtake.setSideLaunchPower(0);
+
+        } else if (gamepad1.x){
+            outtake.emergencyStop();
+        }
+
     }
 
-//    @Override
-//    public void runOpMode() throws InterruptedException {
-//        chassis = new Chassis(hardwareMap);
-//    }
 }

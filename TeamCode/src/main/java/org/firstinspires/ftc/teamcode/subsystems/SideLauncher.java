@@ -17,4 +17,5 @@ public class SideLauncher {
         sideLauncher1.setPower(power);
         sideLauncher2.setPower(power);
     }
+
 }
