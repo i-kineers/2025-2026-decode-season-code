@@ -5,20 +5,20 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystems.Chassis;
 
-import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.subsystems.BasicOuttake;
 
 
 
 @TeleOp(name="Main")
 public class MainTeleop extends OpMode {
     private Chassis chassis;
-    private Outtake outtake;
+    private BasicOuttake outtake;
 
 
     @Override
     public void init() {
         chassis = new Chassis(hardwareMap);
-        outtake = new Outtake(hardwareMap);
+        outtake = new BasicOuttake(hardwareMap);
     }
 
 

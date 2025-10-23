@@ -4,12 +4,12 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-public class Outtake {
+public class BasicOuttake {
     private DcMotor launcher;
     private CRServo sideLauncher1;
     private CRServo sideLauncher2;
 
-    public Outtake(HardwareMap hardwareMap) {
+    public BasicOuttake(HardwareMap hardwareMap) {
         launcher = hardwareMap.get(DcMotor.class, "launcher"); // Initialize the member variable
         sideLauncher1 = hardwareMap.get(CRServo.class, "SideLauncher1"); // Initialize the member variable
         sideLauncher2 = hardwareMap.get(CRServo.class, "SideLauncher2"); // Initialize the member variable
@@ -29,4 +29,7 @@ public class Outtake {
         setSideLaunchPower(0);
     }
 
+    public int getLauncherPosition() {
+        return launcher.getCurrentPosition();
+    }
 }

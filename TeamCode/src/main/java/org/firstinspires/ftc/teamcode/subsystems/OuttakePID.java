@@ -1,0 +1,134 @@
+package org.firstinspires.ftc.teamcode.subsystems;
+
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+public class OuttakePID {
+
+    // Set PID constants
+    public static final int LAUNCHER_MIN_POS = 0;       // The fully retracted position
+    public static final int LAUNCHER_MAX_POS = 2500;    // The fully extended position (EXAMPLE VALUE, you must find the real one)
+    private int targetSlidePosition = 0;
+    private static final double kP = 0.01;
+    private static final double kI = 0.00;
+    private static final double kD = 0.00;
+    private double lastCalculatedPower = 0.0;
+    private double previous_time;
+    private double previous_error;
+    private final ElapsedTime runtime;
+    private final ElapsedTime switchTime;
+
+    // Set RPM calculator constants
+    private BasicOuttake outtake;
+    private double currentPower = 0.0;  // current motor power (0.0 to 1.0)
+    private final double CHANGE_RATE = 0.01; // how fast power changes per loop
+    static final double TICK_PER_MOTOR_REV = 537.7;    // eg: GoBuilda Motor Encoder
+    static final double DRIVE_GEAR_REDUCTION = 1.0;     // No External Gearing.
+    static final double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
+    private final ElapsedTime timer;
+    private int lastPosition = 0;
+    private double lastCalculatedRPM = 0.0;
+
+    // Declare motors and servos
+    private DcMotor launcher;
+    private CRServo sideLauncher1;
+    private CRServo sideLauncher2;
+
+    public OuttakePID(HardwareMap hardwareMap) {
+        launcher = hardwareMap.get(DcMotor.class, "launcher"); // Initialize the member variable
+        sideLauncher1 = hardwareMap.get(CRServo.class, "SideLauncher1"); // Initialize the member variable
+        sideLauncher2 = hardwareMap.get(CRServo.class, "SideLauncher2"); // Initialize the member variable
+        launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        launcher.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        runtime = new ElapsedTime();
+        switchTime = new ElapsedTime();
+        timer = new ElapsedTime();
+        this.lastPosition = launcher.getCurrentPosition(); // FIX #2:
+    }
+
+    private double runLauncher() {
+        // MODIFICATION #1: Added safety check to prevent crash on first loop
+        if (previous_time == 0) {
+            previous_time = runtime.milliseconds();
+        }
+
+        double current_time = runtime.milliseconds();
+        double time_delta = current_time - previous_time;
+
+        // MODIFICATION #2: Added safety check to prevent division by zero
+        if (time_delta == 0) {
+            return lastCalculatedPower;
+        }
+
+        double current_error = targetSlidePosition - launcher.getCurrentPosition();
+
+        double p = kP * current_error;
+        // MODIFICATION #3: Corrected the Integral (i) term calculation
+        double i = kI * (current_error * time_delta);
+        double d = kD * (current_error - previous_error) / time_delta;
+
+        previous_time = current_time;
+        previous_error = current_error;
+
+        double PID = p + i + d;
+        // Control intake slides motor
+        return Math.max(-1.0, Math.min(PID, 1.0));
+    }
+
+    private void RPMCalculator() {
+        int currentPosition = launcher.getCurrentPosition(); // FIX: Use 'launcher' motor
+        double deltaTime = timer.seconds();
+
+        // Only calculate every so often to get a stable reading
+        if (deltaTime >= 0.05) { // Update every 50 milliseconds
+            int deltaTicks = currentPosition - lastPosition;
+            this.lastCalculatedRPM = RPMFormula(deltaTicks, TICK_PER_MOTOR_REV, deltaTime);
+
+            // Reset for the next calculation
+            this.lastPosition = currentPosition;
+            timer.reset();
+        }
+    }
+
+    private double RPMFormula(int deltaTicks, double ticksPerRev, double deltaTimeSec) {
+        if (ticksPerRev <= 0 || deltaTimeSec <= 0) return 0;
+        double revolutions = (double) deltaTicks / ticksPerRev;
+        return revolutions * (60.0 / deltaTimeSec);
+    }
+
+    public void update() {
+        double power = runLauncher();
+        this.lastCalculatedPower = power;
+        launcher.setPower(power);
+        RPMCalculator();
+    }
+
+    public void setTargetPosition(int ticks) {
+        // Clamp the input 'ticks' to be between LAUNCHER_MIN_POS and LAUNCHER_MAX_POS
+        this.targetSlidePosition = Math.max(LAUNCHER_MIN_POS, Math.min(LAUNCHER_MAX_POS, ticks));
+    }
+    public void setMotorPowerPID(double power) {
+        launcher.setPower(runLauncher());
+    }
+
+    public int getTargetPosition() {
+        return targetSlidePosition;
+    }
+
+    public int getCurrentPosition() {
+        return launcher.getCurrentPosition();
+    }
+
+    public double getCalculatedPower() {
+        return this.lastCalculatedPower;
+    }
+
+    // MODIFICATION #4: Added a necessary getter for the RPM value
+    public double getRPM() {
+        return this.lastCalculatedRPM;
+    }
+}
