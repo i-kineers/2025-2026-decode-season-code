@@ -11,8 +11,8 @@ public class BasicOuttake {
 
     public BasicOuttake(HardwareMap hardwareMap) {
         launcher = hardwareMap.get(DcMotor.class, "launcher"); // Initialize the member variable
-        sideLauncher1 = hardwareMap.get(CRServo.class, "SideLauncher1"); // Initialize the member variable
-        sideLauncher2 = hardwareMap.get(CRServo.class, "SideLauncher2"); // Initialize the member variable
+        sideLauncher1 = hardwareMap.get(CRServo.class, "leftLoader"); // Initialize the member variable
+        sideLauncher2 = hardwareMap.get(CRServo.class, "rightLoader"); // Initialize the member variable
     }
 
     public void setLaunchPower(double power) {
@@ -21,12 +21,13 @@ public class BasicOuttake {
 
     public void setSideLaunchPower(double power) {
         sideLauncher1.setPower(power);
-        sideLauncher2.setPower(power);
+        sideLauncher2.setPower(-power);
     }
 
     public void emergencyStop() {
         launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         setSideLaunchPower(0);
+        setLaunchPower(0);
     }
 
     public int getLauncherPosition() {

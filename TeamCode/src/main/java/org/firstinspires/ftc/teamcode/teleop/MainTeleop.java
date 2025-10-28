@@ -27,17 +27,19 @@ public class MainTeleop extends OpMode {
     public void loop() {
         chassis.runMacanumWheels(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         if (gamepad1.a) {
-            outtake.setLaunchPower(1);
+            outtake.setLaunchPower(.5);
             outtake.setSideLaunchPower(1);
-
         } else if (gamepad1.b) {
-            outtake.setLaunchPower(1);
+            outtake.setLaunchPower(.5);
             outtake.setSideLaunchPower(0);
-
         } else if (gamepad1.x){
             outtake.emergencyStop();
         }
 
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
-
 }

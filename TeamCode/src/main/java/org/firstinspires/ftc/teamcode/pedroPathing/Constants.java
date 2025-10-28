@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(5.170953) // Mass of the robot in kilograms
+            .mass(10) // Mass of the robot in kilograms. Just chassis is: 5.170953kg
             .forwardZeroPowerAcceleration(-42.4933)
             .lateralZeroPowerAcceleration(-41.7244);
 
@@ -33,8 +33,8 @@ public class Constants {
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(6) //NOTE: Values are not accurate
-            .strafePodX(6) //NOTE: Values are not accurate
+            .forwardPodY(-4.724409) //NOTE: Values are not accurate
+            .strafePodX(-1.244094) //NOTE: Values are not accurate
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)

@@ -8,12 +8,16 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class OuttakePID {
 
     // Set PID constants
-    public static final int LAUNCHER_MIN_POS = 0;       // The fully retracted position
-    public static final int LAUNCHER_MAX_POS = 2500;    // The fully extended position (EXAMPLE VALUE, you must find the real one)
+    public static int LAUNCHER_MIN_POS = 0;       // The fully retracted position
+    public static int LAUNCHER_MAX_POS = 2500;    // The fully extended position (EXAMPLE VALUE, you must find the real one)
     private int targetSlidePosition = 0;
-    private static final double kP = 0.01;
-    private static final double kI = 0.00;
-    private static final double kD = 0.00;
+    private static double kP = 0.1;
+    private static double kI = 0.0;
+    private static double kD = 0.00;
+    private double p_component = 0.0;
+    private double i_component = 0.0;
+    private double d_component = 0.0;
+    private double raw_pid_value = 0.0;
     private double lastCalculatedPower = 0.0;
     private double previous_time;
     private double previous_error;
@@ -38,8 +42,8 @@ public class OuttakePID {
 
     public OuttakePID(HardwareMap hardwareMap) {
         launcher = hardwareMap.get(DcMotor.class, "launcher"); // Initialize the member variable
-        sideLauncher1 = hardwareMap.get(CRServo.class, "SideLauncher1"); // Initialize the member variable
-        sideLauncher2 = hardwareMap.get(CRServo.class, "SideLauncher2"); // Initialize the member variable
+        sideLauncher1 = hardwareMap.get(CRServo.class, "leftLoader"); // Initialize the member variable
+        sideLauncher2 = hardwareMap.get(CRServo.class, "rightLoader"); // Initialize the member variable
         launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcher.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -67,9 +71,14 @@ public class OuttakePID {
         double current_error = targetSlidePosition - launcher.getCurrentPosition();
 
         double p = kP * current_error;
-        // MODIFICATION #3: Corrected the Integral (i) term calculation
         double i = kI * (current_error * time_delta);
         double d = kD * (current_error - previous_error) / time_delta;
+
+        this.p_component = kP * current_error;
+        this.i_component += kI * (current_error * time_delta); // Integral is cumulative
+        this.d_component = kD * (current_error - previous_error) / time_delta;
+        this.raw_pid_value = p_component + i_component + d_component;
+
 
         previous_time = current_time;
         previous_error = current_error;
@@ -80,19 +89,19 @@ public class OuttakePID {
     }
 
     private void RPMCalculator() {
-        int currentPosition = launcher.getCurrentPosition(); // FIX: Use 'launcher' motor
-        double deltaTime = timer.seconds();
+        int currentPosition = launcher.getCurrentPosition();
+        double currentTime = timer.milliseconds();
+        double deltaTime = currentTime;
 
-        // Only calculate every so often to get a stable reading
-        if (deltaTime >= 0.05) { // Update every 50 milliseconds
+        if (deltaTime >= 50) { // 50ms
             int deltaTicks = currentPosition - lastPosition;
-            this.lastCalculatedRPM = RPMFormula(deltaTicks, TICK_PER_MOTOR_REV, deltaTime);
+            this.lastCalculatedRPM = RPMFormula(deltaTicks, TICK_PER_MOTOR_REV, deltaTime / 1000.0);
 
-            // Reset for the next calculation
             this.lastPosition = currentPosition;
-            timer.reset();
+            timer.reset(); // reset AFTER calculation
         }
     }
+
 
     private double RPMFormula(int deltaTicks, double ticksPerRev, double deltaTimeSec) {
         if (ticksPerRev <= 0 || deltaTimeSec <= 0) return 0;
@@ -105,6 +114,18 @@ public class OuttakePID {
         this.lastCalculatedPower = power;
         launcher.setPower(power);
         RPMCalculator();
+    }
+
+    public void decreaseMaxPosition() {
+        if (LAUNCHER_MAX_POS <= 10) {
+            LAUNCHER_MAX_POS = 10;
+        } else {
+            LAUNCHER_MAX_POS -= 10;
+        }
+    }
+
+    public void increaseMaxPosition() {
+        LAUNCHER_MAX_POS += 10; // Increase by 50 ticks
     }
 
     public void setTargetPosition(int ticks) {
@@ -130,5 +151,74 @@ public class OuttakePID {
     // MODIFICATION #4: Added a necessary getter for the RPM value
     public double getRPM() {
         return this.lastCalculatedRPM;
+    }
+
+//    public double getP() {
+//        return this.p_component;
+//    }
+//
+//    public double getI() {
+//        return this.i_component;
+//    }
+//
+//    public double getD() {
+//        return this.d_component;
+//    }
+
+    public double getP() {
+        return kP;
+    }
+
+    public double getI() {
+        return kI;
+    }
+
+    public double getPID() {
+        return this.raw_pid_value;
+    }
+
+    public void increaseI() {
+        if (kI >= 0.001) {
+            // If kI is relatively large, increase it by a larger amount
+            kI += 0.001;
+        } else {
+            // Otherwise, use a very small increment for fine-tuning
+            kI += 0.0001;
+        }
+    }
+
+    public void decreaseI() {
+        if (kI > 0.001) {
+            // If kI is relatively large, decrease it by a larger amount
+            kI -= 0.001;
+        } else {
+            // Otherwise, use a very small decrement for fine-tuning
+            kI -= 0.0001;
+        }
+
+        // Safety check to ensure kI never goes negative
+        if (kI < 0) {
+            kI = 0;
+        }
+    }
+
+
+    public double increaseP() {
+        if (kP > 0.01) {
+            kP += 0.01;
+        } else if (kP >= 0 && kP <= 0.01) {
+            kP += 0.001;
+        }
+        return kP;
+    }
+
+    public double decreaseP() {
+        if (kP > 0.01) {
+            kP -= 0.01;
+        } else if (kP >= 0 && kP <= 0.01) {
+            kP -= 0.001;
+        }
+
+        return kP;
     }
 }
