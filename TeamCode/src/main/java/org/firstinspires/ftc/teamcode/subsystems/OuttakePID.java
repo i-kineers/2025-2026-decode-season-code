@@ -12,7 +12,7 @@ public class OuttakePID {
     public static int LAUNCHER_MAX_POS = 2500;    // The fully extended position (EXAMPLE VALUE, you must find the real one)
     private int targetSlidePosition = 0;
     private static double kP = 0.1;
-    private static double kI = 0.0;
+    private static double kI = 0.001;
     private static double kD = 0.00;
     private double p_component = 0.0;
     private double i_component = 0.0;
@@ -79,7 +79,6 @@ public class OuttakePID {
         this.d_component = kD * (current_error - previous_error) / time_delta;
         this.raw_pid_value = p_component + i_component + d_component;
 
-
         previous_time = current_time;
         previous_error = current_error;
 
@@ -110,10 +109,14 @@ public class OuttakePID {
     }
 
     public void update() {
-        double power = runLauncher();
-        this.lastCalculatedPower = power;
-        launcher.setPower(power);
-        RPMCalculator();
+        if (this.targetSlidePosition == 0) {
+            launcher.setPower(0);
+        } else {
+            double power = runLauncher();
+            this.lastCalculatedPower = power;
+            launcher.setPower(power);
+            RPMCalculator();
+        }
     }
 
     public void decreaseMaxPosition() {
@@ -202,7 +205,6 @@ public class OuttakePID {
         }
     }
 
-
     public double increaseP() {
         if (kP > 0.01) {
             kP += 0.01;
@@ -220,5 +222,31 @@ public class OuttakePID {
         }
 
         return kP;
+    }
+
+    public void stop() {
+        // 1. Immediately stop the motor's physical movement.
+        launcher.setPower(0.0);
+
+        // 2. Reset the internal state of the PID controller.
+        // This is what makes the graph lines go to zero and prevents integral windup.
+        this.i_component = 0.0;     // <-- THIS IS THE MOST CRITICAL LINE.
+        this.p_component = 0.0;
+        this.d_component = 0.0;
+        this.raw_pid_value = 0.0;
+        this.lastCalculatedPower = 0.0;
+        this.previous_error = 0.0;
+
+        // 3. Reset the target so the graph is accurate when stopped.
+        this.targetSlidePosition = 0;
+
+        // 4. Reset timer state to be ready for the next run.
+        runtime.reset();
+        previous_time = 0;
+
+        // 5. Optional but good practice: Reset the encoder reference point.
+        // This ensures the next "run" command starts counting from a true zero.
+        launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        launcher.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 }

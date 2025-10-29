@@ -34,9 +34,9 @@ public class OuttakePIDTest extends LinearOpMode {
             // --- Control Logic ---
             if (gamepad1.a) {
                 outtakePID.setTargetPosition(OuttakePID.LAUNCHER_MAX_POS);
-            }
-            else if (gamepad1.b) {
-                outtakePID.setTargetPosition(OuttakePID.LAUNCHER_MIN_POS);
+            } else if (gamepad1.b) {
+//                outtakePID.setTargetPosition(OuttakePID.LAUNCHER_MIN_POS);
+                outtakePID.stop();
             } else if (gamepad1.xWasPressed()) {
                 outtakePID.increaseMaxPosition();
             } else if (gamepad1.yWasPressed()) {
