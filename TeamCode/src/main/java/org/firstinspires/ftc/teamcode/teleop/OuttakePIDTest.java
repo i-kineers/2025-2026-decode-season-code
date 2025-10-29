@@ -1,49 +1,70 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystems.OuttakePID;
 
-@TeleOp(name = "Outtake PID Test") // It's good practice to name your TeleOp
+@TeleOp(name = "Outtake RPM PID Test")
 public class OuttakePIDTest extends LinearOpMode {
     private OuttakePID outtakePID;
+    private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        // Initialize the subsystem
         outtakePID = new OuttakePID(hardwareMap);
 
         telemetry.addData("Status", "Initialized and Ready");
-        telemetry.addData(">", "Press A to go to MAX position");
-        telemetry.addData(">", "Press B to go to MIN position");
+        telemetry.addData(">", "Connect to Panels dashboard");
+        telemetry.addData(">", "Press A for target RPM, B to stop");
         telemetry.update();
 
         waitForStart();
 
         while (opModeIsActive()) {
-            // --- Control Logic ---
-            // When gamepad 'A' is pressed, set the target to the MAX position
+            // --- Button Logic ---
             if (gamepad1.a) {
-                outtakePID.setTargetPosition(OuttakePID.LAUNCHER_MAX_POS);
+                outtakePID.setTargetRPM(3500);  // Example target RPM for shooter
+            } else if (gamepad1.b) {
+                outtakePID.stop();
             }
-            // When gamepad 'B' is pressed, set the target to the MIN position
-            else if (gamepad1.b) {
-                outtakePID.setTargetPosition(OuttakePID.LAUNCHER_MIN_POS);
+            // --- PID Tuning ---
+            else if (gamepad1.left_bumper) {
+                outtakePID.increaseP();
+            } else if (gamepad1.right_bumper) {
+                outtakePID.decreaseP();
+            } else if (gamepad1.dpad_right) {
+                outtakePID.increaseI();
+            } else if (gamepad1.dpad_left) {
+                outtakePID.decreaseI();
+            }
+// --- D tuning (Up/Down D-Pad for D) ---
+            else if (gamepad1.dpad_up) {
+                outtakePID.increaseD();
+            } else if (gamepad1.dpad_down) {
+                outtakePID.decreaseD();
+            }
+// --- F tuning (X/Y buttons) ---
+            else if (gamepad1.x) {
+                outtakePID.increaseF();
+            } else if (gamepad1.y) {
+                outtakePID.decreaseF();
             }
 
-            // --- THIS IS THE MOST IMPORTANT STEP ---
-            // You must call update() in every loop.
-            // This runs the PID calculations and sets the motor power.
+            // --- PID Update ---
             outtakePID.update();
 
+            panelsTelemetry.getTelemetry().addData("Target RPM", outtakePID.getTargetRPM());
+            panelsTelemetry.getTelemetry().addData("Current RPM", outtakePID.getCurrentRPM());
+            panelsTelemetry.getTelemetry().addData("kP", outtakePID.getP());
+            panelsTelemetry.getTelemetry().addData("kI", outtakePID.getI());
+            panelsTelemetry.getTelemetry().addData("kD", outtakePID.getD());
+            panelsTelemetry.getTelemetry().addData("kF", outtakePID.getF());
+            panelsTelemetry.getTelemetry().update();
 
-            // --- Telemetry for Debugging ---
-            // Display what the PID controller is doing
-            telemetry.addData("Target Position", outtakePID.getTargetPosition());
-            telemetry.addData("Current Position", outtakePID.getCurrentPosition());
-            telemetry.addData("Calculated Power", outtakePID.getCalculatedPower());
-            telemetry.update();
+
+            sleep(20);
         }
     }
 }
