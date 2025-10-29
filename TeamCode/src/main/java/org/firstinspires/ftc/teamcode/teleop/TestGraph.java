@@ -1,5 +1,6 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.graph;
 
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -8,7 +9,8 @@ import static java.lang.Math.*;
 
 @TeleOp(name = "Test Graph")
 public class TestGraph extends OpMode {
-    private ElapsedTime timer = new ElapsedTime();
+    private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
+    private final ElapsedTime timer = new ElapsedTime();
 
     private double sinVariable;
     private double cosVariable;
@@ -41,18 +43,20 @@ public class TestGraph extends OpMode {
         ramp = (t % 5.0) / 5.0;
         squareWave = sin(2 * PI * 0.5 * t) > 0 ? 1.0 : -1.0;
 
-        // Send data to FTC telemetry
-        telemetry.addData("sin", sinVariable);
-        telemetry.addData("cos", cosVariable);
-        telemetry.addData("dampedSine", dampedSine);
-        telemetry.addData("lissajous", lissajous);
-        telemetry.addData("ramp", ramp);
-        telemetry.addData("square", squareWave);
-        telemetry.addData("const", constVariable);
+        // Send data to Panels dashboard
+        panelsTelemetry.getTelemetry().addData("sin", sinVariable);
+        panelsTelemetry.addData("sin", sinVariable);
+        panelsTelemetry.addData("cos", cosVariable);
+        panelsTelemetry.addData("dampedSine", dampedSine);
+        panelsTelemetry.addData("lissajous", lissajous);
+        panelsTelemetry.addData("ramp", ramp);
+        panelsTelemetry.addData("square", squareWave);
+        panelsTelemetry.addData("const", constVariable);
 
         // Multiple values in one line
-        telemetry.addData("extra", "t=" + t + " t^2=" + (t*t) + " sqrt(t)=" + sqrt(t));
+        panelsTelemetry.addLine("extra1:" + t + " extra2:" + (t * t) + " extra3:" + sqrt(t));
 
-        telemetry.update();
+        // Update the dashboard
+        panelsTelemetry.update();
     }
 }
