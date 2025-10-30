@@ -32,16 +32,20 @@ public class MainTeleop extends OpMode {
     public void loop() {
         chassis.runMacanumWheels(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         if (gamepad1.a) {
-            outtake.setTargetRPM(3500); // Currently overshoots a little bit over, 3500,3570
-            outtake.pullTrigger();
-        } else if (gamepad1.b) {
-            outtake.setTargetRPM(3500);
-            outtake.releaseTrigger();
-        } else if (gamepad1.x){
-            outtake.stop();
+            outtake.nextState();
+//            outtake.setTargetRPM(3500); // Currently overshoots a little bit over, 3500,3570
+//            outtake.pullTrigger();
+        }
+//        else if (gamepad1.b) {
+//            outtake.setTargetRPM(3500);
+//            outtake.releaseTrigger();
+//        }
+        else if (gamepad1.x){
+//            outtake.stop();
         }
 
         // Must call to run other functions in Outtake
+        outtake.startShooterLogic();
         outtake.update();
 
         // --- Panels Telemetry ---
