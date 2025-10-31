@@ -69,9 +69,12 @@ public class OuttakePID {
     public void startShooterLogic() {
         switch (currentState) {
             case STOPPED:
-                setTargetRPM(3500);
+                stop();
                 break;
             case READY:
+                setTargetRPM(3500);
+                break;
+            case SHOOTING:
                 // Check if we're near target RPM
                 if (Math.abs(getCurrentRPM() - targetRPM) <= 100) {
                     pullTrigger();
@@ -80,9 +83,6 @@ public class OuttakePID {
                     releaseTrigger();
                     launcherReady = false;
                 }
-                break;
-            case SHOOTING:
-                stop();
                 break;
         }
     }
@@ -169,6 +169,10 @@ public class OuttakePID {
 
     public double getCurrentRPM() {
         return this.currentRPM;
+    }
+
+    public ShooterState getState() {
+        return currentState;
     }
 
     public double getCalculatedPower() {
