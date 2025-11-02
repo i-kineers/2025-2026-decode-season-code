@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
@@ -10,15 +11,14 @@ import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(7.257478) // Mass of the robot in kilograms. Just chassis is: 5.170953kg
             .forwardZeroPowerAcceleration(-30) // Previously without top half -42.4933
-            .lateralZeroPowerAcceleration(-32); // Previously without top half -41.7244
+            .lateralZeroPowerAcceleration(-32) // Previously without top half -41.7244
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.05,0,0.01,0.01));
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
@@ -46,7 +46,6 @@ public class Constants {
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
-                .translationalPIDFCoefficients(new PIDFCoefficients(0.05,0,0.01,0.01))
                 .pinpointLocalizer(localizerConstants)
                 .pathConstraints(pathConstraints)
                 .mecanumDrivetrain(driveConstants)
