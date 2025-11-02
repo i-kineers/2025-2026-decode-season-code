@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystems.Chassis;
+
 import org.firstinspires.ftc.teamcode.subsystems.OuttakePID;
 
 
@@ -30,17 +31,13 @@ public class MainTeleop extends OpMode {
     @Override
     public void loop() {
         chassis.runMacanumWheels(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-        if (gamepad1.a) {
-            outtake.setTargetRPM(3500); // Currently overshoots a little bit over, 3500,3570
-            outtake.pullTrigger();
-        } else if (gamepad1.b) {
-            outtake.setTargetRPM(3500);
-            outtake.releaseTrigger();
-        } else if (gamepad1.x){
-            outtake.stop();
+
+        if (gamepad1.aWasPressed()) {
+            outtake.nextState();
         }
 
         // Must call to run other functions in Outtake
+        outtake.startShooterLogic();
         outtake.update();
 
         // --- Panels Telemetry ---
@@ -59,8 +56,8 @@ public class MainTeleop extends OpMode {
         telemetry.addData("kI", outtake.getI());
         telemetry.addData("kD", outtake.getD());
         telemetry.addData("kF", outtake.getF());
+        telemetry.addData("Current State", outtake.getState());
         telemetry.update();
-
 
         try {
             Thread.sleep(50);

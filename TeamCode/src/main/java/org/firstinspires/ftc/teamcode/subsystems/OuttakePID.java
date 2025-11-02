@@ -42,6 +42,15 @@ public class OuttakePID {
     private final ElapsedTime runtime;
     private final ElapsedTime loopTimer;
 
+    // FSM
+    public enum ShooterState {
+        STOPPED,      // Not running
+        READY,        // Spinning up to the target RPM
+        SHOOTING      // At target RPM and trigger is active (loaders are on)
+    }
+    private ShooterState currentState = ShooterState.STOPPED;
+    private static boolean launcherReady = false;
+
     // ===== CONSTRUCTOR =====
     public OuttakePID(HardwareMap hardwareMap) {
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
@@ -55,6 +64,44 @@ public class OuttakePID {
         runtime = new ElapsedTime();
         loopTimer = new ElapsedTime();
     }
+
+    // Shooter Logic
+    public void startShooterLogic() {
+        switch (currentState) {
+            case STOPPED:
+                stop();
+                break;
+            case READY:
+                setTargetRPM(3500);
+                break;
+            case SHOOTING:
+                // Check if we're near target RPM
+                if (Math.abs(getCurrentRPM() - targetRPM) <= 100) {
+                    pullTrigger();
+                    launcherReady = true;
+                } else {
+                    releaseTrigger();
+                    launcherReady = false;
+                }
+                break;
+        }
+    }
+
+    // State Switcher
+    public void nextState() {
+        switch (currentState) {
+            case STOPPED:
+                currentState = ShooterState.READY;
+                break;
+            case READY:
+                currentState = ShooterState.SHOOTING;
+                break;
+            case SHOOTING:
+                currentState = ShooterState.STOPPED;
+                break;
+        }
+    }
+
 
     // ===== MAIN PID METHOD =====
     private double runLauncherPID() {
@@ -124,6 +171,10 @@ public class OuttakePID {
         return this.currentRPM;
     }
 
+    public ShooterState getState() {
+        return currentState;
+    }
+
     public double getCalculatedPower() {
         return this.lastCalculatedPower;
     }
@@ -151,7 +202,6 @@ public class OuttakePID {
     public void increaseF() { kF += (0.78 / MAX_RPM) * 0.05; } // +5%
     public void decreaseF() { kF = Math.max(0, kF - (0.78 / MAX_RPM) * 0.05); } // -5%
 
-
     // ===== SHOOTER CONTROL =====
     public void pullTrigger() {
         leftLoader.setPower(1.0);
@@ -173,6 +223,15 @@ public class OuttakePID {
         d_component = 0;
         previous_error = 0;
         previous_time = 0;
+    }
+
+    // ===== SLEEP =====
+    public void sleep(long milli) {
+        try {
+            Thread.sleep(milli);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     // Accessor methods

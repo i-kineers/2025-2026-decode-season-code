@@ -5,7 +5,6 @@ import com.pedropathing.geometry.FuturePose;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathConstraints;
-
 import java.util.Arrays;
 
 public class LinearSpline extends CustomCurve {

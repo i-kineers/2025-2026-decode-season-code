@@ -1,13 +1,11 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import static java.lang.Math.cos;
-import static java.lang.Math.exp;
-import static java.lang.Math.sin;
-
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import static java.lang.Math.*;
 
 @TeleOp(name = "Test Graph")
 public class TestGraph extends OpMode {
