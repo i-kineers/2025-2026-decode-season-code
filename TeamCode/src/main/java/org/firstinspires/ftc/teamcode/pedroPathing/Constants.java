@@ -10,27 +10,28 @@ import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(7.257478) // Mass of the robot in kilograms. Just chassis is: 5.170953kg
-            .forwardZeroPowerAcceleration(-42.4933)
-            .lateralZeroPowerAcceleration(-41.7244);
+            .forwardZeroPowerAcceleration(-30) // Previously without top half -42.4933
+            .lateralZeroPowerAcceleration(-32); // Previously without top half -41.7244
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
             .xVelocity(58.9984)
-            .yVelocity(49.8)
+            .yVelocity(52)
             .rightFrontMotorName("frmotor")
             .rightRearMotorName("brmotor")
             .leftRearMotorName("blmotor")
             .leftFrontMotorName("flmotor")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(-4.724409) // Done
@@ -45,6 +46,7 @@ public class Constants {
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
+                .translationalPIDFCoefficients(new PIDFCoefficients(0.05,0,0.01,0.01))
                 .pinpointLocalizer(localizerConstants)
                 .pathConstraints(pathConstraints)
                 .mecanumDrivetrain(driveConstants)
