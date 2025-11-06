@@ -76,7 +76,7 @@ public class OuttakePID {
                 break;
             case SHOOTING:
                 // Check if we're near target RPM
-                if (Math.abs(getCurrentRPM() - targetRPM) <= 100) {
+                if (Math.abs(getCurrentRPM() - targetRPM) <= 50) {
                     pullTrigger();
                     launcherReady = true;
                 } else {
