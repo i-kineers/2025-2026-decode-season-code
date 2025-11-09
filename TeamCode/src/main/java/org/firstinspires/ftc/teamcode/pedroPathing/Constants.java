@@ -19,8 +19,8 @@ public class Constants {
             .mass(5.170953) // Mass of the robot in kilograms. Meet 0 bot is: 7.257478 kg
             .forwardZeroPowerAcceleration(-30.0827) // Previously without top half -42.4933
             .lateralZeroPowerAcceleration(-50) // Previously without top half -41.7244
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.05,0,0.01,0.02))
-            .headingPIDFCoefficients(new PIDFCoefficients(0.8,0,0.05,0.02))
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.05,0,0.01,0.01))
+            .headingPIDFCoefficients(new PIDFCoefficients(0.5,0,0.05,0.01))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01,0,0.00001,0.6, 0.01))
             .centripetalScaling(0.0005);
 

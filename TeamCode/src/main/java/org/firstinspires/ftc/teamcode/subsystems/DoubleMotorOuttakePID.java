@@ -67,8 +67,6 @@ public class DoubleMotorOuttakePID {
         launcher.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         launcher2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
-        launcher2.setDirection(DcMotorSimple.Direction.REVERSE);
-
         runtime = new ElapsedTime();
         loopTimer = new ElapsedTime();
     }
