@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystems.Chassis;
 
+import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
 import org.firstinspires.ftc.teamcode.subsystems.OuttakePID;
 
 
@@ -15,7 +16,7 @@ public class MainTeleop extends OpMode {
 
     private PanelsTelemetry panelsTelemetry;
     private Chassis chassis;
-    private OuttakePID outtake;
+    private DoubleMotorOuttakePID outtake;
 
 
     @Override
@@ -23,7 +24,7 @@ public class MainTeleop extends OpMode {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
         chassis = new Chassis(hardwareMap);
-        outtake = new OuttakePID(hardwareMap);
+        outtake = new DoubleMotorOuttakePID(hardwareMap);
     }
 
 

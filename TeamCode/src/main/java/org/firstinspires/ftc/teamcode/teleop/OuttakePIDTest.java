@@ -29,27 +29,23 @@ public class OuttakePIDTest extends LinearOpMode {
             } else if (gamepad1.b) {
                 outtake.stop();
             }
-            // --- PID Tuning ---
-            else if (gamepad1.left_bumper) {
+            // --- P tuning (X/Y buttons) ---
+            else if (gamepad1.xWasPressed()) {
                 outtake.increaseP();
-            } else if (gamepad1.right_bumper) {
+            } else if (gamepad1.yWasPressed()) {
                 outtake.decreaseP();
-            } else if (gamepad1.dpad_right) {
+            }
+            // --- I tuning (Left/Right D-Pad for I) ---
+            else if (gamepad1.dpad_right) {
                 outtake.increaseI();
             } else if (gamepad1.dpad_left) {
                 outtake.decreaseI();
             }
-// --- D tuning (Up/Down D-Pad for D) ---
+            // --- D tuning (Up/Down D-Pad for D) ---
             else if (gamepad1.dpad_up) {
                 outtake.increaseD();
             } else if (gamepad1.dpad_down) {
                 outtake.decreaseD();
-            }
-// --- F tuning (X/Y buttons) ---
-            else if (gamepad1.x) {
-                outtake.increaseF();
-            } else if (gamepad1.y) {
-                outtake.decreaseF();
             }
 
             // --- PID Update ---
@@ -60,7 +56,6 @@ public class OuttakePIDTest extends LinearOpMode {
             panelsTelemetry.getTelemetry().addData("kP", outtake.getP());
             panelsTelemetry.getTelemetry().addData("kI", outtake.getI());
             panelsTelemetry.getTelemetry().addData("kD", outtake.getD());
-            panelsTelemetry.getTelemetry().addData("kF", outtake.getF());
             panelsTelemetry.getTelemetry().update();
 
 

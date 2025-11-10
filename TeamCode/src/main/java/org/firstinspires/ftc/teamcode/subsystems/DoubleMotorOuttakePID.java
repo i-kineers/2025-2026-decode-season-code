@@ -44,6 +44,11 @@ public class DoubleMotorOuttakePID {
     private final ElapsedTime runtime;
     private final ElapsedTime loopTimer;
 
+    public void setPower(double motorPower) {
+        launcher.setPower(motorPower);
+        launcher2.setPower(motorPower);
+    }
+
     // FSM
     public enum ShooterState {
         STOPPED,      // Not running
@@ -177,6 +182,9 @@ public class DoubleMotorOuttakePID {
     public double getCurrentRPM() {
         return this.currentRPM;
     }
+
+    // The new, SAFE method in DoubleMotorOuttakePID.java
+    public double getRawRPM() { return (launcher.getVelocity() / TICKS_PER_REV) * 60.0; }
 
     public ShooterState getState() {
         return currentState;
