@@ -16,7 +16,7 @@ public class DoubleMotorOuttakePID {
     public static double kP = 0.01;
     public static double kI = 0.0002;
     public static double kD = 0.0004;
-    public static double kF = 0.78 / MAX_RPM;
+    public static double kF = 0.78 / MAX_RPM; // Adjust this to fine tune the value which will hold the target RPM
 
     public static double SMOOTHING_ALPHA = 0.2;
     public static double RPM_TOLERANCE = 15.0;
@@ -107,7 +107,6 @@ public class DoubleMotorOuttakePID {
                 break;
         }
     }
-
 
     // ===== MAIN PID METHOD =====
     private double runLauncherPID() {
