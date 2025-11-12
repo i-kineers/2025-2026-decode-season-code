@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -13,10 +12,10 @@ public class DoubleMotorOuttakePID {
     private static final double MAX_RPM = 6000.0;
 
     // ===== PID CONSTANTS =====
-    public static double kP = 0.01;
+    public static double kP = 0.0045; // Good value is 0.0045
     public static double kI = 0.0002;
-    public static double kD = 0.0004;
-    public static double kF = 0.78 / MAX_RPM; // Adjust this to fine tune the value which will hold the target RPM
+    public static double kD = 0.0005; // Good value is 0.0005
+    public static double kF = 0.42 / MAX_RPM; // Adjust this tod fine tune the value which will hold the target RP
 
     public static double SMOOTHING_ALPHA = 0.2;
     public static double RPM_TOLERANCE = 15.0;
@@ -83,12 +82,12 @@ public class DoubleMotorOuttakePID {
                 stop();
                 break;
             case READY:
-                setTargetRPM(3500);
+                setTargetRPM(2000);
                 break;
             case SHOOTING:
                 // Check if we're near target RPM
                 if (Math.abs(getCurrentRPM() - targetRPM) <= 50) {
-                    pullTrigger();
+                    runLoader();
                     launcherReady = true;
                 } else {
                     releaseTrigger();
@@ -124,7 +123,7 @@ public class DoubleMotorOuttakePID {
         }
 
         // --- Compute current RPM from motor velocity ---
-        double rawRPM = (launcher.getVelocity() / TICKS_PER_REV) * 60.0;
+        double rawRPM = (launcher2.getVelocity() / TICKS_PER_REV) * 60.0;
         currentRPM = (SMOOTHING_ALPHA * rawRPM) + ((1.0 - SMOOTHING_ALPHA) * lastFilteredRPM);
         lastFilteredRPM = currentRPM;
 
@@ -184,7 +183,7 @@ public class DoubleMotorOuttakePID {
     }
 
     // The new, SAFE method in DoubleMotorOuttakePID.java
-    public double getRawRPM() { return (launcher.getVelocity() / TICKS_PER_REV) * 60.0; }
+    public double getRawRPM() { return (launcher2.getVelocity() / TICKS_PER_REV) * 60.0; }
 
     public ShooterState getState() {
         return currentState;
@@ -218,7 +217,7 @@ public class DoubleMotorOuttakePID {
     public void decreaseF() { kF = Math.max(0, kF - (0.78 / MAX_RPM) * 0.05); } // -5%
 
     // ===== SHOOTER CONTROL =====
-    public void pullTrigger() {
+    public void runLoader() {
         leftLoader.setPower(1.0);
         rightLoader.setPower(-1.0);
     }

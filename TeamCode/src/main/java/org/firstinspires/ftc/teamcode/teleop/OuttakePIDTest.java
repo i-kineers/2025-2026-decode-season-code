@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
 public class OuttakePIDTest extends LinearOpMode {
     private DoubleMotorOuttakePID outtake;
     private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
+    double targetRPM = 2000;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -25,9 +26,15 @@ public class OuttakePIDTest extends LinearOpMode {
         while (opModeIsActive()) {
             // --- Button Logic ---
             if (gamepad1.a) {
-                outtake.setTargetRPM(3500);  // Example target RPM for shooter
+                outtake.setTargetRPM(targetRPM);  // Example target RPM for shooter
             } else if (gamepad1.b) {
                 outtake.stop();
+            }
+            // --- Increase/Decrease target rpm ---
+            else if (gamepad1.rightBumperWasPressed()) {
+                targetRPM += 100;
+            } else if (gamepad1.leftBumperWasPressed()) {
+                targetRPM -= 100;
             }
             // --- P tuning (X/Y buttons) ---
             else if (gamepad1.xWasPressed()) {
@@ -36,15 +43,15 @@ public class OuttakePIDTest extends LinearOpMode {
                 outtake.decreaseP();
             }
             // --- I tuning (Left/Right D-Pad for I) ---
-            else if (gamepad1.dpad_right) {
+            else if (gamepad1.dpadRightWasPressed()) {
                 outtake.increaseI();
-            } else if (gamepad1.dpad_left) {
+            } else if (gamepad1.dpadLeftWasPressed()) {
                 outtake.decreaseI();
             }
             // --- D tuning (Up/Down D-Pad for D) ---
-            else if (gamepad1.dpad_up) {
+            else if (gamepad1.dpadUpWasPressed()) {
                 outtake.increaseD();
-            } else if (gamepad1.dpad_down) {
+            } else if (gamepad1.dpadDownWasPressed()) {
                 outtake.decreaseD();
             }
 

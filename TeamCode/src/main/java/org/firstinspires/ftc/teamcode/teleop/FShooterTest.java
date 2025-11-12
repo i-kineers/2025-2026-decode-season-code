@@ -18,14 +18,15 @@ public class FShooterTest extends OpMode {
 
     @Override
     public void loop() {
-
         if (gamepad1.aWasPressed()) {
             motorPower += 0.01;
         } else if (gamepad1.bWasPressed()) {
             motorPower -= 0.01;
         } else if (gamepad1.xWasPressed()) {
-            shooter.setPower(motorPower);
+            motorPower = 0;
         }
+
+        shooter.setPower(motorPower);
 
         // 4. Provide feedback to the screen
         telemetry.addData("Motor Power", motorPower);
