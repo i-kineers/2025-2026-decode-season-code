@@ -63,6 +63,7 @@ public class OuttakePIDTest extends LinearOpMode {
             panelsTelemetry.getTelemetry().addData("kP", outtake.getP());
             panelsTelemetry.getTelemetry().addData("kI", outtake.getI());
             panelsTelemetry.getTelemetry().addData("kD", outtake.getD());
+            panelsTelemetry.getTelemetry().addData("kF", outtake.getF());
             panelsTelemetry.getTelemetry().update();
 
 

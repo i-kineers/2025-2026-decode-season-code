@@ -61,7 +61,7 @@ public class MainTeleop extends OpMode {
         telemetry.update();
 
         try {
-            Thread.sleep(50);
+            Thread.sleep(20);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

@@ -218,8 +218,8 @@ public class DoubleMotorOuttakePID {
 
     // ===== SHOOTER CONTROL =====
     public void runLoader() {
-        leftLoader.setPower(1.0);
-        rightLoader.setPower(-1.0);
+        leftLoader.setPower(-1.0);
+        rightLoader.setPower(1.0);
     }
 
     public void releaseTrigger() {
