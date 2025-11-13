@@ -82,7 +82,7 @@ public class DoubleMotorOuttakePID {
                 stop();
                 break;
             case READY:
-                setTargetRPM(2000);
+                setTargetRPM(3000);
                 break;
             case SHOOTING:
                 // Check if we're near target RPM
@@ -90,7 +90,7 @@ public class DoubleMotorOuttakePID {
                     runLoader();
                     launcherReady = true;
                 } else {
-                    releaseTrigger();
+                    stopLoader();
                     launcherReady = false;
                 }
                 break;
@@ -222,14 +222,14 @@ public class DoubleMotorOuttakePID {
         rightLoader.setPower(1.0);
     }
 
-    public void releaseTrigger() {
+    public void stopLoader() {
         leftLoader.setPower(0.0);
         rightLoader.setPower(0.0);
     }
 
     // ===== STOP =====
     public void stop() {
-        releaseTrigger();
+        stopLoader();
         launcher.setPower(0);
         launcher2.setPower(0);
         targetRPM = 0;

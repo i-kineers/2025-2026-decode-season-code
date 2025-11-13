@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
 
-@TeleOp(name = "Outtake RPM PID Test")
+@TeleOp(name = "Find Ideal RPM")
 public class OuttakePIDTest extends LinearOpMode {
     private DoubleMotorOuttakePID outtake;
     private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
@@ -65,7 +65,6 @@ public class OuttakePIDTest extends LinearOpMode {
             panelsTelemetry.getTelemetry().addData("kD", outtake.getD());
             panelsTelemetry.getTelemetry().addData("kF", outtake.getF());
             panelsTelemetry.getTelemetry().update();
-
 
             sleep(20);
         }
