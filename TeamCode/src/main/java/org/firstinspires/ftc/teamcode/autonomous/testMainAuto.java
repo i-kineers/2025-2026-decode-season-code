@@ -19,7 +19,7 @@ public class testMainAuto extends OpMode {
 
     private int pathState;
 
-    private final Pose startPose = new Pose(22, 120, Math.toRadians(180)); // Start Pose of our robot.
+    private final Pose startPose = new Pose(22, 120, Math.toRadians(135)); // Start Pose of our robot.
     private final Pose scorePose = new Pose(47, 97, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose endPose = new Pose(72, 47, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
     private Path scorePreload;
