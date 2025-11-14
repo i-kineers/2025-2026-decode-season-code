@@ -33,6 +33,8 @@ public class MainTeleop extends OpMode {
 
         if (gamepad1.aWasPressed()) {
             outtake.nextState();
+        } else if (gamepad1.bWasPressed()) {
+            outtake.toggleRapidShoot();
         } else if (gamepad1.dpadUpWasPressed()) {
             outtake.increaseTargetRPM();
         } else if (gamepad1.dpadDownWasPressed()) {
@@ -60,6 +62,7 @@ public class MainTeleop extends OpMode {
         telemetry.addData("kD", outtake.getD());
         telemetry.addData("kF", outtake.getF());
         telemetry.addData("Current State", outtake.getState());
+        telemetry.addData("Toggled Rapid Shooter", outtake.getRapidShooterState());
         telemetry.update();
 
         try {

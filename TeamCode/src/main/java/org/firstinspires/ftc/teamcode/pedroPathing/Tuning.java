@@ -65,6 +65,7 @@ public class Tuning extends SelectableOpMode {
                 p.add("Translational Tuner", TranslationalTuner::new);
                 p.add("Heading Tuner", HeadingTuner::new);
                 p.add("Drive Tuner", DriveTuner::new);
+                p.add("Line Tuner", Line::new);
                 p.add("Centripetal Tuner", CentripetalTuner::new);
             });
             s.folder("Tests", p -> {
@@ -904,7 +905,7 @@ class DriveTuner extends OpMode {
     public void start() {
         follower.deactivateAllPIDFs();
         follower.activateDrive();
-        
+
         forwards = follower.pathBuilder()
                 .setGlobalDeceleration()
                 .addPath(new BezierLine(new Pose(72,72), new Pose(DISTANCE + 72,72)))

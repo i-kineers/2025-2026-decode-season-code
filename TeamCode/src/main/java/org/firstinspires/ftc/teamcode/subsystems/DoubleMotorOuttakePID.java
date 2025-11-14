@@ -33,6 +33,7 @@ public class DoubleMotorOuttakePID {
     private double previous_time = 0.0;
     private double lastCalculatedPower = 0.0;
     private double lastFilteredRPM = 0.0;
+    private boolean rapidShoot = false;
 
     // ===== HARDWARE =====
     private final DcMotorEx launcher;
@@ -85,11 +86,15 @@ public class DoubleMotorOuttakePID {
                 setTargetRPM(storeTargetRPM);
                 break;
             case SHOOTING:
-                // Check if we're near target RPM
-                if (Math.abs(getCurrentRPM() - targetRPM) <= 50) {
+                if (rapidShoot == true) {
                     runLoader();
-                } else {
-                    stopLoader();
+                } else if (rapidShoot == false) {
+                    // Check if we're near target RPM
+                    if (Math.abs(getCurrentRPM() - targetRPM) <= 50) {
+                        runLoader();
+                    } else {
+                        stopLoader();
+                    }
                 }
                 break;
         }
@@ -167,12 +172,30 @@ public class DoubleMotorOuttakePID {
         }
     }
 
-    public void autoRapidShoot(double power, long time) {
-        setTargetRPM(power);
-        runLoader();
-        sleep(time);
+    public void autoRapidShoot(double rpm, long time) {
+        setTargetRPM(rpm);
+
+        // Wait for the launcher to reach the target speed before shooting.
+        ElapsedTime timer = new ElapsedTime();
+        // Give it up to 3 seconds to spin up.
+        while (timer.milliseconds() < 7000 && Math.abs(getCurrentRPM() - rpm) > RPM_TOLERANCE) {
+            if (loopTimer.milliseconds() > 500) {
+                runLoader();
+            }
+            update(); // This needs to be called to update the motor power from the PID controller.
+            sleep(10); // Small pause to prevent busy-waiting and allow other things to run.
+        }
         stopLoader();
         setTargetRPM(0);
+        update(); // Apply the change to stop the motors.
+    }
+
+    public void toggleRapidShoot() {
+        if (rapidShoot == false) {
+            rapidShoot = true;
+        } else if (rapidShoot == true) {
+            rapidShoot = false;
+        }
     }
 
     // ===== RPM CONTROL =====
@@ -195,6 +218,10 @@ public class DoubleMotorOuttakePID {
 
     public ShooterState getState() {
         return currentState;
+    }
+
+    public boolean getRapidShooterState() {
+        return rapidShoot;
     }
 
     public double getCalculatedPower() {
