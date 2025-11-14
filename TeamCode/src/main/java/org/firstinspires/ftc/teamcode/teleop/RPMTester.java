@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
 
 @TeleOp(name = "Outtake RPM PID Test")
-public class FShooterTest extends LinearOpMode {
+public class RPMTester extends LinearOpMode {
     private DoubleMotorOuttakePID outtake;
     private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
     double targetRPM = 2000;

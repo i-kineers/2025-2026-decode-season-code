@@ -25,7 +25,7 @@ public class Chassis {
     public void runMacanumWheels(double leftStickX, double leftStickY, double rightStickX) {
         double y = -leftStickY; // Remember, Y stick value is reversed
         double x = leftStickX * 1.1; // Counteract imperfect strafing
-        double rx = rightStickX;
+        double rx = rightStickX * 0.4; // Reduce rotation speed
 
 
         // Denominator is the largest motor power (absolute value) or 1

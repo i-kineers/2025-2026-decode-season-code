@@ -7,8 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.subsystems.Chassis;
 
 import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
-import org.firstinspires.ftc.teamcode.subsystems.OuttakePID;
-
 
 
 @TeleOp(name="Main")
@@ -35,6 +33,10 @@ public class MainTeleop extends OpMode {
 
         if (gamepad1.aWasPressed()) {
             outtake.nextState();
+        } else if (gamepad1.dpadUpWasPressed()) {
+            outtake.increaseTargetRPM();
+        } else if (gamepad1.dpadDownWasPressed()) {
+            outtake.decreaseTargetRPM();
         }
 
         // Must call to run other functions in Outtake

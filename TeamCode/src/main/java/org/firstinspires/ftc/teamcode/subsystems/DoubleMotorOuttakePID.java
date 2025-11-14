@@ -21,7 +21,8 @@ public class DoubleMotorOuttakePID {
     public static double RPM_TOLERANCE = 15.0;
 
     // ===== RUNTIME STATE =====
-    private double targetRPM = 0.0;
+    private double targetRPM = 0;
+    private double storeTargetRPM = 2500;
     private double currentRPM = 0.0;
 
     private double p_component = 0.0;
@@ -55,7 +56,6 @@ public class DoubleMotorOuttakePID {
         SHOOTING      // At target RPM and trigger is active (loaders are on)
     }
     private ShooterState currentState = ShooterState.STOPPED;
-    private static boolean launcherReady = false;
 
     // ===== CONSTRUCTOR =====
     public DoubleMotorOuttakePID(HardwareMap hardwareMap) {
@@ -82,16 +82,14 @@ public class DoubleMotorOuttakePID {
                 stop();
                 break;
             case READY:
-                setTargetRPM(3000);
+                setTargetRPM(storeTargetRPM);
                 break;
             case SHOOTING:
                 // Check if we're near target RPM
                 if (Math.abs(getCurrentRPM() - targetRPM) <= 50) {
                     runLoader();
-                    launcherReady = true;
                 } else {
                     stopLoader();
-                    launcherReady = false;
                 }
                 break;
         }
@@ -169,10 +167,20 @@ public class DoubleMotorOuttakePID {
         }
     }
 
-    // ===== RPM CONTROL =====
-    public void setTargetRPM(double rpm) {
-        this.targetRPM = Math.max(0, Math.min(MAX_RPM, rpm));
+    public void autoRapidShoot(double power, long time) {
+        setTargetRPM(power);
+        runLoader();
+        sleep(time);
+        stopLoader();
+        setTargetRPM(0);
     }
+
+    // ===== RPM CONTROL =====
+    public void setTargetRPM(double rpm) { this.targetRPM = Math.max(0, Math.min(MAX_RPM, rpm)); }
+
+    public void increaseTargetRPM() { storeTargetRPM += 100; }
+
+    public void decreaseTargetRPM() { storeTargetRPM -= 100; }
 
     public double getTargetRPM() {
         return this.targetRPM;
@@ -248,14 +256,4 @@ public class DoubleMotorOuttakePID {
             Thread.currentThread().interrupt();
         }
     }
-
-    // Accessor methods
-    public double getRawPID() { return raw_pid_value; }  // unclamped
-    public double getMotorPower() { return lastCalculatedPower; }  // clamped 0–1
-
-    // ===== LEGACY COMPATIBILITY METHODS =====
-    // (so your TeleOp doesn't break)
-    public double getTargetPosition() { return targetRPM; }
-    public double getCurrentPosition() { return currentRPM; }
-    public double getRPM() { return currentRPM; }
 }
