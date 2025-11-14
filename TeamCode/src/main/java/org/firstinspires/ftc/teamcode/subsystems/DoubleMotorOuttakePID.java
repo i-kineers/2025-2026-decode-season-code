@@ -34,6 +34,8 @@ public class DoubleMotorOuttakePID {
     private double lastCalculatedPower = 0.0;
     private double lastFilteredRPM = 0.0;
     private boolean rapidShoot = false;
+    private boolean servoToggle = false;
+
 
     // ===== HARDWARE =====
     private final DcMotorEx launcher;
@@ -86,15 +88,19 @@ public class DoubleMotorOuttakePID {
                 setTargetRPM(storeTargetRPM);
                 break;
             case SHOOTING:
-                if (rapidShoot == true) {
-                    runLoader();
-                } else if (rapidShoot == false) {
-                    // Check if we're near target RPM
-                    if (Math.abs(getCurrentRPM() - targetRPM) <= 50) {
+                if (servoToggle == true){
+                    if (rapidShoot == true) {
                         runLoader();
-                    } else {
-                        stopLoader();
+                    } else if (rapidShoot == false) {
+                        // Check if we're near target RPM
+                        if (Math.abs(getCurrentRPM() - targetRPM) <= 50) {
+                            runLoader();
+                        } else {
+                            stopLoader();
+                        }
                     }
+                } else if (servoToggle == false) {
+                    stopLoader();
                 }
                 break;
         }
@@ -191,10 +197,18 @@ public class DoubleMotorOuttakePID {
     }
 
     public void toggleRapidShoot() {
-        if (rapidShoot == false) {
+        if (!rapidShoot) {
             rapidShoot = true;
-        } else if (rapidShoot == true) {
+        } else if (rapidShoot) {
             rapidShoot = false;
+        }
+    }
+
+    public void toggleServos() {
+        if (!servoToggle) {
+            servoToggle = true;
+        } else if (servoToggle) {
+            servoToggle = false;
         }
     }
 

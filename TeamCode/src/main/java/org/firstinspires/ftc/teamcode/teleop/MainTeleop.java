@@ -35,6 +35,8 @@ public class MainTeleop extends OpMode {
             outtake.nextState();
         } else if (gamepad1.bWasPressed()) {
             outtake.toggleRapidShoot();
+        } else if (gamepad1.xWasPressed()) {
+            outtake.toggleServos();
         } else if (gamepad1.dpadUpWasPressed()) {
             outtake.increaseTargetRPM();
         } else if (gamepad1.dpadDownWasPressed()) {
