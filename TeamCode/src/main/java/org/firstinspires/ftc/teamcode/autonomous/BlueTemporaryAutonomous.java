@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
 
 @Autonomous(name = "Temporary Autonomous", group = "Temporary")
-public class TemporaryAutonomous extends LinearOpMode {
+public class BlueTemporaryAutonomous extends LinearOpMode {
 
     private DcMotor frontLeft;
     private DcMotor rearLeft;
