@@ -178,7 +178,7 @@ public class DoubleMotorOuttakePID {
         // Wait for the launcher to reach the target speed before shooting.
         ElapsedTime timer = new ElapsedTime();
         // Give it up to 3 seconds to spin up.
-        while (timer.milliseconds() < 7000 && Math.abs(getCurrentRPM() - rpm) > RPM_TOLERANCE) {
+        while (timer.milliseconds() < time) {
             if (loopTimer.milliseconds() > 500) {
                 runLoader();
             }

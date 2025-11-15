@@ -41,10 +41,10 @@ public class RedTemporaryAutonomous extends LinearOpMode {
             moveBackwards(0.5, 800);
 
             // Shoot
-            outtake.autoRapidShoot(2500, 5000); // Shoot at 2500 RPM for 1 second
+            outtake.autoRapidShoot(2500, 3000); // Shoot at 2500 RPM for 1 second
 
             // Strafe right a little more to cross the line
-            strafeLeft(0.5, 500);
+            strafeRight(0.5, 500);
         }
     }
 
