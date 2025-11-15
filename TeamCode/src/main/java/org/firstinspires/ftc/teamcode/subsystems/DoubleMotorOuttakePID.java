@@ -22,7 +22,7 @@ public class DoubleMotorOuttakePID {
 
     // ===== RUNTIME STATE =====
     private double targetRPM = 0;
-    private double storeTargetRPM = 2500;
+    private double storeTargetRPM = 3000;
     private double currentRPM = 0.0;
 
     private double p_component = 0.0;
@@ -55,7 +55,6 @@ public class DoubleMotorOuttakePID {
     // FSM
     public enum ShooterState {
         STOPPED,      // Not running
-        READY,        // Spinning up to the target RPM
         SHOOTING      // At target RPM and trigger is active (loaders are on)
     }
     private ShooterState currentState = ShooterState.STOPPED;
@@ -84,10 +83,8 @@ public class DoubleMotorOuttakePID {
             case STOPPED:
                 stop();
                 break;
-            case READY:
-                setTargetRPM(storeTargetRPM);
-                break;
             case SHOOTING:
+                setTargetRPM(storeTargetRPM);
                 if (servoToggle == true){
                     if (rapidShoot == true) {
                         runLoader();
@@ -110,9 +107,6 @@ public class DoubleMotorOuttakePID {
     public void nextState() {
         switch (currentState) {
             case STOPPED:
-                currentState = ShooterState.READY;
-                break;
-            case READY:
                 currentState = ShooterState.SHOOTING;
                 break;
             case SHOOTING:
@@ -204,10 +198,10 @@ public class DoubleMotorOuttakePID {
         }
     }
 
-    public void toggleServos() {
-        if (!servoToggle) {
+    public void toggleServos(int toggle) {
+        if (toggle == 1) {
             servoToggle = true;
-        } else if (servoToggle) {
+        } else if (toggle == 0) {
             servoToggle = false;
         }
     }
@@ -236,6 +230,10 @@ public class DoubleMotorOuttakePID {
 
     public boolean getRapidShooterState() {
         return rapidShoot;
+    }
+
+    public boolean getServoState() {
+        return servoToggle;
     }
 
     public double getCalculatedPower() {
