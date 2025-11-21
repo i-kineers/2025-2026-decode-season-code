@@ -1,21 +1,21 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Intake {
     DcMotor IntakeMotor;
-    CRServo GateServo;
+    Servo GateServo;
     public Intake (HardwareMap hardwareMap){
         IntakeMotor = hardwareMap.get(DcMotor.class, "Intake");
-        GateServo = hardwareMap.get(CRServo.class, "Gate");
+        GateServo = hardwareMap.get(Servo.class, "Gate");
     }
     public void runIntake(double power){
         IntakeMotor.setPower(power);
     }
-    public void runFullIntake(double Powers){
+    public void runFullIntake(double Powers, double GatePosition){
         IntakeMotor.setPower(Powers);
-        GateServo.setPower(Powers);
+        GateServo.setPosition(GatePosition);
     }
 }
