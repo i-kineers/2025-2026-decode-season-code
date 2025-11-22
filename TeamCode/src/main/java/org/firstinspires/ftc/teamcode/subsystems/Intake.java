@@ -9,13 +9,8 @@ public class Intake {
     Servo GateServo;
     public Intake (HardwareMap hardwareMap){
         IntakeMotor = hardwareMap.get(DcMotor.class, "Intake");
-        GateServo = hardwareMap.get(Servo.class, "Gate");
     }
     public void runIntake(double power){
         IntakeMotor.setPower(power);
-    }
-    public void runFullIntake(double Powers, double GatePosition){
-        IntakeMotor.setPower(Powers);
-        GateServo.setPosition(GatePosition);
     }
 }

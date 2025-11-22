@@ -13,20 +13,11 @@ public class IntakeTestTeleop extends OpMode {
     }
     @Override
     public void loop(){
-        if (gamepad1.x){
+        if (gamepad1.right_trigger == 1){
             intake.runIntake(1);
             // turns on intake
-        } else if( gamepad1.y){
-            intake.runFullIntake(1, 1);
-            // takes all balls and keeps from the outtake
-        } else if(gamepad1.b){
-            intake.runFullIntake(-1, 1);
-            // removes balls keeps the gate engage not allow in outtake.
-        } else if(gamepad1.a){
-            intake.runFullIntake(-1, -1);
-            // closes ball hole and allow them to go in outtake
         } else {
-            intake.runFullIntake(0, -1);
+            intake.runIntake(0);
             // intake not spinning and gate closed
         }
         telemetry.update();
