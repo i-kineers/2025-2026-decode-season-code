@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 public class IntakeTestTeleop extends OpMode {
     Intake intake;
     private double power = 0;
+    private double doorPosition = 0;
 
     public void init(){
         intake = new Intake(hardwareMap);
@@ -16,17 +17,23 @@ public class IntakeTestTeleop extends OpMode {
     public void loop(){
         if (gamepad1.right_trigger == 1){
             intake.runIntake(power);
-            // turns on intake
+        } else if (gamepad1.left_trigger == 1) {
+            intake.runGate(power);
         } else if (gamepad1.aWasPressed()) {
             power += 0.1;
         } else if (gamepad1.bWasPressed()) {
             power -= 0.1;
+        } else if (gamepad1.xWasPressed()) {
+            doorPosition += 0.1;
+        } else if (gamepad1.yWasPressed()) {
+            doorPosition -= 0.1;
         } else {
-            intake.runIntake(0);
+            intake.stopEntireIntake();
             // intake not spinning and gate closed
         }
 
         telemetry.addData("Power", power);
+        telemetry.addData("Gate Position", doorPosition);
         telemetry.update();
     }
 

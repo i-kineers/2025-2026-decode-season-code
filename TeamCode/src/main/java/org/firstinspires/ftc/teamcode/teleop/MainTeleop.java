@@ -7,46 +7,66 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.subsystems.Chassis;
 
 import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
+import org.firstinspires.ftc.teamcode.subsystems.FieldCentricDrive;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 
 @TeleOp(name="Main")
 public class MainTeleop extends OpMode {
 
     private PanelsTelemetry panelsTelemetry;
-    private Chassis chassis;
+    private Chassis chassis; // Old drive code
+    private FieldCentricDrive drive;
     private DoubleMotorOuttakePID outtake;
-
+    private Intake intake;
 
     @Override
     public void init() {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
-        chassis = new Chassis(hardwareMap);
+        chassis = new Chassis(hardwareMap); // Old drive code
+        drive = new FieldCentricDrive(hardwareMap);
         outtake = new DoubleMotorOuttakePID(hardwareMap);
+        intake = new Intake(hardwareMap);
     }
 
 
 
     @Override
     public void loop() {
-        chassis.runMacanumWheels(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+        drive.drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
-        if (gamepad1.aWasPressed()) {
-            outtake.nextState();
-        } else if (gamepad1.bWasPressed()) {
-            outtake.toggleRapidShoot();
-        } else if (gamepad1.left_trigger == 1) {
-            outtake.toggleServos(1);
-        } else if (gamepad1.left_trigger == 0) {
-            outtake.toggleServos(0);
-        } else if (gamepad1.dpadUpWasPressed()) {
-            outtake.increaseTargetRPM();
-        } else if (gamepad1.dpadDownWasPressed()) {
-            outtake.decreaseTargetRPM();
+
+        if (gamepad1.right_trigger == 1) {
+            outtake.setTargetRPM(3000);
+        } else if (gamepad1.right_trigger == 0) {
+            outtake.setTargetRPM(0);
         }
+//        else if (gamepad1.bWasPressed()) { // Also not needed if FSM isn't used
+//            outtake.toggleRapidShoot();
+//        }
+        else if (gamepad1.right_bumper) {
+            outtake.toggleServos(1);
+            intake.runGate(1); // Open Gate
+        } else if (!gamepad1.right_bumper) {
+            outtake.toggleServos(0);
+            intake.stopGate(); // Close Gate
+        }
+        else if (gamepad1.left_trigger == 1) {
+            intake.runIntake(0.5);
+        } else if (gamepad1.left_trigger == 0) {
+            intake.stopIntake();
+        } else if (gamepad1.aWasPressed()) {
+            drive.resetIMU();
+        }
+//        else if (gamepad1.dpadUpWasPressed()) { // Becomes useless after removing FSM shooter
+//            outtake.increaseTargetRPM();
+//        } else if (gamepad1.dpadDownWasPressed()) {
+//            outtake.decreaseTargetRPM();
+//        }
 
         // Must call to run other functions in Outtake
-        outtake.startShooterLogic();
+//        outtake.startShooterLogic(); // Used for FSM shooter
         outtake.update();
 
         // --- Panels Telemetry ---

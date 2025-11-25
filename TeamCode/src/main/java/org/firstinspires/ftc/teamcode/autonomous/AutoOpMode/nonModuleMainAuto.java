@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.autonomous; // make sure this aligns with class location
+package org.firstinspires.ftc.teamcode.autonomous.AutoOpMode; // make sure this aligns with class location
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
@@ -12,7 +12,7 @@ import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name = "test Main Auto", group = "Examples")
-public class testMainAuto extends OpMode {
+public class nonModuleMainAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;

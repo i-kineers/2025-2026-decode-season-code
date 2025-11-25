@@ -1,52 +1,63 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.autonomous.AutoOpMode;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.pedroPathing.Paths;
-import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
+import org.firstinspires.ftc.teamcode.autonomous.Paths.testPathFarBlue;
 
-@Autonomous(name = "Main Auto", group = "Examples")
-public class mainAuto extends OpMode {
+@Autonomous(name = "testFarBlue", group = "Examples")
+public class testFarBlue extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
 
     private int pathState;
 
-    DoubleMotorOuttakePID shooter;
+    private testPathFarBlue paths;
+
+//    DoubleMotorOuttakePID shooter;
 
     @Override
     public void init() {
-        shooter = new DoubleMotorOuttakePID(hardwareMap);
-
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
         follower = Constants.createFollower(hardwareMap);
-        Paths.buildPaths(follower);
-        follower.setStartingPose(Paths.startPose);
+        paths = new testPathFarBlue(follower);
+        follower.setStartingPose(new Pose(54.730, 3.003, Math.toRadians(90)));
     }
 
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(Paths.scorePreload);
-                shooter.setTargetRPM(2500);
+                follower.followPath(paths.Path1);
                 setPathState(1);
                 break;
             case 1:
                 if (!follower.isBusy()) {
-                    shooter.autoRapidShoot(2500, 3000);
-                    /* Score Preload */
-                    follower.followPath(Paths.grabPickup1, true);
+                    follower.followPath(paths.Path2);
+                    setPathState(2);
+                }
+                break;
+            case 2:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path3);
+                    setPathState(3);
+                }
+                break;
+            case 3:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path4);
+                    setPathState(4);
+                }
+                break;
+            case 4:
+                if (!follower.isBusy()) {
                     setPathState(-1);
                 }
                 break;
@@ -66,7 +77,7 @@ public class mainAuto extends OpMode {
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
-        telemetry.addData("heading", follower.getPose().getHeading());
+        telemetry.addData("heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetry.update();
     }
 

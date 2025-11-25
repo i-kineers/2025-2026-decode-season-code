@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.autonomous.AutoOpMode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
 
-@Autonomous(name = "Blue Temporary Autonomous", group = "Temporary")
-public class BlueTemporaryAutonomous extends LinearOpMode {
+@Autonomous(name = "Red Temporary Autonomous", group = "Temporary")
+public class RedTemporaryAutonomous extends LinearOpMode {
 
     private DcMotor frontLeft;
     private DcMotor rearLeft;
@@ -37,6 +37,8 @@ public class BlueTemporaryAutonomous extends LinearOpMode {
         waitForStart();
 
         if (opModeIsActive()) {
+
+            sleep(20000);
             // Move backwards for 2 seconds
             moveBackwards(0.5, 800);
 
@@ -44,7 +46,7 @@ public class BlueTemporaryAutonomous extends LinearOpMode {
             outtake.autoRapidShoot(2500, 3000); // Shoot at 2500 RPM for 1 second
 
             // Strafe right a little more to cross the line
-            strafeLeft(0.5, 500);
+            strafeRight(0.5, 500);
         }
     }
 

@@ -47,11 +47,6 @@ public class DoubleMotorOuttakePID {
     private final ElapsedTime runtime;
     private final ElapsedTime loopTimer;
 
-    public void setPower(double motorPower) {
-        launcher.setPower(motorPower);
-        launcher2.setPower(motorPower);
-    }
-
     // FSM
     public enum ShooterState {
         STOPPED,      // Not running
@@ -85,10 +80,10 @@ public class DoubleMotorOuttakePID {
                 break;
             case SHOOTING:
                 setTargetRPM(storeTargetRPM);
-                if (servoToggle == true){
-                    if (rapidShoot == true) {
+                if (servoToggle){
+                    if (rapidShoot) {
                         runLoader();
-                    } else if (rapidShoot == false) {
+                    } else if (!rapidShoot) {
                         // Check if we're near target RPM
                         if (Math.abs(getCurrentRPM() - targetRPM) <= 50) {
                             runLoader();
@@ -96,7 +91,7 @@ public class DoubleMotorOuttakePID {
                             stopLoader();
                         }
                     }
-                } else if (servoToggle == false) {
+                } else if (!servoToggle) {
                     stopLoader();
                 }
                 break;
