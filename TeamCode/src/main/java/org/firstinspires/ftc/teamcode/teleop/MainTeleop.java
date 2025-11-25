@@ -53,7 +53,7 @@ public class MainTeleop extends OpMode {
             intake.stopGate(); // Close Gate
         }
         else if (gamepad1.left_trigger == 1) {
-            intake.runIntake(0.5);
+            intake.runIntake(1);
         } else if (gamepad1.left_trigger == 0) {
             intake.stopIntake();
         } else if (gamepad1.aWasPressed()) {
