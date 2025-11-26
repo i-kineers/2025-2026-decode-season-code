@@ -18,14 +18,14 @@ public class Intake {
     }
     public void runGate(double power){ GateServo.setPosition(power); }
     public void stopGate(){
-        GateServo.setPosition(0);
+        GateServo.setPosition(-1);
     }
     public void stopIntake(){
         IntakeMotor.setPower(0);
     }
     public void stopEntireIntake(){
         IntakeMotor.setPower(0);
-        GateServo.setPosition(0);
+        GateServo.setPosition(-1);
     }
 
 }

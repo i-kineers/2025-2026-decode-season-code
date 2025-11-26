@@ -105,9 +105,7 @@ public class modularCloseBlue extends OpMode {
         telemetry.update();
     }
 
-    @Override
-    public void init_loop() {
-    }
+
 
     @Override
     public void start() {
