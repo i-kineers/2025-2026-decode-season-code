@@ -8,12 +8,16 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.autonomous.Paths.testPathCloseBlue;
+import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 @Autonomous(name = "testCloseBlue", group = "Examples")
 public class testCloseBlue extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
+    Intake intake;
+    DoubleMotorOuttakePID outtake;
 
     private int pathState;
 
@@ -27,6 +31,9 @@ public class testCloseBlue extends OpMode {
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
+        intake = new Intake(hardwareMap);
+        outtake = new DoubleMotorOuttakePID(hardwareMap);
+
         follower = Constants.createFollower(hardwareMap);
         paths = new testPathCloseBlue(follower);
         follower.setStartingPose(new Pose(22, 120, Math.toRadians(135)));
@@ -39,24 +46,32 @@ public class testCloseBlue extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path2);
-                    setPathState(2);
-                }
+                outtake.autoRapidShoot(3000,3000);
+                setPathState(2);
                 break;
             case 2:
+                intake.autoIntakeOn();
                 if (!follower.isBusy()) {
-                    follower.followPath(paths.Path3);
+                    follower.followPath(paths.Path2);
                     setPathState(3);
                 }
-                break;
             case 3:
+                intake.autoIntakeOff();
                 if (!follower.isBusy()) {
-                    follower.followPath(paths.Path4);
+                    follower.followPath(paths.Path3);
                     setPathState(4);
                 }
                 break;
             case 4:
+                outtake.autoRapidShoot(3000,3000);
+                setPathState(5);
+            case 5:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path4);
+                    setPathState(6);
+                }
+                break;
+            case 6:
                 if (!follower.isBusy()) {
                     setPathState(-1);
                 }

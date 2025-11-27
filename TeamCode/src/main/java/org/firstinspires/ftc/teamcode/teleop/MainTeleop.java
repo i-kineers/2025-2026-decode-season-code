@@ -55,11 +55,11 @@ public class MainTeleop extends OpMode {
         // B. Right Bumper (Feed/Gate) - Use independent checks
         if (gamepad1.right_bumper) {
             outtake.runLoader();
-            intake.runGate(0); // Open Gate
+//            intake.runGate(0); // Open Gate
             rightBumperPressed = true;
         } else { // This else should only apply to the Right Bumper's functions
             outtake.stopLoader();
-            intake.runGate(1); // Close Gate
+//            intake.runGate(1); // Close Gate
             rightBumperPressed = false;
         }
 
@@ -69,9 +69,11 @@ public class MainTeleop extends OpMode {
         // C. Left Trigger (Intake Reverse)
         if (gamepad1.left_trigger > 0.5) { // Use a threshold > 0 for analog triggers
             intake.runIntake(-1);
+            intake.runGate(1);
             leftTriggerPressed = true;
         } else if (gamepad1.left_trigger < 0.1) {
             intake.stopIntake();
+            intake.runGate(0);
             leftTriggerPressed = false;
         }
 

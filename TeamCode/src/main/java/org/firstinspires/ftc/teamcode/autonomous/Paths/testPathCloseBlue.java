@@ -11,7 +11,6 @@ public class testPathCloseBlue {
     public PathChain Path2;
     public PathChain Path3;
     public PathChain Path4;
-    public PathChain Path5;
 
     public testPathCloseBlue(Follower follower) {
         Path1 = follower
@@ -33,7 +32,7 @@ public class testPathCloseBlue {
         Path3 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(19.189, 84.097), new Pose(72.083, 72.751))
+                        new BezierLine(new Pose(19.189, 84.097), new Pose(59.068, 84.097))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                 .build();
@@ -41,7 +40,7 @@ public class testPathCloseBlue {
         Path4 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(72.083, 72.751), new Pose(49.224, 17.854))
+                        new BezierLine(new Pose(59.068, 84.097), new Pose(49.224, 17.854))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(90))
                 .build();
