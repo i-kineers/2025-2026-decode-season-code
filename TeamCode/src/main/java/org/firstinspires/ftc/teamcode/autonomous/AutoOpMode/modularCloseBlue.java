@@ -9,9 +9,20 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.autonomous.Paths.closePaths;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants; // Assuming Constants class for follower creation
 
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
+
+
 
 @Autonomous(name = "Modular Close Blue", group = "Main")
 public class modularCloseBlue extends OpMode {
+
+    Intake intake;
+    DoubleMotorOuttakePID outtake;
 
     private boolean dpadUpPressed = false;
     private boolean dpadDownPressed = false;
@@ -28,164 +39,203 @@ public class modularCloseBlue extends OpMode {
     }
 
     private enum generalStates {
-        START,
         INTAKING,
         PRESHOOTING,
         SHOOTING
     }
 
-    private generalStates currentState = generalStates.START;
-//    private int beginningState = 0;
-
-    @Override
-    public void init() {
-        // Initialize the follower
-        follower = Constants.createFollower(hardwareMap);
-
-        // Path object will be created in start() after routine selection
-
-        // IMPORTANT: Set the robot's starting pose.
-        Pose startPose = new Pose(22, 120, Math.toRadians(135));
-        follower.setStartingPose(startPose);
-
-        // Initialize timers
-        pathTimer = new ElapsedTime();
-        opmodeTimer = new ElapsedTime();
-    }
-
-    @Override
-    public void init_loop() {
-//        // --- USER SELECTION LOGIC ---
-//        telemetry.addLine("=== AUTO SELECTION ===");
-//        telemetry.addLine("Use D-Pad Up/Down to cycle through routines.");
-//        telemetry.addData("Selected Routine", selectedRoutine);
-//        telemetry.addLine(" Press START when ready.");
-//
-//        // Cycle up through routines
-//        if (gamepad1.dpad_up && !dpadUpPressed) {
-//            int prevIndex = (selectedRoutine.ordinal() - 1 + AutoRoutine.values().length) % AutoRoutine.values().length;
-//            selectedRoutine = AutoRoutine.values()[prevIndex];
-//        }
-//
-//        // Cycle down through routines
-//        if (gamepad1.dpad_down && !dpadDownPressed) {
-//            int nextIndex = (selectedRoutine.ordinal() + 1) % AutoRoutine.values().length;
-//            selectedRoutine = AutoRoutine.values()[nextIndex];
-//        }
-//
-//        // Debounce the D-pad buttons
-//        dpadUpPressed = gamepad1.dpad_up;
-//        dpadDownPressed = gamepad1.dpad_down;
-//
-//        telemetry.update();
-    }
-
-    @Override
-    public void start() {
-//        int pathSelection = 1; // Default
-//        switch (selectedRoutine) {
-//            case FIRST_ROW:
-//            case CYCLE_FIRST_ROW:
-//                pathSelection = 1;
-//                break;
-//            case SECOND_ROW:
-//                // Assuming second row corresponds to pathSelection = 2
-//                pathSelection = 2;
-//                break;
-//            case THIRD_ROW:
-//            case CYCLE_THIRD_ROW:
-//                // Assuming third row corresponds to pathSelection = 3
-//                pathSelection = 3;
-//                break;
-//        }
-        paths = new closePaths(follower, true);
-
-        opmodeTimer.reset();
-    }
-
-    @Override
-    public void stop() {
-        // This can be left empty
-    }
-
-    @Override
-    public void loop() {
-        follower.update();
-        autonomousPathUpdate();
-
-        // Feedback to Driver Hub
-//        telemetry.addData("Running Routine", selectedRoutine);
-//        telemetry.addData("Master State", masterState);
-//        telemetry.addData("Path State", pathState);
-        telemetry.addData("X", follower.getPose().getX());
-        telemetry.addData("Y", follower.getPose().getY());
-        telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
-        telemetry.update();
-    }
-
-    /**
-     * This is the foundational state machine. Build your autonomous logic inside this method.
-     * Use the 'selectedRoutine' variable to decide which paths to run.
-     */
-    public void autonomousPathUpdate() {
-
-    }
-
-    public void cycleRoutine(int pathSelection) {
-        switch (currentState) {
-            case START:
-                follower.followPath(paths.Path1);
-//                setBeginningState(-1);
-                break;
-            case INTAKING:
-                switch (pathSelection) {
-                    case 0:
-                        if (!follower.isBusy()) {
-                            follower.followPath(paths.Path2);
-                        }
-                        break;
-                    case 1:
-                        if (!follower.isBusy()) {
-                            follower.followPath(paths.Path4);
-                        }
-                        break;
-                    case 2:
-                        if (!follower.isBusy()) {
-                            follower.followPath(paths.Path6);
-                        }
-                        break;
-                }
-                break;
-            case PRESHOOTING:
-                switch (pathSelection) {
-                    case 0:
-                        if (!follower.isBusy()) {
-                            follower.followPath(paths.Path3);
-                        }
-                        break;
-                    case 1:
-                        if (!follower.isBusy()) {
-                            follower.followPath(paths.Path5);
-                        }
-                        break;
-                    case 2:
-                        if (!follower.isBusy()) {
-                            follower.followPath(paths.Path7);
-                        }
-                        break;
-                }
-                break;
-            case SHOOTING:
-                // Shooting logic goes here
-                break;
+        static boolean intake1 = false;
+        static boolean intake2 = false;
+        static boolean intake3= false;
+    
+        private generalStates currentState = generalStates.INTAKING;
+    
+        int beginningState = 0;
+    
+        boolean[] toggles = {false, false, false};   // Path 1, 2, 3
+        int cursor = 0;                               // Which item is highlighted
+    
+        // Debounce
+        boolean upPrev = false;
+        boolean downPrev = false;
+        boolean aPrev = false;
+    
+        @Override
+        public void init() {
+    
+            intake = new Intake(hardwareMap);
+            outtake = new DoubleMotorOuttakePID(hardwareMap);
+    
+            // Initialize the follower
+            follower = Constants.createFollower(hardwareMap);
+    
+            // Path object will be created in start() after routine selection
+    
+            // IMPORTANT: Set the robot's starting pose.
+            Pose startPose = new Pose(22, 120, Math.toRadians(135));
+            follower.setStartingPose(startPose);
+    
+            // Initialize timers
+            pathTimer = new ElapsedTime();
+            opmodeTimer = new ElapsedTime();
+    
+            paths = new closePaths(follower, isBlueSide());
         }
-    }
+    
+        @Override
+        public void init_loop() {
+            telemetry.addLine("=== SELECT PATHS ===");
+            telemetry.addLine("Use D-Pad Up/Down to move");
+            telemetry.addLine("Press A to toggle");
+            telemetry.addLine("Press START to confirm\n");
+    
+            for (int i = 0; i < 3; i++) {
+                String arrow = (i == cursor) ? ">" : " ";
+                String state = toggles[i] ? "ON" : "off";
+                telemetry.addData(arrow + " Intake " + (i+1), state);
+            }
+    
+            telemetry.update();
+    
+            // Move cursor up
+            if (gamepad1.dpad_up && !upPrev) {
+                cursor = (cursor - 1 + 3) % 3;
+            }
+    
+            // Move cursor down
+            if (gamepad1.dpad_down && !downPrev) {
+                cursor = (cursor + 1) % 3;
+            }
+    
+            // Toggle current item
+            if (gamepad1.a && !aPrev) {
+                toggles[cursor] = !toggles[cursor];
+            }
+    
+            intake1 = toggles[0];
+            intake2 = toggles[1];
+            intake3 = toggles[2];
+    
+            // Update debounce
+            upPrev = gamepad1.dpad_up;
+            downPrev = gamepad1.dpad_down;
+            aPrev = gamepad1.a;
+        }
+    
+        @Override
+        public void start() {
+            opmodeTimer.reset();
+        }
+    
+        @Override
+        public void stop() {
+            // This can be left empty
+        }
+    
+        @Override
+        public void loop() {
+            follower.update();
+            autonomousPathUpdate();
+    
+            // Feedback to Driver Hub
+    //        telemetry.addData("Running Routine", selectedRoutine);
+    //        telemetry.addData("Master State", masterState);
+    //        telemetry.addData("Path State", pathState);
+            telemetry.addData("X", follower.getPose().getX());
+            telemetry.addData("Y", follower.getPose().getY());
+            telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
+            telemetry.update();
+        }
+    
+        /**
+         * This is the foundational state machine. Build your autonomous logic inside this method.
+         * Use the 'selectedRoutine' variable to decide which paths to run.
+         */
+        public void autonomousPathUpdate() {
+            startPath();
+            if (intake1) {
+                cycleRoutine(0);
+            } else if (intake2) {
+                cycleRoutine(1);
+            } else if (intake3) {
+                cycleRoutine(2);
+            }
+        }
+    
+        public void startPath() {
+            switch (beginningState) {
+                case 0:
+                    if (!follower.isBusy()) {
+                        follower.followPath(paths.Path1);
+                        setBeginningState(1);
+                    }
+                case 1:
+                    if(!follower.isBusy()) {
+                        setBeginningState(-1);
+                    }
+            }
+        }
+    
+        public void cycleRoutine(int pathSelection) {
+            switch (currentState) {
+                case INTAKING:
+                    switch (pathSelection) {
+                        case 0:
+                            if (!follower.isBusy()) {
+                                follower.followPath(paths.Path2);
+                            }
+                            nextState();
+                            break;
+                        case 1:
+                            if (!follower.isBusy()) {
+                                follower.followPath(paths.Path4);
+                            }
+                            nextState();
+                            break;
+                        case 2:
+                            if (!follower.isBusy()) {
+                                follower.followPath(paths.Path6);
+                            }
+                            nextState();
+                            break;
+                    }
+                    break;
+                case PRESHOOTING:
+                    switch (pathSelection) {
+                        case 0:
+                            if (!follower.isBusy()) {
+                                follower.followPath(paths.Path3);
+                            }
+                            nextState();
+                            break;
+                        case 1:
+                            if (!follower.isBusy()) {
+                                follower.followPath(paths.Path5);
+                            }
+                            nextState();
+                            break;
+                        case 2:
+                            if (!follower.isBusy()) {
+                                follower.followPath(paths.Path7);
+                            }
+                            nextState();
+                            break;
+                    }
+                    break;
+                case SHOOTING:
+                    if (!follower.isBusy()) {
+                        outtake.autoRapidShoot(3000,3000);
+
+                        if (pathSelection == 0) intake1 = false;
+                        if (pathSelection == 1) intake2 = false;
+                        if (pathSelection == 2) intake3 = false;
+                    }
+                    break;
+            }
+        }
 
     public void nextState() {
         switch (currentState) {
-            case START:
-                currentState = generalStates.INTAKING;
-                break;
             case INTAKING:
                 currentState = generalStates.PRESHOOTING;
                 break;
@@ -198,9 +248,9 @@ public class modularCloseBlue extends OpMode {
         }
     }
 
-//    public void setBeginningState(int state) {
-//        beginningState = state;
-//    }
+    public void setBeginningState(int state) {
+        beginningState = state;
+    }
 
     public void setState(generalStates state) {
         currentState = state;
