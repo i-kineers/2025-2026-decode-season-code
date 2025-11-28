@@ -39,6 +39,7 @@ public class modularCloseBlue extends OpMode {
     }
 
     private enum generalStates {
+        START,
         INTAKING,
         PRESHOOTING,
         SHOOTING
@@ -48,7 +49,7 @@ public class modularCloseBlue extends OpMode {
     static boolean intake2 = false;
     static boolean intake3= false;
 
-    private generalStates currentState = generalStates.INTAKING;
+    private generalStates currentState = generalStates.START;
 
     int beginningState = 0;
 
@@ -139,8 +140,10 @@ public class modularCloseBlue extends OpMode {
 
         // Feedback to Driver Hub
 //        telemetry.addData("Running Routine", selectedRoutine);
-//        telemetry.addData("Master State", masterState);
-//        telemetry.addData("Path State", pathState);
+        telemetry.addData("Intake1", String.valueOf(intake1));
+        telemetry.addData("Intake2", String.valueOf(intake1));
+        telemetry.addData("Intake3", String.valueOf(intake1));
+        telemetry.addData("Path State", currentState);
         telemetry.addData("X", follower.getPose().getX());
         telemetry.addData("Y", follower.getPose().getY());
         telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
@@ -152,54 +155,57 @@ public class modularCloseBlue extends OpMode {
      * Use the 'selectedRoutine' variable to decide which paths to run.
      */
     public void autonomousPathUpdate() {
-        startPath();
-        if (intake1) {
-            cycleRoutine(0);
-        } else if (intake2) {
-            cycleRoutine(1);
-        } else if (intake3) {
-            cycleRoutine(2);
-        }
+//        startPath();
+        if (intake1) cycleRoutine(0);
+        if (intake2) cycleRoutine(1);
+        if (intake3) cycleRoutine(2);
     }
 
     public void startPath() {
-        switch (beginningState) {
-            case 0:
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path1);
-                    setBeginningState(1);
-                }
-            case 1:
-                if(!follower.isBusy()) {
-                    setBeginningState(-1);
-                }
-        }
+
     }
 
     public void cycleRoutine(int pathSelection) {
         switch (currentState) {
+            case START:
+                switch (beginningState) {
+                    case 0:
+                        if (!follower.isBusy()) {
+                            follower.followPath(paths.Path1);
+                            setBeginningState(1);
+                        }
+                        break;
+                    case 1:
+                        if(!follower.isBusy()) {
+                            outtake.autoRapidShoot(3000,3000);
+                            setBeginningState(-1);
+                            nextState();
+                        }
+                        break;
+                }
+                break;
             case INTAKING:
                 switch (pathSelection) {
                     case 0:
                         if (!follower.isBusy()) {
                             intake.autoIntakeOn();
                             follower.followPath(paths.Path2);
+                            nextState();
                         }
-                        nextState();
                         break;
                     case 1:
                         if (!follower.isBusy()) {
                             intake.autoIntakeOn();
                             follower.followPath(paths.Path4);
+                            nextState();
                         }
-                        nextState();
                         break;
                     case 2:
                         if (!follower.isBusy()) {
                             intake.autoIntakeOn();
                             follower.followPath(paths.Path6);
+                            nextState();
                         }
-                        nextState();
                         break;
                 }
                 break;
@@ -209,22 +215,22 @@ public class modularCloseBlue extends OpMode {
                         if (!follower.isBusy()) {
                             intake.autoIntakeOff();
                             follower.followPath(paths.Path3);
+                            nextState();
                         }
-                        nextState();
                         break;
                     case 1:
                         if (!follower.isBusy()) {
                             intake.autoIntakeOff();
                             follower.followPath(paths.Path5);
+                            nextState();
                         }
-                        nextState();
                         break;
                     case 2:
                         if (!follower.isBusy()) {
                             intake.autoIntakeOff();
                             follower.followPath(paths.Path7);
+                            nextState();
                         }
-                        nextState();
                         break;
                 }
                 break;
@@ -232,9 +238,9 @@ public class modularCloseBlue extends OpMode {
                 if (!follower.isBusy()) {
                     outtake.autoRapidShoot(3000,3000);
 
-                    if (pathSelection == 0) intake1 = false;
-                    if (pathSelection == 1) intake2 = false;
-                    if (pathSelection == 2) intake3 = false;
+                    if (pathSelection == 0) {intake1 = false;}
+                    else if (pathSelection == 1) {intake2 = false;}
+                    else if (pathSelection == 2) {intake3 = false;}
                 }
                 break;
         }
@@ -242,6 +248,9 @@ public class modularCloseBlue extends OpMode {
 
     public void nextState() {
         switch (currentState) {
+            case START:
+                currentState = generalStates.INTAKING;
+                break;
             case INTAKING:
                 currentState = generalStates.PRESHOOTING;
                 break;

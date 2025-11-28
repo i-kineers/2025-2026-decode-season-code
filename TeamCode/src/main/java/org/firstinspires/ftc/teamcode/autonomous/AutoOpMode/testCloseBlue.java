@@ -46,25 +46,29 @@ public class testCloseBlue extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                outtake.autoRapidShoot(3000,3000);
-                setPathState(2);
+                if (!follower.isBusy()){
+                    outtake.autoRapidShoot(3000,3000);
+                    setPathState(2);
+                }
                 break;
             case 2:
-                intake.autoIntakeOn();
                 if (!follower.isBusy()) {
+                    intake.autoIntakeOn();
                     follower.followPath(paths.Path2);
                     setPathState(3);
                 }
             case 3:
-                intake.autoIntakeOff();
                 if (!follower.isBusy()) {
                     follower.followPath(paths.Path3);
                     setPathState(4);
                 }
                 break;
             case 4:
-                outtake.autoRapidShoot(3000,3000);
-                setPathState(5);
+                if (!follower.isBusy()) {
+                    intake.autoIntakeOff();
+                    outtake.autoRapidShoot(3000, 3000);
+                    setPathState(5);
+                }
             case 5:
                 if (!follower.isBusy()) {
                     follower.followPath(paths.Path4);

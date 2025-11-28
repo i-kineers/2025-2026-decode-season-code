@@ -25,7 +25,7 @@ public class MainTeleop extends OpMode {
     private boolean leftTriggerPressed = false;
     private boolean leftBumperPressed = false;
 
-    private double targetRPM = 0;
+    private double targetRPM = 3000;
 
     @Override
     public void init() {
@@ -87,9 +87,9 @@ public class MainTeleop extends OpMode {
             leftBumperPressed = false;
         }
 
-        if (gamepad1.dpad_up) {
+        if (gamepad1.dpadUpWasPressed()) {
             targetRPM += 100;
-        } else if (gamepad1.dpad_down) {
+        } else if (gamepad1.dpadDownWasPressed()) {
             targetRPM -= 100;
         }
 

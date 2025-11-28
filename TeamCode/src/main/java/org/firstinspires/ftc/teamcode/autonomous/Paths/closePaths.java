@@ -18,7 +18,7 @@ public class closePaths {
 
     // Paths will be set to favor blue
     private Pose startPose = new Pose(21.192, 121.4186);
-    private Pose shootPose = new Pose(64, 80);
+    private Pose shootPose = new Pose(68, 75);
     private Pose homePose = new Pose(38.711, 32.205);
 
     // All end poses for pickup in each 3 rows

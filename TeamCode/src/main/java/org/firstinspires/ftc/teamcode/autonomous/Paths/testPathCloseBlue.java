@@ -16,33 +16,34 @@ public class testPathCloseBlue {
         Path1 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(22.000, 120.000), new Pose(59.068, 84.097))
+                        new BezierLine(new Pose(22.000, 120.000), new Pose(72, 72))
                 )
                 .setConstantHeadingInterpolation(Math.toRadians(135))
+                .setGlobalDeceleration(0.5)
                 .build();
 
         Path2 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(59.068, 84.097), new Pose(19.189, 84.097))
+                        new BezierLine(new Pose(72, 72), new Pose(19.189, 84.097))
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180), 0.8)
                 .build();
 
         Path3 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(19.189, 84.097), new Pose(59.068, 84.097))
+                        new BezierLine(new Pose(19.189, 84.097), new Pose(72, 72))
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135), 0.8)
                 .build();
 
         Path4 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(59.068, 84.097), new Pose(49.224, 17.854))
+                        new BezierLine(new Pose(72, 72), new Pose(49.224, 17.854))
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(90))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(90), 0.8)
                 .build();
     }
 }
