@@ -25,6 +25,8 @@ public class MainTeleop extends OpMode {
     private boolean leftTriggerPressed = false;
     private boolean leftBumperPressed = false;
 
+    private double targetRPM = 0;
+
     @Override
     public void init() {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
@@ -45,7 +47,7 @@ public class MainTeleop extends OpMode {
 
         // A. Right Trigger (Spin up/down)
         if (gamepad1.right_trigger > 0.5) { // Use a threshold > 0 for analog triggers
-            outtake.setTargetRPM(3000);
+            outtake.setTargetRPM(targetRPM);
             rightTriggerPressed = true;
         } else if (gamepad1.right_trigger < 0.1) {
             outtake.stop();
@@ -85,6 +87,11 @@ public class MainTeleop extends OpMode {
             leftBumperPressed = false;
         }
 
+        if (gamepad1.dpad_up) {
+            targetRPM += 100;
+        } else if (gamepad1.dpad_down) {
+            targetRPM -= 100;
+        }
 
         // F. Reset IMU (Toggle Button)
         if (gamepad1.a) { // Check for a *press* event

@@ -17,7 +17,7 @@ public class closePaths {
     private double resetHeading = Math.toRadians(90);
 
     // Paths will be set to favor blue
-    private Pose startPose = new Pose(22, 120);
+    private Pose startPose = new Pose(21.192, 121.4186);
     private Pose shootPose = new Pose(64, 80);
     private Pose homePose = new Pose(38.711, 32.205);
 
@@ -58,7 +58,7 @@ public class closePaths {
 
         // From shooting to intaking first rows of balls
         Path2 = follower.pathBuilder()
-                .addPath(new BezierLine(shootPose, pickUpPose1))
+                .addPath(new BezierCurve(shootPose, pickupControl1, pickUpPose1))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
                 .build();
 
@@ -71,7 +71,7 @@ public class closePaths {
         // Path 4 and 5 would be when the user selects 2 rows of balls to intake
         // Move from shooting position to intake 2nd row of balls
         Path4 = follower.pathBuilder()
-                .addPath(new BezierLine(shootPose, pickUpPose2))
+                .addPath(new BezierCurve(shootPose, pickupControl2, pickUpPose2))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
                 .build();
         // Move from intake 2nd row of balls to shooting position
@@ -83,7 +83,7 @@ public class closePaths {
         // Path 6 and 7 would be when the user selects all(3) rows of balls to intake
         // Move from shooting position to intake 3rd row of balls
         Path6 = follower.pathBuilder()
-                .addPath(new BezierLine(shootPose, pickUpPose3))
+                .addPath(new BezierCurve(shootPose, pickupControl3, pickUpPose3))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
                 .build();
         // Move from intake 3rd row of balls to shooting position
