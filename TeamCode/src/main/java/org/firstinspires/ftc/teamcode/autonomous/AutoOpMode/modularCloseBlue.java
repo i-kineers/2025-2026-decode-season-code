@@ -202,7 +202,7 @@ public class modularCloseBlue extends OpMode {
                     break;
                 case PRESHOOTING:
                     switch (pathSelection) {
-                        case 0:
+                        case 0: 
                             if (!follower.isBusy()) {
                                 follower.followPath(paths.Path3);
                             }
