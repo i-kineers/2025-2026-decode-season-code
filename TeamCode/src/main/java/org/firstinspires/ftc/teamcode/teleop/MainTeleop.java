@@ -20,6 +20,13 @@ public class MainTeleop extends OpMode {
     private DoubleMotorOuttakePID outtake;
     private Intake intake;
 
+    private boolean rightTriggerPressed = false;
+    private boolean rightBumperPressed = false;
+    private boolean leftTriggerPressed = false;
+    private boolean leftBumperPressed = false;
+
+    private double targetRPM = 3000;
+
     @Override
     public void init() {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
@@ -30,44 +37,72 @@ public class MainTeleop extends OpMode {
         intake = new Intake(hardwareMap);
     }
 
-
-
     @Override
     public void loop() {
+        // --- 1. Drive Control (Always checked) ---
         drive.drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+//        chassis.runMacanumWheels(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+        // --- 2. Outtake/Shooter Controls (Independent IF blocks) ---
+
+        // A. Right Trigger (Spin up/down)
+        if (gamepad1.right_trigger > 0.5) { // Use a threshold > 0 for analog triggers
+            outtake.setTargetRPM(targetRPM);
+            rightTriggerPressed = true;
+        } else if (gamepad1.right_trigger < 0.1) {
+            outtake.stop();
+            rightTriggerPressed = false;
+        }
+
+        // B. Right Bumper (Feed/Gate) - Use independent checks
+        if (gamepad1.right_bumper) {
+            outtake.runLoader();
+//            intake.runGate(0); // Open Gate
+            rightBumperPressed = true;
+        } else { // This else should only apply to the Right Bumper's functions
+            outtake.stopLoader();
+//            intake.runGate(1); // Close Gate
+            rightBumperPressed = false;
+        }
 
 
-        if (gamepad1.right_trigger == 1) {
-            outtake.setTargetRPM(3000);
-        } else if (gamepad1.right_trigger == 0) {
-            outtake.setTargetRPM(0);
-        }
-//        else if (gamepad1.bWasPressed()) { // Also not needed if FSM isn't used
-//            outtake.toggleRapidShoot();
-//        }
-        else if (gamepad1.right_bumper) {
-            outtake.toggleServos(1);
-            intake.runGate(1); // Open Gate
-        } else if (!gamepad1.right_bumper) {
-            outtake.toggleServos(0);
-            intake.stopGate(); // Close Gate
-        }
-        else if (gamepad1.left_trigger == 1) {
-            intake.runIntake(1);
-        } else if (gamepad1.left_trigger == 0) {
+        // --- 3. Intake Controls (Independent IF blocks) ---
+
+        // C. Left Trigger (Intake Reverse)
+        if (gamepad1.left_trigger > 0.5) { // Use a threshold > 0 for analog triggers
+            intake.runIntake(-1);
+            intake.runGate(1);
+            leftTriggerPressed = true;
+        } else if (gamepad1.left_trigger < 0.1) {
             intake.stopIntake();
-        } else if (gamepad1.aWasPressed()) {
-            drive.resetIMU();
+            intake.runGate(0);
+            leftTriggerPressed = false;
         }
-//        else if (gamepad1.dpadUpWasPressed()) { // Becomes useless after removing FSM shooter
-//            outtake.increaseTargetRPM();
-//        } else if (gamepad1.dpadDownWasPressed()) {
-//            outtake.decreaseTargetRPM();
-//        }
 
-        // Must call to run other functions in Outtake
-//        outtake.startShooterLogic(); // Used for FSM shooter
+        // D. Left Bumper (Intake Forward)
+        if (gamepad1.left_bumper) {
+            intake.runIntake(1);
+            leftBumperPressed = true;
+        } else { // This else should only apply to the Left Bumper's function
+            leftBumperPressed = false;
+        }
+
+        if (gamepad1.dpadUpWasPressed()) {
+            targetRPM += 100;
+        } else if (gamepad1.dpadDownWasPressed()) {
+            targetRPM -= 100;
+        }
+
+        // F. Reset IMU (Toggle Button)
+        if (gamepad1.a) { // Check for a *press* event
+            drive.resetIMU();
+            telemetry.addLine("IMU Reset.");
+        }
+
+
+        // --- Remaining Logic (Always checked) ---
         outtake.update();
+        // ... Telemetry and Thread.sleep(20)
 
         // --- Panels Telemetry ---
         panelsTelemetry.getTelemetry().addData("Target RPM", outtake.getTargetRPM());
@@ -81,13 +116,13 @@ public class MainTeleop extends OpMode {
         // --- Standard Driver Hub Telemetry ---
         telemetry.addData("Target RPM", outtake.getTargetRPM());
         telemetry.addData("Current RPM", outtake.getCurrentRPM());
-        telemetry.addData("kP", outtake.getP());
-        telemetry.addData("kI", outtake.getI());
-        telemetry.addData("kD", outtake.getD());
-        telemetry.addData("kF", outtake.getF());
         telemetry.addData("Current State", outtake.getState());
         telemetry.addData("Toggled Rapid Shooter", outtake.getRapidShooterState());
         telemetry.addData("Toggled Servos", outtake.getServoState());
+        telemetry.addData("rightTriggerPressed", rightTriggerPressed);
+        telemetry.addData("rightBumperPressed", rightBumperPressed);
+        telemetry.addData("leftTriggerPressed", leftTriggerPressed);
+        telemetry.addData("leftBumperPressed", leftBumperPressed);
         telemetry.update();
 
         try {

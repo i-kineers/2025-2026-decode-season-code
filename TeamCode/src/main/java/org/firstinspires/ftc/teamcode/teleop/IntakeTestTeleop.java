@@ -16,9 +16,12 @@ public class IntakeTestTeleop extends OpMode {
     @Override
     public void loop(){
         if (gamepad1.right_trigger == 1){
+            intake.runIntake(-power);
+        } else if (gamepad1.right_bumper) {
             intake.runIntake(power);
-        } else if (gamepad1.left_trigger == 1) {
-            intake.runGate(power);
+        }
+        else if (gamepad1.left_trigger == 1) {
+            intake.runGate(doorPosition);
         } else if (gamepad1.aWasPressed()) {
             power += 0.1;
         } else if (gamepad1.bWasPressed()) {

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import android.util.Size;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -17,6 +18,16 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 
 public class Camera {
+    // PID coefficients
+    double Kp = 0.025;
+    double Ki = 0.0;
+    double Kd = 0.002;
+
+    double target = 0.0;  // desired bearing
+    double integral = 0;
+    double previousError = 0;
+    long lastTime;
+
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
     /**
@@ -128,6 +139,38 @@ public class Camera {
 
     public void stopStream() {
         visionPortal.stopStreaming();
+    }
+
+    public Double useBearingToAlign() {
+
+        List<AprilTagDetection> detections = aprilTag.getDetections();
+
+        if (detections.isEmpty()) {
+            return null;   // No tag → your OpMode should handle this
+        }
+
+        // Use the first detected tag (or filter for the one you want)
+        AprilTagDetection tag = detections.get(0);
+
+        // Grab the camera bearing from the AprilTag pose
+        double bearing = tag.ftcPose.bearing;   // THIS IS YOUR CAMERA ANGLE OFFSET
+
+        // PID error (goal is bearing 0)
+        double error = target - bearing;
+
+        long now = System.nanoTime();
+        double dt = (now - lastTime) / 1e9;
+        lastTime = now;
+
+        // PID components
+        integral += error * dt;
+        double derivative = (error - previousError) / dt;
+        previousError = error;
+
+        double output = Kp * error + Ki * integral + Kd * derivative;
+
+
+        return output;   // return the TURN POWER to your OpMode
     }
 
 }   // end class

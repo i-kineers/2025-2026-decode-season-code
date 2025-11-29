@@ -17,8 +17,8 @@ public class closePaths {
     private double resetHeading = Math.toRadians(90);
 
     // Paths will be set to favor blue
-    private Pose startPose = new Pose(22, 120);
-    private Pose shootPose = new Pose(64, 80);
+    private Pose startPose = new Pose(21.192, 121.4186);
+    private Pose shootPose = new Pose(68, 75);
     private Pose homePose = new Pose(38.711, 32.205);
 
     // All end poses for pickup in each 3 rows
@@ -34,7 +34,7 @@ public class closePaths {
     // PathChain member variables, to be initialized in the constructor
     public PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9;
 
-    public closePaths(Follower follower, int pathSelection, boolean teamColor) {
+    public closePaths(Follower follower, boolean teamColor) {
 
         // Check if team color is red to reverse coordinates
         if (!teamColor) {
@@ -58,7 +58,7 @@ public class closePaths {
 
         // From shooting to intaking first rows of balls
         Path2 = follower.pathBuilder()
-                .addPath(new BezierLine(shootPose, pickUpPose1))
+                .addPath(new BezierCurve(shootPose, pickupControl1, pickUpPose1))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
                 .build();
 
@@ -68,48 +68,35 @@ public class closePaths {
                 .setLinearHeadingInterpolation(pickUpHeading, shootHeading)
                 .build();
 
-        switch (pathSelection) {
-            // Case 1 would be when the user selects only one extra row of balls
-            case 1:
-                // Move off the shooting line
-                Path4 = follower.pathBuilder()
-                        .addPath(new BezierLine(shootPose, homePose))
-                        .setLinearHeadingInterpolation(shootHeading, resetHeading)
-                        .build();
-                break;
-            // Case 2 would be when the user selects 2 rows of balls to intake
-            case 2:
-                // Move from shooting position to intake 2nd row of balls
-                Path5 = follower.pathBuilder()
-                        .addPath(new BezierLine(shootPose, pickUpPose2))
-                        .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
-                        .build();
-                // Move from intake 2nd row of balls to shooting position
-                Path6 = follower.pathBuilder()
-                        .addPath(new BezierLine(pickUpPose2, shootPose))
-                        .setLinearHeadingInterpolation(pickUpHeading, shootHeading)
-                        .build();
-                break;
-            // Case 3 would be when the user selects all(3) rows of balls to intake
-            case 3:
-                // Move from shooting position to intake 3rd row of balls
-                Path7 = follower.pathBuilder()
-                        .addPath(new BezierLine(shootPose, pickUpPose3))
-                        .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
-                        .build();
-                // Move from intake 3rd row of balls to shooting position
-                Path8 = follower.pathBuilder()
-                        .addPath(new BezierLine(pickUpPose3, shootPose))
-                        .setLinearHeadingInterpolation(pickUpHeading, shootHeading)
-                        .build();
-                break;
-            case 4:
-                Path9 = follower.pathBuilder()
-                        .addPath(new BezierLine(shootPose, homePose))
-                        .setLinearHeadingInterpolation(shootHeading, resetHeading)
-                        .build();
-                break;
-        }
+        // Path 4 and 5 would be when the user selects 2 rows of balls to intake
+        // Move from shooting position to intake 2nd row of balls
+        Path4 = follower.pathBuilder()
+                .addPath(new BezierCurve(shootPose, pickupControl2, pickUpPose2))
+                .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
+                .build();
+        // Move from intake 2nd row of balls to shooting position
+        Path5 = follower.pathBuilder()
+                .addPath(new BezierLine(pickUpPose2, shootPose))
+                .setLinearHeadingInterpolation(pickUpHeading, shootHeading)
+                .build();
+
+        // Path 6 and 7 would be when the user selects all(3) rows of balls to intake
+        // Move from shooting position to intake 3rd row of balls
+        Path6 = follower.pathBuilder()
+                .addPath(new BezierCurve(shootPose, pickupControl3, pickUpPose3))
+                .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
+                .build();
+        // Move from intake 3rd row of balls to shooting position
+        Path7 = follower.pathBuilder()
+                .addPath(new BezierLine(pickUpPose3, shootPose))
+                .setLinearHeadingInterpolation(pickUpHeading, shootHeading)
+                .build();
+
+        // Final path that exits the shooting line
+        Path8 = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, homePose))
+                .setLinearHeadingInterpolation(shootHeading, resetHeading)
+                .build();
     }
 
     private Pose reflect(Pose pose) {
