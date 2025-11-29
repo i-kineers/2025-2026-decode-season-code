@@ -50,7 +50,7 @@ public class modularCloseBlue extends OpMode {
     static boolean intake3= false;
 
     private generalStates currentState = generalStates.START;
-
+    int currentSelection = 0;
     int beginningState = 0;
 
     boolean[] toggles = {false, false, false};   // Path 1, 2, 3
@@ -141,8 +141,8 @@ public class modularCloseBlue extends OpMode {
         // Feedback to Driver Hub
 //        telemetry.addData("Running Routine", selectedRoutine);
         telemetry.addData("Intake1", String.valueOf(intake1));
-        telemetry.addData("Intake2", String.valueOf(intake1));
-        telemetry.addData("Intake3", String.valueOf(intake1));
+        telemetry.addData("Intake2", String.valueOf(intake2));
+        telemetry.addData("Intake3", String.valueOf(intake3));
         telemetry.addData("Path State", currentState);
         telemetry.addData("X", follower.getPose().getX());
         telemetry.addData("Y", follower.getPose().getY());
@@ -156,9 +156,11 @@ public class modularCloseBlue extends OpMode {
      */
     public void autonomousPathUpdate() {
 //        startPath();
-        if (intake1) cycleRoutine(0);
-        if (intake2) cycleRoutine(1);
-        if (intake3) cycleRoutine(2);
+        if (intake1) currentSelection = 0;
+        else if (intake2) currentSelection = 1;
+        else if (intake3) currentSelection = 2;
+
+        cycleRoutine(currentSelection);
     }
 
     public void startPath() {
