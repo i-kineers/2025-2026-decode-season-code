@@ -19,14 +19,15 @@ public class testPathCloseBlue {
                         new BezierLine(new Pose(22.000, 120.000), new Pose(72, 72))
                 )
                 .setConstantHeadingInterpolation(Math.toRadians(135))
-                .setGlobalDeceleration(0.5)
+                .setGlobalDeceleration(0.8)
                 .build();
 
         Path2 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(72, 72), new Pose(19.189, 84.097))
+                        new BezierLine(new Pose(72, 72), new Pose(16, 84.097))
                 )
+                .addParametricCallback(0.2, () -> follower.setMaxPower(0.2))
                 .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180), 0.8)
                 .build();
 

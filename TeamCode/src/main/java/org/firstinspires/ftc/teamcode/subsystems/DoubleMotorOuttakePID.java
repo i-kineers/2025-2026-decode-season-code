@@ -181,7 +181,7 @@ public class DoubleMotorOuttakePID {
             sleep(10); // Small pause to prevent busy-waiting and allow other things to run.
         }
         stopLoader();
-        setTargetRPM(0);
+        stop();
         update(); // Apply the change to stop the motors.
     }
 
