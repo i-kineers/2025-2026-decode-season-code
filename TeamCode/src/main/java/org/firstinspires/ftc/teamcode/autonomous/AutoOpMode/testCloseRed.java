@@ -16,13 +16,14 @@ public class testCloseRed extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
+    Intake intake;
+    DoubleMotorOuttakePID outtake;
 
     private int pathState;
 
     private testPathCloseRed paths;
 
-    Intake intake;
-    DoubleMotorOuttakePID outtake;
+//    DoubleMotorOuttakePID shooter;
 
     @Override
     public void init() {
@@ -30,12 +31,12 @@ public class testCloseRed extends OpMode {
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
-        follower = Constants.createFollower(hardwareMap);
-        paths = new testPathCloseRed(follower);
-        follower.setStartingPose(new Pose(123.143, 121.641, Math.toRadians(45)));
-
         intake = new Intake(hardwareMap);
         outtake = new DoubleMotorOuttakePID(hardwareMap);
+
+        follower = Constants.createFollower(hardwareMap);
+        paths = new testPathCloseRed(follower);
+        follower.setStartingPose(new Pose(122, 120, Math.toRadians(45)));
     }
 
     public void autonomousPathUpdate() {
@@ -45,10 +46,11 @@ public class testCloseRed extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                if (!follower.isBusy()) {
-                    outtake.autoRapidShoot(3000,3000);
+                if (!follower.isBusy()){
+                    outtake.autoRapidShoot(3000,5000, 500);
                     setPathState(2);
                 }
+                break;
             case 2:
                 if (!follower.isBusy()) {
                     intake.autoIntakeOn();
@@ -59,15 +61,17 @@ public class testCloseRed extends OpMode {
             case 3:
                 if (!follower.isBusy()) {
                     intake.autoIntakeOff();
+                    follower.setMaxPower(1);
                     follower.followPath(paths.Path3);
                     setPathState(4);
                 }
                 break;
             case 4:
                 if (!follower.isBusy()) {
-                    outtake.autoRapidShoot(3000,3000);
+                    outtake.autoRapidShoot(3000, 5000, 500);
                     setPathState(5);
                 }
+                break;
             case 5:
                 if (!follower.isBusy()) {
                     follower.followPath(paths.Path4);

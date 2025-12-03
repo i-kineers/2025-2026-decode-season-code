@@ -179,7 +179,7 @@ public class modularCloseBlue extends OpMode {
                         break;
                     case 1:
                         if(!follower.isBusy()) {
-                            outtake.autoRapidShoot(3000,3000);
+                            outtake.autoRapidShoot(3000,3000, 500);
                             setBeginningState(-1);
                             nextState();
                         }
@@ -238,7 +238,7 @@ public class modularCloseBlue extends OpMode {
                 break;
             case SHOOTING:
                 if (!follower.isBusy()) {
-                    outtake.autoRapidShoot(3000,3000);
+                    outtake.autoRapidShoot(3000,3000, 500);
 
                     if (pathSelection == 0) {intake1 = false;}
                     else if (pathSelection == 1) {intake2 = false;}

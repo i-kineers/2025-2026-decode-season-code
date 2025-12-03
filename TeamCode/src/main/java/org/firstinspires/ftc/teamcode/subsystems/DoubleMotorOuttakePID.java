@@ -150,7 +150,6 @@ public class DoubleMotorOuttakePID {
         lastCalculatedPower = power;
         previous_error = error;
         previous_time = now;
-        loopTimer.reset();
 
         return power;
     }
@@ -167,20 +166,20 @@ public class DoubleMotorOuttakePID {
         }
     }
 
-    public void autoRapidShoot(double rpm, long time) {
+    public void autoRapidShoot(double rpm, long time, double delay) {
+        loopTimer.reset();
         setTargetRPM(rpm);
 
         // Wait for the launcher to reach the target speed before shooting.
         ElapsedTime timer = new ElapsedTime();
         // Give it up to 3 seconds to spin up.
         while (timer.milliseconds() < time) {
-            if (loopTimer.milliseconds() > 500) {
+            if (loopTimer.milliseconds() > delay) {
                 runLoader();
             }
             update(); // This needs to be called to update the motor power from the PID controller.
             sleep(10); // Small pause to prevent busy-waiting and allow other things to run.
         }
-        stopLoader();
         stop();
         update(); // Apply the change to stop the motors.
     }

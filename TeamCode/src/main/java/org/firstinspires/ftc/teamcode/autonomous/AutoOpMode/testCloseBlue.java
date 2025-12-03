@@ -47,7 +47,7 @@ public class testCloseBlue extends OpMode {
                 break;
             case 1:
                 if (!follower.isBusy()){
-                    outtake.autoRapidShoot(3000,3000);
+                    outtake.autoRapidShoot(3000,5000, 500);
                     setPathState(2);
                 }
                 break;
@@ -57,6 +57,7 @@ public class testCloseBlue extends OpMode {
                     follower.followPath(paths.Path2);
                     setPathState(3);
                 }
+                break;
             case 3:
                 if (!follower.isBusy()) {
                     intake.autoIntakeOff();
@@ -67,9 +68,10 @@ public class testCloseBlue extends OpMode {
                 break;
             case 4:
                 if (!follower.isBusy()) {
-                    outtake.autoRapidShoot(3000, 3000);
+                    outtake.autoRapidShoot(3000, 5000, 500);
                     setPathState(5);
                 }
+                break;
             case 5:
                 if (!follower.isBusy()) {
                     follower.followPath(paths.Path4);
@@ -80,6 +82,7 @@ public class testCloseBlue extends OpMode {
                 if (!follower.isBusy()) {
                     setPathState(-1);
                 }
+                break;
         }
     }
 
