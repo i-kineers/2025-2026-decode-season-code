@@ -14,6 +14,8 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 
 import java.util.List;
 
@@ -27,6 +29,8 @@ public class Camera {
     double integral = 0;
     double previousError = 0;
     long lastTime;
+    ElapsedTime timer = new ElapsedTime();
+
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
@@ -158,9 +162,8 @@ public class Camera {
         // PID error (goal is bearing 0)
         double error = target - bearing;
 
-        long now = System.nanoTime();
-        double dt = (now - lastTime) / 1e9;
-        lastTime = now;
+        double dt = timer.seconds();
+        timer.reset();
 
         // PID components
         integral += error * dt;
