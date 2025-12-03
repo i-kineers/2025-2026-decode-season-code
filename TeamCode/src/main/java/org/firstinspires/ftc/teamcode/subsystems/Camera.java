@@ -46,18 +46,13 @@ public class Camera {
     public Camera(HardwareMap hardwareMap) {
 
         aprilTag = new AprilTagProcessor.Builder()
-
-
                 .setDrawAxes(false)
                 .setDrawCubeProjection(false)
                 .setDrawTagOutline(true)
                 .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
                 .setTagLibrary(AprilTagGameDatabase.getDecodeTagLibrary())
                 .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
-
                 .setLensIntrinsics(578.272, 578.272, 402.145, 221.506)
-
-
                 .build();
 
 

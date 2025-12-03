@@ -59,13 +59,14 @@ public class testCloseBlue extends OpMode {
                 }
             case 3:
                 if (!follower.isBusy()) {
+                    intake.autoIntakeOff();
+                    follower.setMaxPower(1);
                     follower.followPath(paths.Path3);
                     setPathState(4);
                 }
                 break;
             case 4:
                 if (!follower.isBusy()) {
-                    intake.autoIntakeOff();
                     outtake.autoRapidShoot(3000, 3000);
                     setPathState(5);
                 }
