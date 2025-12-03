@@ -16,7 +16,7 @@ public class testPathFarRed {
         Path1 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(98.948, 2.169), new Pose(74.920, 69.080))
+                        new BezierLine(new Pose(94, 8.25), new Pose(72, 72))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(45))
                 .build();
@@ -25,18 +25,19 @@ public class testPathFarRed {
                 .pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(74.920, 69.080),
-                                new Pose(97.112, 85.098),
-                                new Pose(129.984, 81.094)
+                                new Pose(72, 72),
+                                new Pose(86.504, 31.961),
+                                new Pose(125, 35.8)
                         )
                 )
+                .addParametricCallback(0.2, () -> follower.setMaxPower(0.2))
                 .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))
                 .build();
 
         Path3 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(129.984, 81.094), new Pose(74.920, 69.080))
+                        new BezierLine(new Pose(125, 35), new Pose(72, 72))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45))
                 .build();
@@ -44,9 +45,9 @@ public class testPathFarRed {
         Path4 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(74.920, 69.080), new Pose(99.949, 35.041))
+                        new BezierLine(new Pose(72, 72), new Pose(102, 28))
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(90))
+                .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))
                 .build();
     }
 }

@@ -32,7 +32,7 @@ public class testFarBlue extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         paths = new testPathFarBlue(follower);
-        follower.setStartingPose(new Pose(54.730, 3.003, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(50, 8.25, Math.toRadians(90)));
 
         outtake = new DoubleMotorOuttakePID(hardwareMap);
         intake = new Intake(hardwareMap);

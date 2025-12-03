@@ -29,7 +29,7 @@ public class testFarRed extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         paths = new testPathFarRed(follower);
-        follower.setStartingPose(new Pose(98.948, 2.169, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(94, 8.25, Math.toRadians(90)));
     }
 
     public void autonomousPathUpdate() {

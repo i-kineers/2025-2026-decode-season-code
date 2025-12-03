@@ -16,27 +16,28 @@ public class testPathFarBlue {
         Path1 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(54.730, 8), new Pose(64, 80))
+                        new BezierLine(new Pose(50.000, 8.250), new Pose(72.000, 72.000))
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(90),Math.toRadians(135))
+                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(135))
                 .build();
 
         Path2 = follower
                 .pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(64, 80),
-                                new Pose(56.899, 84.598),
-                                new Pose(19, 84.097)
+                                new Pose(72.000, 72.000),
+                                new Pose(57.496, 31.961),
+                                new Pose(19.000, 35.800)
                         )
                 )
+                .addParametricCallback(0.2, () -> follower.setMaxPower(0.2))
                 .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
                 .build();
 
         Path3 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(19, 84.097), new Pose(64, 80))
+                        new BezierLine(new Pose(19.000, 35.800), new Pose(72.000, 72.000))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                 .build();
@@ -44,9 +45,9 @@ public class testPathFarBlue {
         Path4 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(64, 80), new Pose(47,35))
+                        new BezierLine(new Pose(72.000, 72.000), new Pose(42.000, 28.000))
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(90))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
                 .build();
     }
 }
