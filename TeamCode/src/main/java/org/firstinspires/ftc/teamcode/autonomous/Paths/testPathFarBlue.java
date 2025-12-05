@@ -16,7 +16,7 @@ public class testPathFarBlue {
         Path1 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(50.000, 8.250), new Pose(72.000, 72.000))
+                        new BezierLine(new Pose(50.000, 8.250), new Pose(48,95))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(135))
                 .build();
@@ -25,19 +25,19 @@ public class testPathFarBlue {
                 .pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(72.000, 72.000),
-                                new Pose(57.496, 31.961),
-                                new Pose(19.000, 35.800)
+                                new Pose(48,95),
+                                new Pose(79.941, 32.297),
+                                new Pose(18, 30)
                         )
                 )
-                .addParametricCallback(0.2, () -> follower.setMaxPower(0.2))
+                .addParametricCallback(0.45, () -> follower.setMaxPower(0.3))
                 .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
                 .build();
 
         Path3 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(19.000, 35.800), new Pose(72.000, 72.000))
+                        new BezierLine(new Pose(18.000, 30), new Pose(48,95))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                 .build();
@@ -45,7 +45,7 @@ public class testPathFarBlue {
         Path4 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(72.000, 72.000), new Pose(42.000, 28.000))
+                        new BezierLine(new Pose(48,95), new Pose(42.000, 28.000))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
                 .build();

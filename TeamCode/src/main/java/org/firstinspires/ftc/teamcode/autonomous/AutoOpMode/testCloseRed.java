@@ -47,7 +47,7 @@ public class testCloseRed extends OpMode {
                 break;
             case 1:
                 if (!follower.isBusy()){
-                    outtake.autoRapidShoot(3000,5000, 500);
+                    outtake.autoRapidShoot(2700,5000, 500);
                     setPathState(2);
                 }
                 break;
@@ -68,7 +68,7 @@ public class testCloseRed extends OpMode {
                 break;
             case 4:
                 if (!follower.isBusy()) {
-                    outtake.autoRapidShoot(3000, 5000, 500);
+                    outtake.autoRapidShoot(2700, 5000, 500);
                     setPathState(5);
                 }
                 break;

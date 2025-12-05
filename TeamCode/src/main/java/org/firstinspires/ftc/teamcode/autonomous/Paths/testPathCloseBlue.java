@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.autonomous.Paths;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
@@ -16,7 +17,7 @@ public class testPathCloseBlue {
         Path1 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(22.000, 120.000), new Pose(72, 72))
+                        new BezierLine(new Pose(22.000, 120.000), new Pose(48,95))
                 )
                 .setConstantHeadingInterpolation(Math.toRadians(135))
                 .setGlobalDeceleration(0.8)
@@ -25,16 +26,20 @@ public class testPathCloseBlue {
         Path2 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(72, 72), new Pose(16, 84.097))
+                    new BezierCurve(
+                            new Pose(48.000, 95.000),
+                            new Pose(64.059, 80.833),
+                            new Pose(16.000, 80)
+                    )
                 )
-                .addParametricCallback(0.2, () -> follower.setMaxPower(0.2))
+                .addParametricCallback(0.25, () -> follower.setMaxPower(0.2))
                 .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180), 0.8)
                 .build();
 
         Path3 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(16, 84.097), new Pose(72, 72))
+                        new BezierLine(new Pose(16, 80), new Pose(48,95))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135), 0.8)
                 .build();
@@ -42,9 +47,9 @@ public class testPathCloseBlue {
         Path4 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(72, 72), new Pose(105.5, 33))
+                        new BezierLine(new Pose(48,95), new Pose(58, 112))
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(90), 0.8)
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180), 0.8)
                 .build();
     }
 }
