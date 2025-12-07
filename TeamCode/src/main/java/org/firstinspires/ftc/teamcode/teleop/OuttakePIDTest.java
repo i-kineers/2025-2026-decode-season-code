@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
 public class OuttakePIDTest extends LinearOpMode {
     private DoubleMotorOuttakePID outtake;
     private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
-    double targetRPM = 2000;
+    double targetRPM = 3000;
 
     @Override
     public void runOpMode() throws InterruptedException {

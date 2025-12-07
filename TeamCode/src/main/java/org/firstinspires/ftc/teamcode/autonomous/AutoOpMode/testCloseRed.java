@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.autonomous.AutoOpMode;
 
+import static android.os.SystemClock.sleep;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
@@ -61,6 +63,7 @@ public class testCloseRed extends OpMode {
             case 3:
                 if (!follower.isBusy()) {
                     intake.autoIntakeOff();
+                    sleep(1000);
                     follower.setMaxPower(1);
                     follower.followPath(paths.Path3);
                     setPathState(4);

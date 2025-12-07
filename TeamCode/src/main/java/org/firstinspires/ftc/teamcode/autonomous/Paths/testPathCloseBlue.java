@@ -32,7 +32,7 @@ public class testPathCloseBlue {
                             new Pose(16.000, 80)
                     )
                 )
-                .addParametricCallback(0.25, () -> follower.setMaxPower(0.2))
+                .addParametricCallback(0.25, () -> follower.setMaxPower(0.25))
                 .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180), 0.8)
                 .build();
 
