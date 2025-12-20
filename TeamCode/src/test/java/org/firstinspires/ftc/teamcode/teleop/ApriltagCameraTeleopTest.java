@@ -17,7 +17,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for the ApriltagCameraTeleop class.
+ * Unit tests for the ApriltagCameraTeleop cass.
  * This class focuses on verifying the logic within the teleop opmode.
  */
 @RunWith(MockitoJUnitRunner.class)
