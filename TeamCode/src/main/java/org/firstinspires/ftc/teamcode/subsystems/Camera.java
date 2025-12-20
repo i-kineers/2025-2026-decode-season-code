@@ -26,6 +26,7 @@ public class Camera {
     double Kd = 0.002;
 
     double target = 0.0;  // desired bearing
+    double error = 0.0;
     double integral = 0;
     double previousError = 0;
     long lastTime;
@@ -155,7 +156,7 @@ public class Camera {
         double bearing = tag.ftcPose.bearing;   // THIS IS YOUR CAMERA ANGLE OFFSET
 
         // PID error (goal is bearing 0)
-        double error = target - bearing;
+        error = target - bearing;
 
         double dt = timer.seconds();
         timer.reset();
@@ -170,6 +171,9 @@ public class Camera {
 
         return output;   // return the TURN POWER to your OpMode
     }
+
+    public double returnTarget() { return target; }
+    public double returnError() { return error; }
 
     public double getP() { return Kp; }
     public double getI() { return Ki; }
