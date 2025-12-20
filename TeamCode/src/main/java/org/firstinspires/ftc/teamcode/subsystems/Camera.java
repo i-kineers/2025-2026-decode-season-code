@@ -171,5 +171,16 @@ public class Camera {
         return output;   // return the TURN POWER to your OpMode
     }
 
+    public double getP() { return Kp; }
+    public double getI() { return Ki; }
+    public double getD() { return Kd; }
+    public void increaseP() { Kp += 0.0001; }
+    public void decreaseP() { Kp = Math.max(0, Kp - 0.0001); }
+
+    public void increaseI() { Ki += 0.00005; }
+    public void decreaseI() { Ki = Math.max(0, Ki - 0.00005); }
+
+    public void increaseD() { Kd += 0.00005; }
+    public void decreaseD() { Kd = Math.max(0, Kd - 0.00005); }
 }   // end class
 
