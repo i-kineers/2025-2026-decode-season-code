@@ -73,8 +73,13 @@ public class modularCloseBlue extends OpMode {
         // Path object will be created in start() after routine selection
 
         // IMPORTANT: Set the robot's starting pose.
-        Pose startPose = new Pose(22, 120, Math.toRadians(135));
-        follower.setStartingPose(startPose);
+        if (isBlueSide()) {
+            Pose startPose = new Pose(22, 120, Math.toRadians(135));
+            follower.setStartingPose(startPose);
+        } else {
+            Pose startPose = new Pose(122, 120, Math.toRadians(45));
+            follower.setStartingPose(startPose);
+        }
 
         // Initialize timers
         pathTimer = new ElapsedTime();
