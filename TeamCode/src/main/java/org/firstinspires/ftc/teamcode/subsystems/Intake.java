@@ -35,7 +35,7 @@ public class Intake {
 
     public void autoIntakeOn() {
         runIntake(-1);
-        runGate(1);
+        runGate(.75);
     }
 
     public void autoIntakeOff() {

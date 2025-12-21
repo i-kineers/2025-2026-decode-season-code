@@ -16,7 +16,7 @@ public class testPathFarRed {
         Path1 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(94, 8.25), new Pose(72, 72))
+                        new BezierLine(new Pose(94, 8.25), new Pose(96, 95.000))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(45))
                 .build();
@@ -25,9 +25,9 @@ public class testPathFarRed {
                 .pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(72, 72),
-                                new Pose(86.504, 31.961),
-                                new Pose(125, 35.8)
+                                new Pose(96, 95.000),
+                                new Pose(65.941, 32.297),
+                                new Pose(126, 30)
                         )
                 )
                 .addParametricCallback(0.2, () -> follower.setMaxPower(0.2))
@@ -37,7 +37,7 @@ public class testPathFarRed {
         Path3 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(125, 35), new Pose(72, 72))
+                        new BezierLine(new Pose(124, 35), new Pose(96, 95.000))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45))
                 .build();
@@ -45,7 +45,7 @@ public class testPathFarRed {
         Path4 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(72, 72), new Pose(102, 28))
+                        new BezierLine(new Pose(96, 95.000), new Pose(102, 28))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))
                 .build();

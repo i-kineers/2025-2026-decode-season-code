@@ -17,19 +17,19 @@ public class closePaths {
     private double resetHeading = Math.toRadians(90);
 
     // Paths will be set to favor blue
-    private Pose startPose = new Pose(21.192, 121.4186);
-    private Pose shootPose = new Pose(68, 75);
+    private Pose startPose = new Pose(21.192, 121.419);
+    private Pose shootPose = new Pose(48,95);
     private Pose homePose = new Pose(38.711, 32.205);
 
     // All end poses for pickup in each 3 rows
-    private Pose pickUpPose1 = new Pose(19, 84.097);
-    private Pose pickUpPose2 = new Pose(18.855, 59.569);
-    private Pose pickUpPose3 = new Pose(19.022, 35.71);
+    private Pose pickUpPose1 = new Pose(15, 84.097);
+    private Pose pickUpPose2 = new Pose(15, 59.569);
+    private Pose pickUpPose3 = new Pose(15, 35.71);
 
     // This is assuming the robot will always be going from the shooting to pick up
-    private Pose pickupControl1 = new Pose(56.899, 84.598);
-    private Pose pickupControl2 = new Pose(65.242, 59.569);
-    private Pose pickupControl3 = new Pose(72.083, 32.037);
+    private Pose pickupControl1 = new Pose(69.562, 80.502);
+    private Pose pickupControl2 = new Pose(70.276, 56.601);
+    private Pose pickupControl3 = new Pose(81.87, 31.63);
 
     // PathChain member variables, to be initialized in the constructor
     public PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9;

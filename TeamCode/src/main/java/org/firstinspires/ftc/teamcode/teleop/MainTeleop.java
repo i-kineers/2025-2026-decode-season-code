@@ -71,7 +71,7 @@ public class MainTeleop extends OpMode {
         // C. Left Trigger (Intake Reverse)
         if (gamepad1.left_trigger > 0.5) { // Use a threshold > 0 for analog triggers
             intake.runIntake(-1);
-            intake.runGate(1);
+            intake.runGate(0.75);
             leftTriggerPressed = true;
         } else if (gamepad1.left_trigger < 0.1) {
             intake.stopIntake();

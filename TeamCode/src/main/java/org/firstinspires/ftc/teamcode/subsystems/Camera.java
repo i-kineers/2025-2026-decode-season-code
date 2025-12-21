@@ -26,6 +26,7 @@ public class Camera {
     double Kd = 0.002;
 
     double target = 0.0;  // desired bearing
+    double error = 0.0;
     double integral = 0;
     double previousError = 0;
     long lastTime;
@@ -61,7 +62,7 @@ public class Camera {
 
         // Set the camera (webcam vs. built-in RC phone camera).
         if (USE_WEBCAM) {
-            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam"));
+            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
         } else {
             builder.setCamera(BuiltinCameraDirection.BACK);
         }
@@ -155,7 +156,7 @@ public class Camera {
         double bearing = tag.ftcPose.bearing;   // THIS IS YOUR CAMERA ANGLE OFFSET
 
         // PID error (goal is bearing 0)
-        double error = target - bearing;
+        error = target - bearing;
 
         double dt = timer.seconds();
         timer.reset();
@@ -171,5 +172,19 @@ public class Camera {
         return output;   // return the TURN POWER to your OpMode
     }
 
+    public double returnTarget() { return target; }
+    public double returnError() { return error; }
+
+    public double getP() { return Kp; }
+    public double getI() { return Ki; }
+    public double getD() { return Kd; }
+    public void increaseP() { Kp += 0.0001; }
+    public void decreaseP() { Kp = Math.max(0, Kp - 0.0001); }
+
+    public void increaseI() { Ki += 0.00005; }
+    public void decreaseI() { Ki = Math.max(0, Ki - 0.00005); }
+
+    public void increaseD() { Kd += 0.00005; }
+    public void decreaseD() { Kd = Math.max(0, Kd - 0.00005); }
 }   // end class
 

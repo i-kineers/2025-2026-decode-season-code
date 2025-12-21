@@ -31,7 +31,7 @@ public class testPathCloseRed {
                                 new Pose(128, 80)
                         )
                 )
-                .addParametricCallback(0.25, () -> follower.setMaxPower(0.2))
+                .addParametricCallback(0.25, () -> follower.setMaxPower(0.25))
                 .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0), 0.8)
                 .build();
 
@@ -40,7 +40,7 @@ public class testPathCloseRed {
                 .addPath(
                         new BezierLine(new Pose(128, 84.097), new Pose(96, 95.000))
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45), 0.8)
                 .build();
 
         Path4 = follower
@@ -48,7 +48,7 @@ public class testPathCloseRed {
                 .addPath(
                         new BezierLine(new Pose(96, 95.000), new Pose(86, 112)) // 21, 14
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))
+                .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0), 0.8)
                 .build();
     }
 }
