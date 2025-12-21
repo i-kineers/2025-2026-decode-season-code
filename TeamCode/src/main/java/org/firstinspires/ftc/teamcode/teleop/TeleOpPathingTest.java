@@ -9,11 +9,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.autonomous.Paths.teleopPath;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Camera;
+import org.firstinspires.ftc.teamcode.subsystems.Chassis;
+import org.firstinspires.ftc.teamcode.subsystems.FieldCentricDrive;
 
 @TeleOp(name = "TeleOp Pathing & PID Test", group = "Test")
 public class TeleOpPathingTest extends OpMode {
 
-    // --- Member Variables ---
+    private FieldCentricDrive chassis;
     private Camera camera;
     private Follower follower;
     private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
@@ -30,8 +32,9 @@ public class TeleOpPathingTest extends OpMode {
 
         double targetPosX = 48;
         double targetPosY = 95;
+        double headingPos = 135;
 
-        path = new teleopPath(follower, targetPose.getX(), targetPose.getY(), targetPosX, targetPosY);
+        path = new teleopPath(follower, follower.getPose().getX(), follower.getPose().getY(), targetPosX, targetPosY, headingPos);
     }
 
     /**
@@ -50,21 +53,28 @@ public class TeleOpPathingTest extends OpMode {
         follower.update();
 
         // Path following trigger
-        if (gamepad1.b) {
-            if (!follower.isBusy()) {
-                follower.setMaxPower(1);
-                follower.followPath(path.Path1);
-            }
+        if (gamepad1.b && !follower.isBusy()) {
+            follower.setMaxPower(1);
+            follower.followPath(path.Path1);
         }
 
         // Manual TeleOp control
         if (!follower.isBusy()) {
             follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x,
+                    gamepad1.left_stick_y,
+                    gamepad1.left_stick_x,
+                    gamepad1.right_stick_x,
                     false
             );
+        }
+
+        if (!follower.isBusy()) {
+            chassis.drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        }
+
+        if (gamepad1.a) { // Check for a *press* event
+            chassis.resetIMU();
+            telemetry.addLine("IMU Reset.");
         }
 
         // Telemetry Updates

@@ -10,13 +10,13 @@ public class teleopPath {
 
     public PathChain Path1;
 
-    public teleopPath(Follower follower, double x, double y, double targetPoseX, double targetPoseY) {
+    public teleopPath(Follower follower, double x, double y, double targetPoseX, double targetPoseY, double headingPos) {
         Path1 = follower
                 .pathBuilder()
                 .addPath(
                         new BezierLine(new Pose(x, y), new Pose(targetPoseX, targetPoseY))
                 )
-                .setConstantHeadingInterpolation(Math.toRadians(135))
+                .setConstantHeadingInterpolation(Math.toRadians(headingPos))
                 .setGlobalDeceleration(0.8)
                 .build();
     }
