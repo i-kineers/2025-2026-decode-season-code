@@ -68,9 +68,8 @@ public class TeleOpPathingTest extends OpMode {
             );
         }
 
-//        if (gamepad1.a) { // Check for a *press* event
-//            chassis.resetIMU();
-//            telemetry.addLine("IMU Reset.");
+//        if (!follower.isBusy()) {
+//            chassis.drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 //        }
 
         //Automated PathFollowing
@@ -93,7 +92,6 @@ public class TeleOpPathingTest extends OpMode {
         telemetry.addData("Mode", follower.isBusy() ? "Pathing" : "Manual");
         telemetry.addData("Robot X", follower.getPose().getX());
         telemetry.addData("Robot Y", follower.getPose().getY());
-        telemetry.addData("Robot H", Math.toDegrees(follower.getPose().getHeading()));
         telemetry.update();
     }
 }
