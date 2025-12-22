@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class FieldCentricDrive {
-    // Declare our motors
     private final DcMotor frontLeftMotor;
     private final DcMotor backLeftMotor;
     private final DcMotor frontRightMotor;
@@ -16,60 +15,57 @@ public class FieldCentricDrive {
     private final IMU imu;
 
     public FieldCentricDrive(HardwareMap hardwareMap) {
-        // Initialize motors from hardware map
         frontLeftMotor = hardwareMap.get(DcMotor.class, "flmotor");
         backLeftMotor = hardwareMap.get(DcMotor.class, "blmotor");
         frontRightMotor = hardwareMap.get(DcMotor.class, "frmotor");
         backRightMotor = hardwareMap.get(DcMotor.class, "brmotor");
 
-        // Reverse motors on the left side
-        // This is based on your Chassis.java. If the robot moves incorrectly,
-        // you may need to reverse the right side instead.
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        // Initialize the IMU from the hardware map
         imu = hardwareMap.get(IMU.class, "imu");
-        // Adjust the orientation parameters to match your robot
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
                 RevHubOrientationOnRobot.UsbFacingDirection.UP));
-        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         imu.initialize(parameters);
     }
 
     public void drive(double leftStickY, double leftStickX, double rightStickX) {
-        double y = -leftStickY; // Remember, Y stick value is reversed
-        double x = leftStickX;
-        double rx = rightStickX * 0.4; // Reduce rotation speed to make it easier to control
-
-        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-
-        // Rotate the movement direction counter to the bot's rotation
-        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
-
-        rotX = rotX * 1.1;  // Counteract imperfect strafing
-
-        // Denominator is the largest motor power (absolute value) or 1
-        // This ensures all the powers maintain the same ratio,
-        // but only if at least one is out of the range [-1, 1]
-        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
-        double frontLeftPower = (rotY + rotX + rx) / denominator;
-        double backLeftPower = (rotY - rotX + rx) / denominator;
-        double frontRightPower = (rotY - rotX - rx) / denominator;
-        double backRightPower = (rotY + rotX - rx) / denominator;
-
-        frontLeftMotor.setPower(frontLeftPower);
-        backLeftMotor.setPower(backLeftPower);
-        frontRightMotor.setPower(frontRightPower);
-        backRightMotor.setPower(backRightPower);
+        double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        // Call the static calculation method
+        double[] powers = calculatePowers(leftStickY, leftStickX, rightStickX, heading);
+        
+        frontLeftMotor.setPower(powers[0]);
+        backLeftMotor.setPower(powers[1]);
+        frontRightMotor.setPower(powers[2]);
+        backRightMotor.setPower(powers[3]);
     }
 
     /**
-     * Resets the IMU's heading. This should be called when the robot is facing the
-     * desired "forward" direction.
+     * STATIC mathematical calculation of motor powers.
+     * This can be run on a PC without any robot hardware connected.
+     * Returns array: [FL, BL, FR, BR]
      */
+    public static double[] calculatePowers(double leftStickY, double leftStickX, double rightStickX, double botHeading) {
+        double y = -leftStickY; 
+        double x = leftStickX;
+        double rx = rightStickX * 0.4;
+
+        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+
+        rotX = rotX * 1.1; 
+
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1.0);
+        
+        return new double[]{
+            (rotY + rotX + rx) / denominator,
+            (rotY - rotX + rx) / denominator,
+            (rotY - rotX - rx) / denominator,
+            (rotY + rotX - rx) / denominator 
+        };
+    }
+
     public void resetIMU() {
         imu.resetYaw();
     }
