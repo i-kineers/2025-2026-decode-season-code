@@ -21,6 +21,7 @@ public class TeleOpPathingTest extends OpMode {
     private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
     private final Pose targetPose = new Pose(35, 35, Math.toRadians(90));
     private teleopPath path;
+    private boolean pathing = false;
 
     /**
      * This runs once when you press "INIT"
@@ -29,12 +30,6 @@ public class TeleOpPathingTest extends OpMode {
     public void init() {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(22, 120, 135));
-
-        double targetPosX = 48;
-        double targetPosY = 95;
-        double headingPos = 135;
-
-        path = new teleopPath(follower, follower.getPose().getX(), follower.getPose().getY(), targetPosX, targetPosY, headingPos);
     }
 
     /**
@@ -54,12 +49,23 @@ public class TeleOpPathingTest extends OpMode {
 
         // Path following trigger
         if (gamepad1.b && !follower.isBusy()) {
+            // Generate path from current pose to target
+            double targetPosX = 48;
+            double targetPosY = 95;
+            double headingPos = 135;
+            path = new teleopPath(follower, follower.getPose().getX(), follower.getPose().getY(), targetPosX, targetPosY, headingPos);
+
             follower.setMaxPower(1);
             follower.followPath(path.Path1);
+            pathing = true;
         }
 
         // Manual TeleOp control
         if (!follower.isBusy()) {
+            if (pathing) {
+                follower.startTeleopDrive();
+                pathing = false;
+            }
             follower.setTeleOpDrive(
                     gamepad1.left_stick_y,
                     gamepad1.left_stick_x,
@@ -68,14 +74,14 @@ public class TeleOpPathingTest extends OpMode {
             );
         }
 
-        if (!follower.isBusy()) {
-            chassis.drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-        }
+//        if (!follower.isBusy()) {
+//            chassis.drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+//        }
 
-        if (gamepad1.a) { // Check for a *press* event
-            chassis.resetIMU();
-            telemetry.addLine("IMU Reset.");
-        }
+//        if (gamepad1.a) { // Check for a *press* event
+//            chassis.resetIMU();
+//            telemetry.addLine("IMU Reset.");
+//        }
 
         // Telemetry Updates
         panelsTelemetry.getTelemetry().addData("Robot X", follower.getPose().getX());
@@ -84,6 +90,8 @@ public class TeleOpPathingTest extends OpMode {
         panelsTelemetry.getTelemetry().update();
 
         telemetry.addData("Mode", follower.isBusy() ? "Pathing" : "Manual");
+        telemetry.addData("Robot X", follower.getPose().getX());
+        telemetry.addData("Robot Y", follower.getPose().getY());
         telemetry.update();
     }
 }
