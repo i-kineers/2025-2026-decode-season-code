@@ -19,22 +19,22 @@ public class TeleOpPathingTest extends OpMode {
     private Camera camera;
     private Follower follower;
     private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
-    private final Pose targetPose = new Pose(35, 35, Math.toRadians(90));
     private teleopPath path;
 
+    boolean automatedDrive = false;
     /**
      * This runs once when you press "INIT"
      */
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(22, 120, 135));
+        follower.setStartingPose(new Pose(22, 120, Math.toRadians(135)));
 
         double targetPosX = 48;
         double targetPosY = 95;
         double headingPos = 135;
 
-        path = new teleopPath(follower, follower.getPose().getX(), follower.getPose().getY(), targetPosX, targetPosY, headingPos);
+        path = new teleopPath(follower, follower.getPose().getX(), follower.getPose().getY(), targetPosX, targetPosY, Math.toRadians(follower.getPose().getHeading()), headingPos);
     }
 
     /**
@@ -53,17 +53,17 @@ public class TeleOpPathingTest extends OpMode {
         follower.update();
 
         // Path following trigger
-        if (gamepad1.b && !follower.isBusy()) {
-            follower.setMaxPower(1);
-            follower.followPath(path.Path1);
-        }
+//        if (gamepad1.b && !follower.isBusy()) {
+//            follower.setMaxPower(1);
+//            follower.followPath(path.Path1);
+//        }
 
         // Manual TeleOp control
-        if (!follower.isBusy()) {
+        if (!automatedDrive) {
             follower.setTeleOpDrive(
                     gamepad1.left_stick_y,
                     gamepad1.left_stick_x,
-                    gamepad1.right_stick_x,
+                    -gamepad1.right_stick_x,
                     false
             );
         }
@@ -72,9 +72,15 @@ public class TeleOpPathingTest extends OpMode {
 //            chassis.drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 //        }
 
-        if (gamepad1.a) { // Check for a *press* event
-            chassis.resetIMU();
-            telemetry.addLine("IMU Reset.");
+        //Automated PathFollowing
+        if (gamepad1.aWasPressed()) {
+            follower.followPath(path.Path1);
+            automatedDrive = true;
+        }
+        //Stop automated following if the follower is done
+        if (automatedDrive && (gamepad1.bWasPressed() && !follower.isBusy())) {
+            follower.startTeleopDrive();
+            automatedDrive = false;
         }
 
         // Telemetry Updates
