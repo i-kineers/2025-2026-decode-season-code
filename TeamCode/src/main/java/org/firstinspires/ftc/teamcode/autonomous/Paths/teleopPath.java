@@ -7,18 +7,6 @@ import com.pedropathing.paths.PathChain;
 
 public class teleopPath {
 
-    // Default target pose for the teleop path
-    private static final Pose DEFAULT_TARGET = new Pose(48, 95, Math.toRadians(135));
-
-    /**
-     * Generates a path from the follower's current pose to the default target pose.
-     * @param follower The follower instance to get the current pose from.
-     * @return A PathChain from current pose to default target.
-     */
-    public static PathChain getPath(Follower follower) {
-        return getPath(follower, DEFAULT_TARGET);
-    }
-
     /**
      * Generates a path from the follower's current pose to a specified target pose.
      * @param follower The follower instance to get the current pose from.
