@@ -1,14 +1,15 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystems.Chassis;
-
 import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
 import org.firstinspires.ftc.teamcode.subsystems.FieldCentricDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.TeleOpPathingManager;
 
 
 @TeleOp(name="Main")
@@ -19,6 +20,7 @@ public class MainTeleop extends OpMode {
     private FieldCentricDrive drive;
     private DoubleMotorOuttakePID outtake;
     private Intake intake;
+    private TeleOpPathingManager pathingManager;
 
     private boolean rightTriggerPressed = false;
     private boolean rightBumperPressed = false;
@@ -35,13 +37,27 @@ public class MainTeleop extends OpMode {
         drive = new FieldCentricDrive(hardwareMap);
         outtake = new DoubleMotorOuttakePID(hardwareMap);
         intake = new Intake(hardwareMap);
+        
+        // Initialize Pathing Manager
+        pathingManager = new TeleOpPathingManager(hardwareMap, new Pose(22, 120, Math.toRadians(135)));
+    }
+
+    @Override
+    public void start() {
+        // Pathing manager starts automatically in constructor
     }
 
     @Override
     public void loop() {
-        // --- 1. Drive Control (Always checked) ---
-        drive.drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-//        chassis.runMacanumWheels(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+        pathingManager.update();
+
+        // --- 1. Drive Control ---
+        pathingManager.drive(
+                gamepad1.left_stick_y,
+                gamepad1.left_stick_x,
+                -gamepad1.right_stick_x,
+                gamepad1.x
+        );
 
         // --- 2. Outtake/Shooter Controls (Independent IF blocks) ---
 
@@ -87,24 +103,31 @@ public class MainTeleop extends OpMode {
             leftBumperPressed = false;
         }
 
-        if (gamepad1.dpadUpWasPressed()) {
-            targetRPM += 100;
-        } else if (gamepad1.dpadDownWasPressed()) {
-            targetRPM -= 100;
+        if (gamepad1.dpad_up) { 
+            targetRPM += 10; 
+        } else if (gamepad1.dpad_down) {
+            targetRPM -= 10;
         }
 
         // F. Reset IMU (Toggle Button)
         if (gamepad1.a) { // Check for a *press* event
-            drive.resetIMU();
-            telemetry.addLine("IMU Reset.");
+             if (drive != null) {
+                drive.resetIMU();
+                telemetry.addLine("IMU Reset.");
+            }
         }
 
 
         // --- Remaining Logic (Always checked) ---
         outtake.update();
-        // ... Telemetry and Thread.sleep(20)
 
         // --- Panels Telemetry ---
+        Pose currentPose = pathingManager.getFollower().getPose();
+        if (currentPose != null) {
+            panelsTelemetry.getTelemetry().addData("Robot X", currentPose.getX());
+            panelsTelemetry.getTelemetry().addData("Robot Y", currentPose.getY());
+            panelsTelemetry.getTelemetry().addData("Robot H", Math.toDegrees(currentPose.getHeading()));
+        }
         panelsTelemetry.getTelemetry().addData("Target RPM", outtake.getTargetRPM());
         panelsTelemetry.getTelemetry().addData("Current RPM", outtake.getCurrentRPM());
         panelsTelemetry.getTelemetry().addData("kP", outtake.getP());
@@ -123,12 +146,7 @@ public class MainTeleop extends OpMode {
         telemetry.addData("rightBumperPressed", rightBumperPressed);
         telemetry.addData("leftTriggerPressed", leftTriggerPressed);
         telemetry.addData("leftBumperPressed", leftBumperPressed);
+        telemetry.addData("Mode", pathingManager.isAutomated() ? "Pathing" : "Manual");
         telemetry.update();
-
-        try {
-            Thread.sleep(20);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 }

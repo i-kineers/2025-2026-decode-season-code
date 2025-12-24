@@ -21,9 +21,9 @@ import java.util.List;
 
 public class Camera {
     // PID coefficients
-    double Kp = 0.025;
+    double Kp = 0.05;
     double Ki = 0.0;
-    double Kd = 0.002;
+    double Kd = 0.00455;
 
     double target = 0.0;  // desired bearing
     double error = 0.0;
@@ -53,7 +53,7 @@ public class Camera {
                 .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
                 .setTagLibrary(AprilTagGameDatabase.getDecodeTagLibrary())
                 .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
-                .setLensIntrinsics(578.272, 578.272, 402.145, 221.506)
+                //.setLensIntrinsics(578.272, 578.272, 402.145, 221.506)
                 .build();
 
 
@@ -187,4 +187,3 @@ public class Camera {
     public void increaseD() { Kd += 0.00005; }
     public void decreaseD() { Kd = Math.max(0, Kd - 0.00005); }
 }   // end class
-

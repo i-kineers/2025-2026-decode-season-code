@@ -15,7 +15,7 @@ public class DoubleMotorOuttakePID {
     public static double kP = 0.005; // Good value is 0.005
     public static double kI = 0.0002;
     public static double kD = 0.0005; // Good value is 0.0005
-    public static double kF = 0.42 / MAX_RPM; // Adjust this tod fine tune the value which will hold the target RP
+    public static double kF = 1 / MAX_RPM; // Adjust this tod fine tune the value which will hold the target RP
 
     public static double SMOOTHING_ALPHA = 0.2;
     public static double RPM_TOLERANCE = 15.0;
