@@ -12,6 +12,8 @@ public class TeleOpPathingManager {
     private Follower follower;
     private boolean automatedDrive = false;
 
+    private static Pose targetPose = new Pose(48, 95, Math.toRadians(135));
+
     public TeleOpPathingManager(HardwareMap hardwareMap, Pose startingPose) {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose);
@@ -34,7 +36,7 @@ public class TeleOpPathingManager {
 
         // Trigger Pathing
         if (triggerPath && !automatedDrive) {
-            PathChain path = teleopPath.getPath(follower);
+            PathChain path = teleopPath.getPath(follower, targetPose);
             follower.followPath(path);
             automatedDrive = true;
         }
@@ -52,6 +54,11 @@ public class TeleOpPathingManager {
             follower.setTeleOpDrive(forward, strafe, turn, false);
         }
     }
+
+    public void setTargetPose() {
+        targetPose = new Pose(follower.getPose().getX(), follower.getPose().getY(), Math.toRadians(follower.getPose().getHeading()));
+    }
+
 
     public Follower getFollower() {
         return follower;
