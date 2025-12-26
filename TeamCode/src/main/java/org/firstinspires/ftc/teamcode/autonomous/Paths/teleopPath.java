@@ -15,10 +15,10 @@ public class teleopPath {
      */
     public static PathChain getPath(Follower follower, Pose targetPose) {
         Pose currentPose = follower.getPose();
-        
+
         // Safety check for null pose
         if (currentPose == null) {
-            currentPose = new Pose(0, 0, 0); 
+            currentPose = new Pose(22, 120, 135);
         }
 
         return follower.pathBuilder()

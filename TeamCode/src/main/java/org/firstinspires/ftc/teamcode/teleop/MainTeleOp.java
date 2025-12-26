@@ -21,6 +21,6 @@ public class MainTeleOp extends OpMode {
     @Override
     public void loop() {
         // Delegate all robot behavior to the MasterLogic class
-        master.mainLogic(gamepad1, telemetry);
+        master.mainLogic(gamepad1, gamepad2, telemetry);
     }
 }
