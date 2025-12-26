@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-public class Constants {
+public class  Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
         .mass(9) // Mass of meet 1 bot: 8.845051
         .forwardZeroPowerAcceleration(-25.6)
