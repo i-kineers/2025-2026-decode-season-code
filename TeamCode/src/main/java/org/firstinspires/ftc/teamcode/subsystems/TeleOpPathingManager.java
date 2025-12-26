@@ -16,12 +16,15 @@ public class TeleOpPathingManager {
     private Follower follower;
     private boolean automatedDrive = false;
 
-    private Pose targetPose;
-    private Pose targetPose2;
-    private Pose targetPose3;
-    private Pose targetPose4;
-    private Pose startingPose;
+    // Base default poses (constants)
+    private final Pose DEFAULT_TARGET_1 = new Pose(48, 95, Math.toRadians(135));
+    private final Pose DEFAULT_TARGET_2 = new Pose(83.371, 130, Math.toRadians(180));
+    private final Pose DEFAULT_TARGET_3 = new Pose(90.318, 91.981, Math.toRadians(147));
+    private final Pose DEFAULT_TARGET_4 = new Pose(72, 72, Math.toRadians(135));
 
+    private final List<Pose> defaultTargets = new ArrayList<>();
+
+    private Pose startingPose;
     private List<Pose> targetPoseList;
 
     public TeleOpPathingManager(HardwareMap hardwareMap) {
@@ -32,17 +35,17 @@ public class TeleOpPathingManager {
         follower.setStartingPose(startingPose);
         follower.startTeleopDrive();
 
-        // Default target pose
-        this.targetPose = new Pose(48, 95, Math.toRadians(135));
-        this.targetPose2 = new Pose(83.371, 130, Math.toRadians(180));
-        this.targetPose3 = new Pose(90.318, 91.981, Math.toRadians(147));
-        this.targetPose4 = new Pose(72, 72, Math.toRadians(135));
+        // Initialize default targets list for easy iteration
+        defaultTargets.add(DEFAULT_TARGET_1);
+        defaultTargets.add(DEFAULT_TARGET_2);
+        defaultTargets.add(DEFAULT_TARGET_3);
+        defaultTargets.add(DEFAULT_TARGET_4);
 
+        // Initialize list with default poses
         targetPoseList = new ArrayList<>();
-        targetPoseList.add(targetPose);
-        targetPoseList.add(targetPose2);
-        targetPoseList.add(targetPose3);
-        targetPoseList.add(targetPose4);
+        for (Pose p : defaultTargets) {
+            targetPoseList.add(new Pose(p.getX(), p.getY(), p.getHeading()));
+        }
     }
 
     public void update() {
@@ -117,11 +120,6 @@ public class TeleOpPathingManager {
     public void setTargetPose(double x, double y, double h, int targetSelection) {
         Pose newPose = new Pose(x, y, Math.toRadians(h));
 
-        // Always keep targetPose behaving the same
-        if (targetSelection == 0) {
-            targetPose = newPose;
-        }
-
         // Update list entry if valid
         if (targetPoseList != null
                 && targetSelection >= 0
@@ -132,18 +130,49 @@ public class TeleOpPathingManager {
     }
 
 
+    /**
+     * Resets all target poses based on the offset between the current robot pose
+     * and the CLOSEST default target pose.
+     */
     public void resetTargetPose() {
         if (follower.getPose() != null) {
-            // Default to updating the first target pose (index 0) if B is pressed
-            // You can change this logic to update the last selected index if you track it
-            Pose current = new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading());
+            Pose currentPose = follower.getPose();
+            
+            // Find the closest default target
+            int closestIndex = -1;
+            double minDistance = Double.MAX_VALUE;
 
+            for (int i = 0; i < defaultTargets.size(); i++) {
+                Pose target = defaultTargets.get(i);
+                double dist = Math.hypot(currentPose.getX() - target.getX(), currentPose.getY() - target.getY());
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestIndex = i;
+                }
+            }
 
-            targetPose = current;
-            if (targetPoseList != null && !targetPoseList.isEmpty()) {
-                targetPoseList.set(0, current);
+            if (closestIndex != -1) {
+                Pose closestDefault = defaultTargets.get(closestIndex);
+
+                // Calculate offset: Current Pose - Closest Default Target
+                double offsetX = currentPose.getX() - closestDefault.getX();
+                double offsetY = currentPose.getY() - closestDefault.getY();
+                double offsetH = currentPose.getHeading() - closestDefault.getHeading();
+
+                // Apply this offset to ALL targets relative to their defaults
+                for (int i = 0; i < targetPoseList.size(); i++) {
+                    targetPoseList.set(i, applyOffset(defaultTargets.get(i), offsetX, offsetY, offsetH));
+                }
             }
         }
+    }
+    
+    private Pose applyOffset(Pose base, double offX, double offY, double offH) {
+        return new Pose(
+            base.getX() + offX,
+            base.getY() + offY,
+            base.getHeading() + offH
+        );
     }
 
     /**
