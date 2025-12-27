@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 @TeleOp(name = "Flywheel Tuner Tutorial", group = "Tuning")
 public class FlywheelTunerTutorial extends OpMode {
 
-    private PanelsTelemetry panelsTelemetry;
+    private PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
     public DcMotorEx flywheelMotor;
     public DcMotorEx flywheelMotor2;
 
