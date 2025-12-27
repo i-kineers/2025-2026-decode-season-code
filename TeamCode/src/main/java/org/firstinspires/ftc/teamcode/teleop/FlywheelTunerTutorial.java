@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-@TeleOp
+@TeleOp(name = "Flywheel Tuner Tutorial", group = "Tuning")
 public class FlywheelTunerTutorial extends OpMode {
 
     private PanelsTelemetry panelsTelemetry;
@@ -28,8 +28,15 @@ public class FlywheelTunerTutorial extends OpMode {
 
     int stepIndex = 1;
 
+    private static final double TICKS_PER_REV = 28.0;  // GoBilda 6000 RPM motor
+    public static double SMOOTHING_ALPHA = 0.2;
+    private double lastFilteredRPM = 0.0;
+    private double currentRPM = 0.0;
+
     @Override
     public void init() {
+        panelsTelemetry = PanelsTelemetry.INSTANCE;
+
         flywheelMotor = hardwareMap.get(DcMotorEx.class, "launcher");
         flywheelMotor2 = hardwareMap.get(DcMotorEx.class, "launcher2");
         flywheelMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -81,9 +88,19 @@ public class FlywheelTunerTutorial extends OpMode {
 
         double error = curTargetVelocity - curVelocity;
 
+        // ---Compute Target RPM---
+        double targetRPM = (curTargetVelocity / TICKS_PER_REV) * 60.0;
+
+        // --- Compute current RPM from motor velocity ---
+        double rawRPM = (flywheelMotor.getVelocity() / TICKS_PER_REV) * 60.0;
+        currentRPM = (SMOOTHING_ALPHA * rawRPM) + ((1.0 - SMOOTHING_ALPHA) * lastFilteredRPM);
+        lastFilteredRPM = currentRPM;
+
         telemetry.addData("Target Veclocity", curTargetVelocity);
         telemetry.addData("Current Velocity", "%.2f", curVelocity);
         telemetry.addData("Error", "%.2f", error);
+        telemetry.addData("Target RPM", "%.2f", currentRPM);
+        telemetry.addData("Target RPM", "%.2f", targetRPM);
         telemetry.addLine("------------------------------");
         telemetry.addData("Tuning P", "%.4f (D-Pad U/D)", P);
         telemetry.addData("Tuning F", "%.4f (D-Pad L/R)", F);
@@ -91,6 +108,9 @@ public class FlywheelTunerTutorial extends OpMode {
 
         panelsTelemetry.getTelemetry().addData("Target Velocity", curTargetVelocity);
         panelsTelemetry.getTelemetry().addData("Current Velocity", curVelocity);
+        panelsTelemetry.getTelemetry().addData("Target RPM", currentRPM);
+        panelsTelemetry.getTelemetry().addData("Target RPM", currentRPM);
+        telemetry.addData("Target RPM", "%.2f", targetRPM);
         panelsTelemetry.getTelemetry().addData("Error", error);
         panelsTelemetry.getTelemetry().addData("Tuning P", P);
         panelsTelemetry.getTelemetry().addData("Tuning F", F);
