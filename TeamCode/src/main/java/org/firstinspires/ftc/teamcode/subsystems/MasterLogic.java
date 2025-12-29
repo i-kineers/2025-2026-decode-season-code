@@ -56,9 +56,9 @@ public class MasterLogic {
         );
 
         // B button updates the target pose to the current position
-        if (gamepad1.b) {
-            pathingManager.useCurrentPoseForTargetPose();
-        }
+//        if (gamepad1.b) {
+//            pathingManager.useCurrentPoseForTargetPose();
+//        }
 
         // --- 2. Outtake/Shooter Controls ---
 
