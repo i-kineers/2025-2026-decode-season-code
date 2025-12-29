@@ -17,12 +17,16 @@ public class TeleOpPathingManager {
     private boolean automatedDrive = false;
 
     // Base default poses (constants)
-    private final Pose DEFAULT_TARGET_1 = new Pose(48, 95, Math.toRadians(135));
-    private final Pose DEFAULT_TARGET_2 = new Pose(83.371, 130, Math.toRadians(180));
-    private final Pose DEFAULT_TARGET_3 = new Pose(90.318, 91.981, Math.toRadians(147));
-    private final Pose DEFAULT_TARGET_4 = new Pose(72, 72, Math.toRadians(135));
+    private final Pose CLOSE_ONE = new Pose(48, 95, Math.toRadians(135));
+    private final Pose CLOSE_TWO = new Pose(100.295, 99.999, Math.toRadians(160));
+    private final Pose FAR_ONE = new Pose(55.580, 11.282, Math.toRadians(115));
+    private final Pose FAR_TWO = new Pose(85, 11.461, Math.toRadians(120.8));
 
     private final List<Pose> defaultTargets = new ArrayList<>();
+    
+    // RPMs corresponding to each target
+    private final double[] targetRPMs = {2700, 3000, 3500, 4000};
+    private double currentTargetRPM = 3000; // Default
 
     private Pose startingPose;
     private List<Pose> targetPoseList;
@@ -36,10 +40,10 @@ public class TeleOpPathingManager {
         follower.startTeleopDrive();
 
         // Initialize default targets list for easy iteration
-        defaultTargets.add(DEFAULT_TARGET_1);
-        defaultTargets.add(DEFAULT_TARGET_2);
-        defaultTargets.add(DEFAULT_TARGET_3);
-        defaultTargets.add(DEFAULT_TARGET_4);
+        defaultTargets.add(CLOSE_ONE);
+        defaultTargets.add(CLOSE_TWO);
+        defaultTargets.add(FAR_ONE);
+        defaultTargets.add(FAR_TWO);
 
         // Initialize list with default poses
         targetPoseList = new ArrayList<>();
@@ -72,19 +76,22 @@ public class TeleOpPathingManager {
             int selectedIndex = -1;
 
             if (dpadUp) {
-                selectedIndex = 0;
-            } else if (dpadRight) {
-                selectedIndex = 1;
-            } else if (dpadDown) {
-                selectedIndex = 2;
+                selectedIndex = 0; // Close 1
             } else if (dpadLeft) {
-                selectedIndex = 3;
+                selectedIndex = 1; // Close 2
+            } else if (dpadRight) {
+                selectedIndex = 2; // Far 1
+            } else if (dpadDown) {
+                selectedIndex = 3; // Far 2
             }
 
             if (selectedIndex != -1 && targetPoseList != null
                     && selectedIndex < targetPoseList.size()) {
 
                 Pose selectedTarget = targetPoseList.get(selectedIndex);
+                
+                // Update the target RPM based on selection
+                currentTargetRPM = targetRPMs[selectedIndex];
 
                 if (selectedTarget != null) {
                     PathChain path = teleopPath.getPath(follower, selectedTarget);
@@ -194,6 +201,10 @@ public class TeleOpPathingManager {
 
     public Pose getStartingPose() {
         return startingPose;
+    }
+    
+    public double getCurrentTargetRPM() {
+        return currentTargetRPM;
     }
 
     public boolean isAutomated() {
