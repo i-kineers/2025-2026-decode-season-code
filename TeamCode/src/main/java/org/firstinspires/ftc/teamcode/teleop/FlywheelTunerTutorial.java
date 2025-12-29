@@ -24,7 +24,7 @@ public class FlywheelTunerTutorial extends OpMode {
     double F = 0;
     double P = 0;
 
-    double[] stepSizes = {10.0, 1.0, 0.1, 0.001, 0.0001};
+    double[] stepSizes = {10.0, 1.0, 0.1,0.01, 0.001, 0.0001};
 
     int stepIndex = 1;
 
@@ -97,9 +97,9 @@ public class FlywheelTunerTutorial extends OpMode {
         lastFilteredRPM = currentRPM;
 
         telemetry.addData("Target Veclocity", curTargetVelocity);
-        telemetry.addData("Current Velocity", "%.2f", curVelocity);
+        telemetry.addData("Current Velocity", "%.2f", Math.abs(curVelocity));
         telemetry.addData("Error", "%.2f", error);
-        telemetry.addData("Target RPM", "%.2f", currentRPM);
+        telemetry.addData("Current RPM", "%.2f", Math.abs(currentRPM));
         telemetry.addData("Target RPM", "%.2f", targetRPM);
         telemetry.addLine("------------------------------");
         telemetry.addData("Tuning P", "%.4f (D-Pad U/D)", P);
@@ -107,9 +107,9 @@ public class FlywheelTunerTutorial extends OpMode {
         telemetry.addData("Step Size", "%.4f (B Button)", stepSizes[stepIndex]);
 
         panelsTelemetry.getTelemetry().addData("Target Velocity", curTargetVelocity);
-        panelsTelemetry.getTelemetry().addData("Current Velocity", curVelocity);
-        panelsTelemetry.getTelemetry().addData("Target RPM", currentRPM);
-        panelsTelemetry.getTelemetry().addData("Target RPM", currentRPM);
+        panelsTelemetry.getTelemetry().addData("Current Velocity", Math.abs(curVelocity));
+        panelsTelemetry.getTelemetry().addData("Target RPM", targetRPM);
+        panelsTelemetry.getTelemetry().addData("Current RPM", Math.abs(currentRPM));
         telemetry.addData("Target RPM", "%.2f", targetRPM);
         panelsTelemetry.getTelemetry().addData("Error", error);
         panelsTelemetry.getTelemetry().addData("Tuning P", P);
