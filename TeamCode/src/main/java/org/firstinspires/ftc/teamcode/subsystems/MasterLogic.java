@@ -21,17 +21,24 @@ public class MasterLogic {
     private boolean dpadUpWasPressed = false;
     private boolean dpadDownWasPressed = false;
 
-    public MasterLogic(HardwareMap hardwareMap) {
+    private boolean isBlue;
+
+    public MasterLogic(HardwareMap hardwareMap, double startingX, double startingY, double startingH, boolean isBlueAlliance) {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
         // Initialize all subsystems
         outtake = new DoubleMotorOuttakePID(hardwareMap);
         intake = new Intake(hardwareMap);
-        
+
+        if (isBlueAlliance) {
+            isBlue = true;
+        } else {
+            isBlue = false;
+        }
+
         // Initialize Pathing Manager with a default starting pose
-        pathingManager = new TeleOpPathingManager(hardwareMap);
-//        pathingManager.setStartingPose(21.19913080511354,123.51344502026842,144);
-        pathingManager.setStartingPose(22,120,135);
+        pathingManager = new TeleOpPathingManager(hardwareMap, isBlue);
+        pathingManager.setStartingPose(startingX,startingY,startingH);
     }
     public void mainLogic(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
         pathingManager.update();

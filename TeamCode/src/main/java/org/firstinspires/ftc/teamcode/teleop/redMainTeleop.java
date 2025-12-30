@@ -4,15 +4,15 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.subsystems.MasterLogic;
 
-@TeleOp(name = "Main TeleOp", group = "Main")
-public class MainTeleOp extends OpMode {
+@TeleOp(name = "Red TeleOp", group = "Main")
+public class redMainTeleop extends OpMode {
 
     private MasterLogic master;
 
     @Override
     public void init() {
         // Initialize the logic master
-        master = new MasterLogic(hardwareMap, 22, 120, 135, true);
+        master = new MasterLogic(hardwareMap, 86, 112, 0, false);
 
         telemetry.addLine("Main TeleOp Initialized.");
         telemetry.update();
