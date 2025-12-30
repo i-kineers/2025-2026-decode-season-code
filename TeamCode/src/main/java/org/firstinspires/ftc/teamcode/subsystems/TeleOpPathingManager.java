@@ -17,27 +17,39 @@ public class TeleOpPathingManager {
     private boolean automatedDrive = false;
 
     // Base default poses (constants)
-    private final Pose CLOSE_ONE = new Pose(48, 95, Math.toRadians(135));
-    private final Pose CLOSE_TWO = new Pose(100.295, 99.999, Math.toRadians(160));
-    private final Pose FAR_ONE = new Pose(55.580, 11.282, Math.toRadians(115));
-    private final Pose FAR_TWO = new Pose(85, 11.461, Math.toRadians(120.8));
+    private Pose CLOSE_ONE = new Pose(48, 95, Math.toRadians(135));
+    private Pose CLOSE_TWO = new Pose(100.295, 99.999, Math.toRadians(160));
+    private Pose FAR_ONE = new Pose(55.580, 11.282, Math.toRadians(115));
+    private Pose FAR_TWO = new Pose(85, 11.461, Math.toRadians(120.8));
 
     private final List<Pose> defaultTargets = new ArrayList<>();
     
     // RPMs corresponding to each target
-    private final double[] targetRPMs = {2700, 3000, 3500, 4000};
+    private final double[] targetRPMs = {2600, 3000, 3500, 4000};
     private double currentTargetRPM = 3000; // Default
 
     private Pose startingPose;
     private List<Pose> targetPoseList;
 
-    public TeleOpPathingManager(HardwareMap hardwareMap) {
+    private boolean isBlue;
+
+    public TeleOpPathingManager(HardwareMap hardwareMap, boolean isBlueAlliance) {
         follower = Constants.createFollower(hardwareMap);
 
         // Default starting pose if not set before init
         startingPose = new Pose(0, 0, 0);
         follower.setStartingPose(startingPose);
         follower.startTeleopDrive();
+
+        // Check if Blue or Red alliance
+        if (!isBlueAlliance) { isBlue = false; } else { isBlue = true; }
+
+        if (!isBlue) {
+            CLOSE_ONE = CLOSE_ONE.mirror();
+            CLOSE_TWO = CLOSE_TWO.mirror();
+            FAR_ONE = FAR_ONE.mirror();
+            FAR_TWO = FAR_TWO.mirror();
+        }
 
         // Initialize default targets list for easy iteration
         defaultTargets.add(CLOSE_ONE);
@@ -111,7 +123,12 @@ public class TeleOpPathingManager {
 
         // Manual Drive
         if (!automatedDrive) {
-            follower.setTeleOpDrive(forward, strafe, turn, false);
+            if (isBlue) {
+                follower.setTeleOpDrive(forward, strafe, turn, false);
+            } else {
+                follower.setTeleOpDrive(-forward, -strafe, turn, false);
+            }
+
         }
     }
 

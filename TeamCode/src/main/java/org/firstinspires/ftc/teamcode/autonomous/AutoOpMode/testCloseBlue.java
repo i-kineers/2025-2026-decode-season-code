@@ -49,7 +49,7 @@ public class testCloseBlue extends OpMode {
                 break;
             case 1:
                 if (!follower.isBusy()){
-                    outtake.autoRapidShoot(2700,5000, 500);
+                    outtake.autoRapidShoot(2600,3500, 500);
                     setPathState(2);
                 }
                 break;
@@ -71,7 +71,10 @@ public class testCloseBlue extends OpMode {
                 break;
             case 4:
                 if (!follower.isBusy()) {
-                    outtake.autoRapidShoot(2700, 5000, 500);
+                    intake.autoIntakeOn();
+                    sleep(1000);
+                    intake.autoIntakeOff();
+                    outtake.autoRapidShoot(2600, 3500, 500);
                     setPathState(5);
                 }
                 break;
