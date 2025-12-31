@@ -212,7 +212,7 @@ public class DoubleMotorOuttakePID {
     }
 
     public double getCurrentRPM() {
-        return this.currentRPM;
+        return Math.abs(this.currentRPM);
     }
 
     // The new, SAFE method in DoubleMotorOuttakePID.java
