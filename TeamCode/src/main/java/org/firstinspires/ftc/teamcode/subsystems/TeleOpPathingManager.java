@@ -19,13 +19,13 @@ public class TeleOpPathingManager {
     // Base default poses (constants)
     private Pose CLOSE_ONE = new Pose(48, 95, Math.toRadians(135));
     private Pose CLOSE_TWO = new Pose(100.295, 99.999, Math.toRadians(160));
-    private Pose FAR_ONE = new Pose(55.580, 11.282, Math.toRadians(115));
+    private Pose FAR_ONE = new Pose(55.580, 11.282, Math.toRadians(110));
     private Pose FAR_TWO = new Pose(85, 11.461, Math.toRadians(120.8));
 
     private final List<Pose> defaultTargets = new ArrayList<>();
     
     // RPMs corresponding to each target
-    private final double[] targetRPMs = {2600, 3000, 3500, 4000};
+    private final double[] targetRPMs = {2600, 3100, 3800, 3900};
     private double currentTargetRPM = 3000; // Default
 
     private Pose startingPose;
