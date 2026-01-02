@@ -32,7 +32,7 @@ public class testFarBlue extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         paths = new testPathFarBlue(follower);
-        follower.setStartingPose(new Pose(50, 8.25, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(52.969, 11.151, Math.toRadians(110)));
 
         outtake = new DoubleMotorOuttakePID(hardwareMap);
         intake = new Intake(hardwareMap);
@@ -41,41 +41,16 @@ public class testFarBlue extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(paths.Path1);
+                outtake.autoShootDelay(3800,5000,500);
                 setPathState(1);
                 break;
             case 1:
                 if (!follower.isBusy()) {
-                    outtake.autoRapidShoot(3800,5000,500);
+                    follower.followPath(paths.Path1);
                     setPathState(2);
                 }
+                break;
             case 2:
-                if (!follower.isBusy()) {
-                    intake.autoIntakeOn();
-                    follower.followPath(paths.Path2);
-                    setPathState(3);
-                }
-                break;
-            case 3:
-                if (!follower.isBusy()) {
-                    follower.setMaxPower(1);
-                    intake.autoIntakeOff();
-                    follower.followPath(paths.Path3);
-                    setPathState(4);
-                }
-                break;
-            case 4:
-                if (!follower.isBusy()) {
-                    outtake.autoRapidShoot(2700, 5000, 500);
-                    setPathState(5);
-                }
-            case 5:
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path4);
-                    setPathState(6);
-                }
-                break;
-            case 6:
                 if (!follower.isBusy()) {
                     setPathState(-1);
                 }
