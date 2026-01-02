@@ -46,7 +46,7 @@ public class testFarBlue extends OpMode {
                 break;
             case 1:
                 if (!follower.isBusy()) {
-                    outtake.autoRapidShoot(2700,5000,500);
+                    outtake.autoRapidShoot(3800,5000,500);
                     setPathState(2);
                 }
             case 2:
