@@ -16,15 +16,24 @@ public class TeleOpPathingManager {
     private Follower follower;
     private boolean automatedDrive = false;
 
-    private Pose targetPose;
-    private Pose targetPose2;
-    private Pose targetPose3;
-    private Pose targetPose4;
-    private Pose startingPose;
+    // Base default poses (constants)
+    private Pose CLOSE_ONE = new Pose(48, 95, Math.toRadians(135));
+    private Pose CLOSE_TWO = new Pose(100.295, 99.999, Math.toRadians(160));
+    private Pose FAR_ONE = new Pose(55.580, 11.282, Math.toRadians(110));
+    private Pose FAR_TWO = new Pose(85, 11.461, Math.toRadians(120.8));
 
+    private final List<Pose> defaultTargets = new ArrayList<>();
+    
+    // RPMs corresponding to each target
+    private final double[] targetRPMs = {2600, 3100, 3800, 3900};
+    private double currentTargetRPM = 3000; // Default
+
+    private Pose startingPose;
     private List<Pose> targetPoseList;
 
-    public TeleOpPathingManager(HardwareMap hardwareMap) {
+    private boolean isBlue;
+
+    public TeleOpPathingManager(HardwareMap hardwareMap, boolean isBlueAlliance) {
         follower = Constants.createFollower(hardwareMap);
 
         // Default starting pose if not set before init
@@ -32,17 +41,27 @@ public class TeleOpPathingManager {
         follower.setStartingPose(startingPose);
         follower.startTeleopDrive();
 
-        // Default target pose
-        this.targetPose = new Pose(48, 95, Math.toRadians(135));
-        this.targetPose2 = new Pose(83.371, 130, Math.toRadians(180));
-        this.targetPose3 = new Pose(90.318, 91.981, Math.toRadians(147));
-        this.targetPose4 = new Pose(72, 72, Math.toRadians(135));
+        // Check if Blue or Red alliance
+        if (!isBlueAlliance) { isBlue = false; } else { isBlue = true; }
 
+        if (!isBlue) {
+            CLOSE_ONE = CLOSE_ONE.mirror();
+            CLOSE_TWO = CLOSE_TWO.mirror();
+            FAR_ONE = FAR_ONE.mirror();
+            FAR_TWO = FAR_TWO.mirror();
+        }
+
+        // Initialize default targets list for easy iteration
+        defaultTargets.add(CLOSE_ONE);
+        defaultTargets.add(CLOSE_TWO);
+        defaultTargets.add(FAR_ONE);
+        defaultTargets.add(FAR_TWO);
+
+        // Initialize list with default poses
         targetPoseList = new ArrayList<>();
-        targetPoseList.add(targetPose);
-        targetPoseList.add(targetPose2);
-        targetPoseList.add(targetPose3);
-        targetPoseList.add(targetPose4);
+        for (Pose p : defaultTargets) {
+            targetPoseList.add(new Pose(p.getX(), p.getY(), p.getHeading()));
+        }
     }
 
     public void update() {
@@ -69,19 +88,22 @@ public class TeleOpPathingManager {
             int selectedIndex = -1;
 
             if (dpadUp) {
-                selectedIndex = 0;
-            } else if (dpadRight) {
-                selectedIndex = 1;
-            } else if (dpadDown) {
-                selectedIndex = 2;
+                selectedIndex = 0; // Close 1
             } else if (dpadLeft) {
-                selectedIndex = 3;
+                selectedIndex = 1; // Close 2
+            } else if (dpadRight) {
+                selectedIndex = 2; // Far 1
+            } else if (dpadDown) {
+                selectedIndex = 3; // Far 2
             }
 
             if (selectedIndex != -1 && targetPoseList != null
                     && selectedIndex < targetPoseList.size()) {
 
                 Pose selectedTarget = targetPoseList.get(selectedIndex);
+                
+                // Update the target RPM based on selection
+                currentTargetRPM = targetRPMs[selectedIndex];
 
                 if (selectedTarget != null) {
                     PathChain path = teleopPath.getPath(follower, selectedTarget);
@@ -101,7 +123,12 @@ public class TeleOpPathingManager {
 
         // Manual Drive
         if (!automatedDrive) {
-            follower.setTeleOpDrive(forward, strafe, turn, false);
+            if (isBlue) {
+                follower.setTeleOpDrive(forward, strafe, turn, false);
+            } else {
+                follower.setTeleOpDrive(-forward, -strafe, turn, false);
+            }
+
         }
     }
 
@@ -117,11 +144,6 @@ public class TeleOpPathingManager {
     public void setTargetPose(double x, double y, double h, int targetSelection) {
         Pose newPose = new Pose(x, y, Math.toRadians(h));
 
-        // Always keep targetPose behaving the same
-        if (targetSelection == 0) {
-            targetPose = newPose;
-        }
-
         // Update list entry if valid
         if (targetPoseList != null
                 && targetSelection >= 0
@@ -132,18 +154,49 @@ public class TeleOpPathingManager {
     }
 
 
+    /**
+     * Resets all target poses based on the offset between the current robot pose
+     * and the CLOSEST default target pose.
+     */
     public void resetTargetPose() {
         if (follower.getPose() != null) {
-            // Default to updating the first target pose (index 0) if B is pressed
-            // You can change this logic to update the last selected index if you track it
-            Pose current = new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading());
+            Pose currentPose = follower.getPose();
+            
+            // Find the closest default target
+            int closestIndex = -1;
+            double minDistance = Double.MAX_VALUE;
 
+            for (int i = 0; i < defaultTargets.size(); i++) {
+                Pose target = defaultTargets.get(i);
+                double dist = Math.hypot(currentPose.getX() - target.getX(), currentPose.getY() - target.getY());
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestIndex = i;
+                }
+            }
 
-            targetPose = current;
-            if (targetPoseList != null && !targetPoseList.isEmpty()) {
-                targetPoseList.set(0, current);
+            if (closestIndex != -1) {
+                Pose closestDefault = defaultTargets.get(closestIndex);
+
+                // Calculate offset: Current Pose - Closest Default Target
+                double offsetX = currentPose.getX() - closestDefault.getX();
+                double offsetY = currentPose.getY() - closestDefault.getY();
+                double offsetH = currentPose.getHeading() - closestDefault.getHeading();
+
+                // Apply this offset to ALL targets relative to their defaults
+                for (int i = 0; i < targetPoseList.size(); i++) {
+                    targetPoseList.set(i, applyOffset(defaultTargets.get(i), offsetX, offsetY, offsetH));
+                }
             }
         }
+    }
+    
+    private Pose applyOffset(Pose base, double offX, double offY, double offH) {
+        return new Pose(
+            base.getX() + offX,
+            base.getY() + offY,
+            base.getHeading() + offH
+        );
     }
 
     /**
@@ -165,6 +218,10 @@ public class TeleOpPathingManager {
 
     public Pose getStartingPose() {
         return startingPose;
+    }
+    
+    public double getCurrentTargetRPM() {
+        return currentTargetRPM;
     }
 
     public boolean isAutomated() {

@@ -14,25 +14,26 @@ public class closePaths {
     private double shootHeading = Math.toRadians(135);
     private double pickUpHeading = Math.toRadians(180);
 
-    private double resetHeading = Math.toRadians(90);
+    private double resetHeading = Math.toRadians(180);
 
     // Paths will be set to favor blue
-    private Pose startPose = new Pose(21.192, 121.419);
+    private Pose startPose = new Pose(22, 120);
     private Pose shootPose = new Pose(48,95);
-    private Pose homePose = new Pose(38.711, 32.205);
+    private Pose homePose = new Pose(58, 112);
 
     // All end poses for pickup in each 3 rows
-    private Pose pickUpPose1 = new Pose(15, 84.097);
-    private Pose pickUpPose2 = new Pose(15, 59.569);
-    private Pose pickUpPose3 = new Pose(15, 35.71);
+    private Pose pickUpPose1 = new Pose(16, 80);
+    private Pose pickUpPose2 = new Pose(10, 58.313);
+    private Pose pickUpPose3 = new Pose(16, 35.71);
 
     // This is assuming the robot will always be going from the shooting to pick up
-    private Pose pickupControl1 = new Pose(69.562, 80.502);
-    private Pose pickupControl2 = new Pose(70.276, 56.601);
+    private Pose pickupControl1 = new Pose(71.257, 80.833);
+    private Pose pickupControl2 = new Pose(88.537, 58.3127);
+    private Pose returnPose2 = new Pose(58.253, 60.628);
     private Pose pickupControl3 = new Pose(81.87, 31.63);
 
     // PathChain member variables, to be initialized in the constructor
-    public PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9;
+    public PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8;
 
     public closePaths(Follower follower, boolean teamColor) {
 
@@ -40,14 +41,17 @@ public class closePaths {
         if (!teamColor) {
             shootHeading = reflect(shootHeading);
             pickUpHeading = reflect(pickUpHeading);
+            resetHeading = reflect(resetHeading);
             startPose = reflect(startPose);
             shootPose = reflect(shootPose);
             pickUpPose1 = reflect(pickUpPose1);
             pickUpPose2 = reflect(pickUpPose2);
+            returnPose2 = reflect(returnPose2);
             pickUpPose3 = reflect(pickUpPose3);
             pickupControl1 = reflect(pickupControl1);
             pickupControl2 = reflect(pickupControl2);
             pickupControl3 = reflect(pickupControl3);
+            homePose = reflect(homePose);
         }
 
         // From start to shooting
@@ -59,7 +63,8 @@ public class closePaths {
         // From shooting to intaking first rows of balls
         Path2 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl1, pickUpPose1))
-                .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
+                .addParametricCallback(0.3, () -> follower.setMaxPower(0.2))
+                .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.8)
                 .build();
 
         // From intaking first row of balls to shooting
@@ -72,11 +77,12 @@ public class closePaths {
         // Move from shooting position to intake 2nd row of balls
         Path4 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl2, pickUpPose2))
-                .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
+                .addParametricCallback(0.45, () -> follower.setMaxPower(0.2))
+                .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.5)
                 .build();
         // Move from intake 2nd row of balls to shooting position
         Path5 = follower.pathBuilder()
-                .addPath(new BezierLine(pickUpPose2, shootPose))
+                .addPath(new BezierCurve(pickUpPose2, returnPose2, shootPose))
                 .setLinearHeadingInterpolation(pickUpHeading, shootHeading)
                 .build();
 
@@ -84,7 +90,8 @@ public class closePaths {
         // Move from shooting position to intake 3rd row of balls
         Path6 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl3, pickUpPose3))
-                .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
+                .addParametricCallback(0.25, () -> follower.setMaxPower(0.3))
+                .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.8)
                 .build();
         // Move from intake 3rd row of balls to shooting position
         Path7 = follower.pathBuilder()
