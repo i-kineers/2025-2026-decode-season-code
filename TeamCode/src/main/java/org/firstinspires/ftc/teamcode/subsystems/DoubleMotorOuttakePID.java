@@ -184,6 +184,43 @@ public class DoubleMotorOuttakePID {
         update(); // Apply the change to stop the motors.
     }
 
+    public void autoShootDelay(double rpm, long time, double delay) {
+        loopTimer.reset();
+        setTargetRPM(rpm);
+
+        ElapsedTime timer = new ElapsedTime();
+        boolean shotAllowed = true;
+
+        while (timer.milliseconds() < time) {
+
+            if (loopTimer.milliseconds() > delay) {
+
+                // RPM close enough to target
+                boolean atSpeed = Math.abs(rpm - currentRPM) < 50;
+
+                if (atSpeed && shotAllowed) {
+                    runLoader();          // Fire ONE shot
+                    shotAllowed = false;  // Lock until RPM drops
+                } else {
+                    stopLoader();
+                }
+
+                // Wait for RPM to dip before allowing another shot
+                if (!atSpeed) {
+                    shotAllowed = true;
+                }
+            }
+
+            update();
+            sleep(10);
+        }
+
+        stopLoader();
+        stop();
+        update();
+    }
+
+
     public void toggleRapidShoot() {
         if (!rapidShoot) {
             rapidShoot = true;
