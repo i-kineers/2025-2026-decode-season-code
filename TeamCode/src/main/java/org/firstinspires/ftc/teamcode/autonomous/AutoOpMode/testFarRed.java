@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.autonomous.Paths.testPathFarRed;
+import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 @Autonomous(name = "testFarRed", group = "Examples")
 public class testFarRed extends OpMode {
@@ -19,7 +21,8 @@ public class testFarRed extends OpMode {
 
     private testPathFarRed paths;
 
-//    DoubleMotorOuttakePID shooter;
+    DoubleMotorOuttakePID outtake;
+    Intake intake;
 
     @Override
     public void init() {
@@ -29,34 +32,25 @@ public class testFarRed extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         paths = new testPathFarRed(follower);
-        follower.setStartingPose(new Pose(94, 8.25, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(91.031, 11.2525, Math.toRadians(65)));
+
+        outtake = new DoubleMotorOuttakePID(hardwareMap);
+        intake = new Intake(hardwareMap);
     }
 
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(paths.Path1);
+                outtake.autoShootDelay(3800,5000,500);
                 setPathState(1);
                 break;
             case 1:
                 if (!follower.isBusy()) {
-                    follower.followPath(paths.Path2);
+                    follower.followPath(paths.Path1);
                     setPathState(2);
                 }
                 break;
-            case 2:
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path3);
-                    setPathState(3);
-                }
-                break;
             case 3:
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path4);
-                    setPathState(4);
-                }
-                break;
-            case 4:
                 if (!follower.isBusy()) {
                     setPathState(-1);
                 }

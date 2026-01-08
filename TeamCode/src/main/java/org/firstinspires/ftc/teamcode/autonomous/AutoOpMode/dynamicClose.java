@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.subsystems.AutonomousCycleManager;
 
 @Autonomous(name = "Close Auto", group = "Main")
-public class modularClose extends OpMode {
+public class dynamicClose extends OpMode {
 
     private AutonomousCycleManager autoManager;
 
