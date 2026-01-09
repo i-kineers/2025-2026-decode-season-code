@@ -128,7 +128,6 @@ public class TeleOpPathingManager {
             } else {
                 follower.setTeleOpDrive(-forward, -strafe, turn, false);
             }
-
         }
     }
 
