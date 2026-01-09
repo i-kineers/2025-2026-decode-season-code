@@ -41,16 +41,10 @@ public class testFarRed extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                outtake.autoShootDelay(3800,5000,500);
+                follower.followPath(paths.Path1);
                 setPathState(1);
                 break;
             case 1:
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path1);
-                    setPathState(2);
-                }
-                break;
-            case 3:
                 if (!follower.isBusy()) {
                     setPathState(-1);
                 }

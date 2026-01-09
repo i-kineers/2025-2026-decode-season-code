@@ -4,17 +4,18 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.subsystems.MasterLogic;
 
-@TeleOp(name = "Blue TeleOp", group = "Main")
-public class blueMainTeleop extends OpMode {
+@TeleOp(name = "Blue Far TeleOp", group = "Main")
+public class blueFarTeleop extends OpMode {
 
     private MasterLogic master;
 
     @Override
     public void init() {
         // Initialize the logic master
-        master = new MasterLogic(hardwareMap, 58, 112, 180, true);
+        // Starting pose from testFarBlue: (52.969, 11.151, 110 degrees)
+        master = new MasterLogic(hardwareMap, 33.454,11.151, 90, true);
 
-        telemetry.addLine("Main TeleOp Initialized.");
+        telemetry.addLine("Blue Far TeleOp Initialized.");
         telemetry.update();
     }
 

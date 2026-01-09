@@ -32,6 +32,7 @@ public class FieldCentricDrive {
 
     public void drive(double leftStickY, double leftStickX, double rightStickX) {
         double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        
         // Call the static calculation method
         double[] powers = calculatePowers(leftStickY, leftStickX, rightStickX, heading);
         
