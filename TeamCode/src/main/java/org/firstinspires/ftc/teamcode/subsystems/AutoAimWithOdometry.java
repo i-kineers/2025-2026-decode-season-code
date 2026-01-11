@@ -59,10 +59,10 @@ public class AutoAimWithOdometry {
 
         if (headingLock) {
             // Use PID output for rotation instead of right stick
-            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, headingController.run(), false);
+            follower.setTeleOpDrive(-left_stick_y, -left_stick_x, headingController.run(), false);
         } else {
             // Standard TeleOp driving
-            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, false);
+            follower.setTeleOpDrive(-left_stick_y, -left_stick_x, -right_stick_x, false);
         }
     }
 }
