@@ -1,102 +1,123 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
-
 import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
 import org.firstinspires.ftc.teamcode.autonomous.Paths.autoAimPath;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
 
 public class AutoAimWithOdometry {
+    private final Follower follower;
+    private final PIDFController headingController;
+    private boolean headingLock = false; // Toggle for heading lock
 
-    private double alignHeadingAngle;
-
-    private Follower follower;
-
-    Pose blueGoalPose = new Pose(137.397, 142.394);
-    Pose startPose = new Pose(22,120, Math.toRadians(135));
-    Pose currentPose;
-
-    // Setup
-    double targetHeading = Math.toRadians(180); // Radians
-    PIDFController controller;
-    boolean headingLock = true;
+    // Field positions
+    private final Pose blueGoalPose = new Pose(6.719, 142.394);
+    private final Pose startPose = new Pose(22, 120, Math.toRadians(135));
+    private double targetHeading;
+    private double lastTurn;
 
     public AutoAimWithOdometry(HardwareMap hardwareMap) {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
         follower.startTeleopDrive();
-        // Initialize controller AFTER follower is created to avoid NullPointerException
-        controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
+
+        headingController = new PIDFController(follower.constants.coefficientsHeadingPIDF);
     }
 
-    private double headingCalculator() {
-        // m1 and m2 representing 2 different lines slopes
-        // Formula: tan(theta) = abs((m1 - m2) / (1 + (m1)(m2)))
-        // Answer will always be acute angle, next formula shown is the correct modified one
-
-        // Formula: tan(theta) = (m1 - m2) / (1 + (m1)(m2))
-        // This COULD result in a negative number which if it does, then take 180 - result
-
-        double robotX = follower.getPose().getX();
-        double robotY = follower.getPose().getY();
-
-        // Instead of slopes, we use the "Vector" between the two points
-        double m1 = (blueGoalPose.getY() - robotY) / (blueGoalPose.getX() - robotX);
-
-        double tanTheta = (m1-0) / (1 + m1*0);
-        return Math.atan(tanTheta);
+    // Toggle method for your TeleOp
+    public void setHeadingLock(boolean active) {
+        if (active && !headingLock) {
+            headingController.reset(); // VERY IMPORTANT
+        }
+        headingLock = active;
     }
 
-    private double setHeading() {
-        double alignAngle = headingCalculator();
+    private double calculateTargetHeading() {
+        Pose robot = follower.getPose();
+        double dx = blueGoalPose.getX() - robot.getX();
+        double dy = blueGoalPose.getY() - robot.getY();
+        return MathFunctions.normalizeAngle(Math.atan2(dy, dx));
+    }
 
-        if (alignAngle < 0) {
-            alignHeadingAngle = (180 - alignAngle);
-        } else if (alignAngle > 0) {
-            alignHeadingAngle = alignAngle;
-        } else {
-            alignHeadingAngle = alignAngle;
+    /**
+     * Updated Loop Method
+     * Pass gamepad inputs here to drive the robot while locking heading.
+     */
+    public void update(double left_stick_y, double left_stick_x, double right_stick_x) {
+        follower.update();
+
+        // Always calculate target heading toward the backdrop
+        targetHeading = calculateTargetHeading(); // points at blueGoalPose
+
+        // --- Calculate error using shortest rotation path ---
+        double currentHeading = follower.getPose().getHeading();
+        double error = targetHeading - currentHeading;
+
+        // Normalize to [-π, π]
+        if (error > Math.PI) {
+            error -= 2 * Math.PI;
+        } else if (error < -Math.PI) {
+            error += 2 * Math.PI;
         }
 
-        return alignAngle;
-    }
+        // Deadband for small errors
+        if (Math.abs(error) < Math.toRadians(1.5)) {
+            error = 0;
+            lastTurn = 0;
+        } else {
+            headingController.updateError(error);
+            lastTurn = headingController.run();
 
-    private void runAlignment() {
-        // Use PID for this. Should be similar to camera alignment.
-        PathChain path = autoAimPath.getPath(follower, setHeading());
-    }
-
-    public void update() {
-        // Update coefficients if they change (optional, can be removed if static)
-        controller.setCoefficients(follower.constants.coefficientsHeadingPIDF);
-        controller.updateError(getHeadingError());
-        controller.run();
-    }
-
-        // Method
-        public double getHeadingError() {
-            if (follower.getCurrentPath() == null) {
-                return 0;
+            // Ramp down turn power near target
+            double maxTurn = 0.4;
+            if (Math.abs(error) < Math.toRadians(10)) {
+                maxTurn = 0.2;
             }
 
-            double headingError =
-                    MathFunctions.getTurnDirection(
-                            follower.getPose().getHeading(),
-                            targetHeading
-                    )
-                            * MathFunctions.getSmallestAngleDifference(
-                            follower.getPose().getHeading(),
-                            targetHeading
-                    );
-
-            return headingError;
+            lastTurn = MathFunctions.clamp(lastTurn, -maxTurn, maxTurn);
         }
 
+        // Apply drive
+        if (headingLock) {
+            // Now heading lock actually points at the target
+            follower.setTeleOpDrive(-left_stick_y, -left_stick_x, lastTurn, false);
+        } else {
+            follower.setTeleOpDrive(-left_stick_y, -left_stick_x, -right_stick_x, false);
+        }
+    }
 
+
+    public boolean isHeadingLockEnabled() {
+        return headingLock;
+    }
+
+    public double getTargetHeadingDeg() {
+        return Math.toDegrees(targetHeading);
+    }
+
+    public double getCurrentHeadingDeg() {
+        return Math.toDegrees(follower.getPose().getHeading());
+    }
+
+    public double getHeadingErrorDeg() {
+        double error = targetHeading - follower.getPose().getHeading();
+        // Normalize to [-π, π]
+        if (error > Math.PI) {
+            error -= 2 * Math.PI;
+        } else if (error < -Math.PI) {
+            error += 2 * Math.PI;
+        }
+        return Math.toDegrees(error);
+    }
+
+    public double getTurnPower() {
+        return lastTurn;
+    }
 }
