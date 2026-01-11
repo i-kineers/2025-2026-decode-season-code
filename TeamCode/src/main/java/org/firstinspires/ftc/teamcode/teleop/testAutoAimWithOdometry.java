@@ -18,9 +18,9 @@ public class testAutoAimWithOdometry extends OpMode {
     @Override
     public void loop() {
         // Toggle the lock state based on the trigger
-        if (gamepad1.right_trigger > 0.5) {
+        if (gamepad1.aWasPressed()) {
             autoAimWithOdometry.setHeadingLock(true);
-        } else {
+        } else if (gamepad1.bWasPressed()){
             autoAimWithOdometry.setHeadingLock(false);
         }
 
@@ -32,7 +32,12 @@ public class testAutoAimWithOdometry extends OpMode {
         );
 
         // Optional: Add telemetry to see if it's working
-        telemetry.addData("Heading Lock", gamepad1.right_trigger > 0.5);
+        telemetry.addData("Heading Lock", autoAimWithOdometry.isHeadingLockEnabled());
+        telemetry.addData("Target Heading (deg)", autoAimWithOdometry.getTargetHeadingDeg());
+        telemetry.addData("Current Heading (deg)", autoAimWithOdometry.getCurrentHeadingDeg());
+        telemetry.addData("Heading Error (deg)", autoAimWithOdometry.getHeadingErrorDeg());
+        telemetry.addData("Turn Output", autoAimWithOdometry.getTurnPower());
         telemetry.update();
+
     }
 }

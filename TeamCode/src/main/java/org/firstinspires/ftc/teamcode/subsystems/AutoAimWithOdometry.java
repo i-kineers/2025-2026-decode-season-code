@@ -18,9 +18,10 @@ public class AutoAimWithOdometry {
     private boolean headingLock = false; // Toggle for heading lock
 
     // Field positions
-    private final Pose blueGoalPose = new Pose(137.397, 142.394);
+    private final Pose blueGoalPose = new Pose(6.719, 142.394);
     private final Pose startPose = new Pose(22, 120, Math.toRadians(135));
     private double targetHeading;
+    private double lastTurn;
 
     public AutoAimWithOdometry(HardwareMap hardwareMap) {
         follower = Constants.createFollower(hardwareMap);
@@ -32,7 +33,10 @@ public class AutoAimWithOdometry {
 
     // Toggle method for your TeleOp
     public void setHeadingLock(boolean active) {
-        this.headingLock = active;
+        if (active && !headingLock) {
+            headingController.reset(); // VERY IMPORTANT
+        }
+        headingLock = active;
     }
 
     private double calculateTargetHeading() {
@@ -48,21 +52,72 @@ public class AutoAimWithOdometry {
      */
     public void update(double left_stick_y, double left_stick_x, double right_stick_x) {
         follower.update();
-        targetHeading = calculateTargetHeading();
 
-        // Update PID with the smallest angle difference (from your image's logic)
-        double error = MathFunctions.getSmallestAngleDifference(
-                follower.getPose().getHeading(),
-                targetHeading
-        );
-        headingController.updateError(error);
+        // Always calculate target heading toward the backdrop
+        targetHeading = calculateTargetHeading(); // points at blueGoalPose
 
-        if (headingLock) {
-            // Use PID output for rotation instead of right stick
-            follower.setTeleOpDrive(-left_stick_y, -left_stick_x, headingController.run(), false);
+        // --- Calculate error using shortest rotation path ---
+        double currentHeading = follower.getPose().getHeading();
+        double error = targetHeading - currentHeading;
+
+        // Normalize to [-π, π]
+        if (error > Math.PI) {
+            error -= 2 * Math.PI;
+        } else if (error < -Math.PI) {
+            error += 2 * Math.PI;
+        }
+
+        // Deadband for small errors
+        if (Math.abs(error) < Math.toRadians(1.5)) {
+            error = 0;
+            lastTurn = 0;
         } else {
-            // Standard TeleOp driving
+            headingController.updateError(error);
+            lastTurn = headingController.run();
+
+            // Ramp down turn power near target
+            double maxTurn = 0.4;
+            if (Math.abs(error) < Math.toRadians(10)) {
+                maxTurn = 0.2;
+            }
+
+            lastTurn = MathFunctions.clamp(lastTurn, -maxTurn, maxTurn);
+        }
+
+        // Apply drive
+        if (headingLock) {
+            // Now heading lock actually points at the target
+            follower.setTeleOpDrive(-left_stick_y, -left_stick_x, lastTurn, false);
+        } else {
             follower.setTeleOpDrive(-left_stick_y, -left_stick_x, -right_stick_x, false);
         }
+    }
+
+
+    public boolean isHeadingLockEnabled() {
+        return headingLock;
+    }
+
+    public double getTargetHeadingDeg() {
+        return Math.toDegrees(targetHeading);
+    }
+
+    public double getCurrentHeadingDeg() {
+        return Math.toDegrees(follower.getPose().getHeading());
+    }
+
+    public double getHeadingErrorDeg() {
+        double error = targetHeading - follower.getPose().getHeading();
+        // Normalize to [-π, π]
+        if (error > Math.PI) {
+            error -= 2 * Math.PI;
+        } else if (error < -Math.PI) {
+            error += 2 * Math.PI;
+        }
+        return Math.toDegrees(error);
+    }
+
+    public double getTurnPower() {
+        return lastTurn;
     }
 }
