@@ -17,14 +17,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class  Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
         .mass(9) // Mass of meet 1 bot: 8.845051
-        .forwardZeroPowerAcceleration(-25.6)
-        .lateralZeroPowerAcceleration(-58)
+        .forwardZeroPowerAcceleration(-27.5)
+        .lateralZeroPowerAcceleration(-60)
         .translationalPIDFCoefficients(new PIDFCoefficients(0.1,0,0.02,0.01))
         .headingPIDFCoefficients(new PIDFCoefficients(0.8,0,0.1,0.01))
         .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01,0,0.0001,0.6, 0.01))
         .centripetalScaling(0.0005);
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 0.8, 1);
 
     public static MecanumConstants driveConstants = new MecanumConstants()
         .maxPower(1)

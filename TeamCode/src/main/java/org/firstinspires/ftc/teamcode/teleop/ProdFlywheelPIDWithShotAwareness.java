@@ -11,6 +11,16 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
+
 @TeleOp(name = "Production Flywheel System with shot awareness")
 public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
 
@@ -55,6 +65,9 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
     int shotsFired = 0;
     public static int TARGET_SHOT_COUNT = 3; // Number of rings/balls to fire
     ElapsedTime shotTimer = new ElapsedTime();
+    private List<Double> recoveryLog = new ArrayList<>();
+    private String logFileName = "FlywheelPerformance.txt";
+
 
 
     @Override
@@ -85,8 +98,8 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
         while (opModeIsActive()) {
             // Select Target (D-Pad Control)
             double targetTPS = 1213;
-            if (gamepad1.dpadUpWasPressed()) targetTPS = HIGH_TARGET_TPS;
-            else if (gamepad1.dpadDownWasPressed()) targetTPS = LOW_TARGET_TPS;
+            if (gamepad1.dpad_up) targetTPS = HIGH_TARGET_TPS;
+            else if (gamepad1.dpad_down) targetTPS = LOW_TARGET_TPS;
 
 
             double currentTPS = flywheel.getVelocity();
@@ -115,6 +128,8 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
             if (isRecovering && speedRatio >= 0.98) {
                 isRecovering = false;
                 lastRecoveryTime = recoveryTimer.milliseconds();
+                recoveryLog.add(lastRecoveryTime); // Save this shot's time
+
             }
 
 // 3. Add to Telemetry/Dashboard
@@ -181,8 +196,11 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
             telemetry.addData("V_Battery", vBat);
             telemetry.addData("State", currentShotState);
             telemetry.update();
+            saveLog();
         }
     }
+
+
 
 
     private double calculatePIDF(double target, double current) {
@@ -228,4 +246,24 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
         lastPower = targetPower;
         return targetPower;
     }
+    private void saveLog() {
+        if (recoveryLog.isEmpty()) return;
+
+        double sum = 0;
+        for (double time : recoveryLog) sum += time;
+        double average = sum / recoveryLog.size();
+
+        // Use standard Java File I/O to save to the Robot Controller's storage
+        try {
+            File file = new File(AppUtil.getInstance().getSettingsFile("Log"), logFileName);
+            FileWriter writer = new FileWriter(file, true); // 'true' appends to the file
+            writer.write(String.format("Match Date: %s | Shots: %d | Avg Recovery: %.2f ms\n",
+                    new Date(1/10/25).toString(), recoveryLog.size(), average));
+            writer.close();
+        } catch (IOException e) {
+            telemetry.addData("Log Error", e.getMessage());
+            telemetry.update();
+        }
+    }
+
 }

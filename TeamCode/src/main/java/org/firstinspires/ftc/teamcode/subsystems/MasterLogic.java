@@ -21,25 +21,25 @@ public class MasterLogic {
     private boolean dpadUpWasPressed = false;
     private boolean dpadDownWasPressed = false;
 
-    public MasterLogic(HardwareMap hardwareMap) {
+    private boolean isBlue;
+
+    public MasterLogic(HardwareMap hardwareMap, double startingX, double startingY, double startingH, boolean isBlueAlliance) {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
         // Initialize all subsystems
         outtake = new DoubleMotorOuttakePID(hardwareMap);
         intake = new Intake(hardwareMap);
-        
-        // Initialize Pathing Manager with a default starting pose
-        pathingManager = new TeleOpPathingManager(hardwareMap);
-        pathingManager.setStartingPose(22,120,135);
-//        pathingManager.setTargetPose(48, 95, 135, 0);
-    }
 
-    /**
-     * The main logic loop to be called in the TeleOp OpMode.
-     * @param gamepad1 The primary gamepad
-     * @param gamepad2 The secondary gamepad
-     * @param telemetry The OpMode's telemetry object
-     */
+        if (isBlueAlliance) {
+            isBlue = true;
+        } else {
+            isBlue = false;
+        }
+
+        // Initialize Pathing Manager with a default starting pose
+        pathingManager = new TeleOpPathingManager(hardwareMap, isBlue);
+        pathingManager.setStartingPose(startingX,startingY,startingH);
+    }
     public void mainLogic(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
         pathingManager.update();
 
@@ -54,11 +54,16 @@ public class MasterLogic {
                 gamepad1.dpad_down,
                 gamepad1.dpad_left
         );
+        
+        // If pathing is active, update the target RPM based on the selected path
+        if (pathingManager.isAutomated()) {
+            targetRPM = pathingManager.getCurrentTargetRPM();
+        }
 
         // B button updates the target pose to the current position
-//        if (gamepad1.b) {
-//            pathingManager.useCurrentPoseForTargetPose();
-//        }
+        if (gamepad1.b) {
+            pathingManager.resetTargetPose();
+        }
 
         // --- 2. Outtake/Shooter Controls ---
 
@@ -82,11 +87,11 @@ public class MasterLogic {
         if (gamepad1.left_trigger > 0.1) {
             intake.runIntake(-1);
             intake.runGate(0.75);
-        }
+        } 
         // Forward intake with Left Bumper
         else if (gamepad1.left_bumper) {
             intake.runIntake(1);
-        }
+        } 
         else {
             intake.stopIntake();
             intake.runGate(0);
@@ -110,10 +115,10 @@ public class MasterLogic {
 
 
         // Reset IMU heading with A button
-//        if (gamepad1.a) {
-//            pathingManager.resetHeading();
-//            telemetry.addLine("Heading Reset.");
-//        }
+        if (gamepad1.a) {
+            pathingManager.resetHeading();
+            telemetry.addLine("Heading Reset.");
+        }
 
         // --- 5. Background Tasks ---
         outtake.update();
@@ -138,6 +143,11 @@ public class MasterLogic {
         telemetry.addData("Mode", pathingManager.isAutomated() ? "PATHING" : "MANUAL");
         telemetry.addData("Target RPM", targetRPM);
         telemetry.addData("Actual RPM", outtake.getCurrentRPM());
+        if (currentPose != null) {
+            telemetry.addData("Robot X", currentPose.getX());
+            telemetry.addData("Robot Y", currentPose.getY());
+            telemetry.addData("Robot H", Math.toDegrees(currentPose.getHeading()));
+        }
         telemetry.update();
     }
 }
