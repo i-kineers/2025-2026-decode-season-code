@@ -20,6 +20,10 @@ public class MasterLogic {
     private double targetRPM = 3000;
     private boolean dpadUpWasPressed = false;
     private boolean dpadDownWasPressed = false;
+    
+    // Auto Aim Toggle State
+    private boolean autoAimActive = false;
+    private boolean previousYState = false;
 
     private boolean isBlue;
 
@@ -44,6 +48,13 @@ public class MasterLogic {
         pathingManager.update();
 
         // --- 1. Drive & Pathing Control ---
+        
+        // Toggle Auto Aim with Y
+        if (gamepad1.y && !previousYState) {
+            autoAimActive = !autoAimActive;
+        }
+        previousYState = gamepad1.y;
+
         // X button triggers the automated path defined in PathingManager
         pathingManager.drive(
                 gamepad1.left_stick_y, // Note: Y stick is usually reversed
@@ -52,12 +63,15 @@ public class MasterLogic {
                 gamepad1.dpad_up,
                 gamepad1.dpad_right,
                 gamepad1.dpad_down,
-                gamepad1.dpad_left
+                gamepad1.dpad_left,
+                autoAimActive // Auto Aim
         );
         
         // If pathing is active, update the target RPM based on the selected path
         if (pathingManager.isAutomated()) {
             targetRPM = pathingManager.getCurrentTargetRPM();
+            // Optionally disable auto aim if pathing starts
+            autoAimActive = false; 
         }
 
         // B button updates the target pose to the current position
@@ -141,6 +155,7 @@ public class MasterLogic {
 
         // Standard Driver Hub Telemetry
         telemetry.addData("Mode", pathingManager.isAutomated() ? "PATHING" : "MANUAL");
+        telemetry.addData("Auto Aim", autoAimActive ? "ACTIVE" : "INACTIVE");
         telemetry.addData("Target RPM", targetRPM);
         telemetry.addData("Actual RPM", outtake.getCurrentRPM());
         if (currentPose != null) {
