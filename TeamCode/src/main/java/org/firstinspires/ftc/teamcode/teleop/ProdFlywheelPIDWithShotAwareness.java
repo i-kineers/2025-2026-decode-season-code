@@ -32,7 +32,7 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
 
 
     // --- 2. Live Tuning Constants (FTC Dashboard) ---
-    public double kP = 0.0065;
+    public double kP = 0.001;
     public double kI = 0.0001;
     public double kD = 0.0004;
 
@@ -49,11 +49,12 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
     // --- 3. Safety & Control Variables ---
     public double MAX_CURRENT = 8.5;
     public double DANGER_THRESHOLD = 0.93;
-    public double RECOVERY_SLEW = 0.40; // Aggressive torque-based recovery
+    public double RECOVERY_SLEW = 1.0; // Aggressive torque-based recovery
 
 
     private double integralSum = 0;
     private double lastError = 0;
+
     private double lastPower = 0;
     private ElapsedTime timer = new ElapsedTime();
     private enum ShotState { IDLE, FIRING, RECOVERING }
@@ -257,7 +258,7 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
         try {
             File file = new File(AppUtil.getInstance().getSettingsFile("Log"), logFileName);
             FileWriter writer = new FileWriter(file, true); // 'true' appends to the file
-            writer.write(String.format("Match Date: %s | Shots: %d | Avg Recovery: %.2f ms\n",
+            writer.write(String.format("Match Date: %s | Shots: %d | Avg Recovery: %.2f ms\n ",
                     new Date(1/10/25).toString(), recoveryLog.size(), average));
             writer.close();
         } catch (IOException e) {
