@@ -1,19 +1,16 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-@TeleOp(name = "Flywheel Tuner Tutorial", group = "Tuning")
-public class ILTFlywheelTuner {
+public class ILTFlywheelTunerSubsystem {
     private PanelsTelemetry panelsTelemetry;
     public DcMotorEx flywheelMotor;
     public DcMotorEx flywheelMotor2;
@@ -49,7 +46,7 @@ public class ILTFlywheelTuner {
     private double recoveryKP = 0.002; // Aggressive P for manual recovery
     private double recoveryKF = 0.0001; // Feedforward for manual recovery
 
-    public ILTFlywheelTuner(HardwareMap hardwareMap) {
+    public ILTFlywheelTunerSubsystem(HardwareMap hardwareMap) {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
         flywheelMotor = hardwareMap.get(DcMotorEx.class, "launcher");
@@ -61,8 +58,8 @@ public class ILTFlywheelTuner {
         flywheelMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flywheelMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        flywheelMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        flywheelMotor2.setDirection(DcMotorSimple.Direction.FORWARD);
+        flywheelMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheelMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
     public void updateShooter(double targetTicksPerSec) {
@@ -113,7 +110,7 @@ public class ILTFlywheelTuner {
         }
     }
 
-    private void handleGamepadInputs(Gamepad gamepad1) {
+    public void handleGamepadInputs(Gamepad gamepad1) {
         // Adjust Target Velocity with Bumpers
         if (gamepad1.right_bumper && !previousRightBumper) {
             targetVelocity += 100;
@@ -146,7 +143,7 @@ public class ILTFlywheelTuner {
         previousDpadUp = gamepad1.dpad_up;
     }
 
-    private void updateTelemetry(Telemetry telemetry) {
+    public void updateTelemetry(Telemetry telemetry) {
         double currentVelocity = flywheelMotor.getVelocity();
         double error = targetVelocity - currentVelocity;
         double targetRPM = (targetVelocity / TICKS_PER_REV) * 60.0;
