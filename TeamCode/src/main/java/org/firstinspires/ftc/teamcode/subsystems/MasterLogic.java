@@ -130,14 +130,14 @@ public class MasterLogic {
     private void updateTelemetry(Telemetry telemetry) {
         // Panels Telemetry (for dashboards)
         Pose currentPose = pathingManager.getFollower().getPose();
-        if (currentPose != null) {
-            panelsTelemetry.getTelemetry().addData("Robot X", currentPose.getX());
-            panelsTelemetry.getTelemetry().addData("Robot Y", currentPose.getY());
-            panelsTelemetry.getTelemetry().addData("Robot H", Math.toDegrees(currentPose.getHeading()));
-        }
-        panelsTelemetry.getTelemetry().addData("Target RPM", outtake.getTargetRPM());
-        panelsTelemetry.getTelemetry().addData("Current RPM", outtake.getCurrentRPM());
-        panelsTelemetry.getTelemetry().update();
+//        if (currentPose != null) {
+//            panelsTelemetry.getTelemetry().addData("Robot X", currentPose.getX());
+//            panelsTelemetry.getTelemetry().addData("Robot Y", currentPose.getY());
+//            panelsTelemetry.getTelemetry().addData("Robot H", Math.toDegrees(currentPose.getHeading()));
+//        }
+//        panelsTelemetry.getTelemetry().addData("Target RPM", outtake.getTargetRPM());
+//        panelsTelemetry.getTelemetry().addData("Current RPM", outtake.getCurrentRPM());
+//        panelsTelemetry.getTelemetry().update();
 
         // Standard Driver Hub Telemetry
         telemetry.addData("Mode", pathingManager.isAutomated() ? "PATHING" : "MANUAL");
