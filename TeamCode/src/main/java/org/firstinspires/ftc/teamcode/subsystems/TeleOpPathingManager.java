@@ -4,6 +4,8 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.pedropathing.control.PIDFController;
+import com.pedropathing.math.MathFunctions;
 
 import org.firstinspires.ftc.teamcode.autonomous.Paths.teleopPath;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -15,6 +17,11 @@ import java.util.List;
 public class TeleOpPathingManager {
     private Follower follower;
     private boolean automatedDrive = false;
+
+    // Auto Aim
+    private PIDFController headingController;
+    private Pose goalPose = new Pose(8.472, 139.091);
+    private boolean wasAutoAim = false;
 
     // Base default poses (constants)
     private Pose CLOSE_ONE = new Pose(48, 95, Math.toRadians(135));
@@ -35,6 +42,7 @@ public class TeleOpPathingManager {
 
     public TeleOpPathingManager(HardwareMap hardwareMap, boolean isBlueAlliance) {
         follower = Constants.createFollower(hardwareMap);
+        headingController = new PIDFController(follower.constants.coefficientsHeadingPIDF);
 
         // Default starting pose if not set before init
         startingPose = new Pose(0, 0, 0);
@@ -49,6 +57,7 @@ public class TeleOpPathingManager {
             CLOSE_TWO = CLOSE_TWO.mirror();
             FAR_ONE = FAR_ONE.mirror();
             FAR_TWO = FAR_TWO.mirror();
+            goalPose = goalPose.mirror();
         }
 
         // Initialize default targets list for easy iteration
@@ -76,11 +85,13 @@ public class TeleOpPathingManager {
      */
     public void drive(double forward, double strafe, double turn,
                       boolean dpadUp, boolean dpadRight,
-                      boolean dpadDown, boolean dpadLeft) {
+                      boolean dpadDown, boolean dpadLeft, boolean autoAim) {
 
         boolean manualInput = Math.abs(forward) > 0.1
                 || Math.abs(strafe) > 0.1
                 || Math.abs(turn) > 0.1;
+        
+        if (autoAim) manualInput = true;
 
         // Trigger Pathing based on D-pad
         if (!automatedDrive) {
@@ -123,11 +134,52 @@ public class TeleOpPathingManager {
 
         // Manual Drive
         if (!automatedDrive) {
-            if (isBlue) {
-                follower.setTeleOpDrive(forward, strafe, turn, false);
-            } else {
-                follower.setTeleOpDrive(-forward, -strafe, turn, false);
+            double turnPower = turn;
+
+            if (autoAim) {
+                if (!wasAutoAim) {
+                    headingController.reset();
+                }
+
+                Pose robot = follower.getPose();
+                double dx = goalPose.getX() - robot.getX();
+                double dy = goalPose.getY() - robot.getY();
+                double targetHeading = MathFunctions.normalizeAngle(Math.atan2(dy, dx));
+
+                double currentHeading = robot.getHeading();
+                double error = targetHeading - currentHeading;
+
+                // Normalize to [-π, π]
+                if (error > Math.PI) {
+                    error -= 2 * Math.PI;
+                } else if (error < -Math.PI) {
+                    error += 2 * Math.PI;
+                }
+
+                if (Math.abs(error) < Math.toRadians(1.5)) {
+                    turnPower = 0;
+                } else {
+                    headingController.updateError(error);
+                    turnPower = headingController.run();
+
+                    // Ramp down turn power near target
+                    double maxTurn = 0.4;
+                    if (Math.abs(error) < Math.toRadians(10)) {
+                        maxTurn = 0.2;
+                    }
+
+                    turnPower = MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
+                }
             }
+            wasAutoAim = autoAim;
+
+            if (isBlue) {
+                follower.setTeleOpDrive(forward, strafe, turnPower, false);
+            } else {
+                follower.setTeleOpDrive(-forward, -strafe, turnPower, false);
+            }
+        } else {
+            wasAutoAim = false;
         }
     }
 
@@ -225,5 +277,9 @@ public class TeleOpPathingManager {
 
     public boolean isAutomated() {
         return automatedDrive;
+    }
+
+    public boolean isAutoAiming() {
+        return wasAutoAim;
     }
 }
