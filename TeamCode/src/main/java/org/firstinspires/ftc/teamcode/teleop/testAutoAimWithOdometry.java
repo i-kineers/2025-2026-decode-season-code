@@ -2,17 +2,17 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import org.firstinspires.ftc.teamcode.subsystems.AutoAimWithOdometry;
+import org.firstinspires.ftc.teamcode.subsystems.UnincoorporatedAutoAimWithOdometry;
 
 @TeleOp(name="Heading Lock")
 public class testAutoAimWithOdometry extends OpMode {
 
-    AutoAimWithOdometry autoAimWithOdometry;
+    UnincoorporatedAutoAimWithOdometry autoAimWithOdometry;
 
     @Override
     public void init() {
         // FIXED: Added 'new' keyword to initialize the object
-        autoAimWithOdometry = new AutoAimWithOdometry(hardwareMap);
+        autoAimWithOdometry = new UnincoorporatedAutoAimWithOdometry(hardwareMap);
     }
 
     @Override
