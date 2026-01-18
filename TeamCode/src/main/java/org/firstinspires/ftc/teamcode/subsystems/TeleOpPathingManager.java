@@ -33,7 +33,7 @@ public class TeleOpPathingManager {
     
     // RPMs corresponding to each target
     private final double[] targetRPMs = {2600, 3100, 3800, 3900};
-    private double currentTargetRPM = 3000; // Default
+    private double currentTargetTPS = 3000; // Default
 
     private Pose startingPose;
     private List<Pose> targetPoseList;
@@ -114,7 +114,7 @@ public class TeleOpPathingManager {
                 Pose selectedTarget = targetPoseList.get(selectedIndex);
                 
                 // Update the target RPM based on selection
-                currentTargetRPM = targetRPMs[selectedIndex];
+                currentTargetTPS = targetRPMs[selectedIndex];
 
                 if (selectedTarget != null) {
                     PathChain path = teleopPath.getPath(follower, selectedTarget);
@@ -271,8 +271,8 @@ public class TeleOpPathingManager {
         return startingPose;
     }
     
-    public double getCurrentTargetRPM() {
-        return currentTargetRPM;
+    public double getCurrentTargetTPS() {
+        return currentTargetTPS;
     }
 
     public boolean isAutomated() {

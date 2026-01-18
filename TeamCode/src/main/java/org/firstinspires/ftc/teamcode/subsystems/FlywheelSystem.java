@@ -1,9 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -17,19 +14,21 @@ public class FlywheelSystem {
     /* ===================== Hardware ===================== */
     private final DcMotorEx flywheel1;
     private final DcMotorEx flywheel2;
+    private final CRServo leftLoader;
+    private final CRServo rightLoader;
     private final DcMotorEx intake;
     private final VoltageSensor batteryVoltage;
 
     /* ===================== Tunables ===================== */
-    public double kP = 0.001;
-    public double kI = 0.0001;
-    public double kD = 0.0004;
+    public double kP = 0.003;
+    public double kI = 0.0; // Old value 0.0001
+    public double kD = 0.0; // Old value 0.0004
 
-    public double kF_LOW  = 0.000725;
-    public double kF_HIGH = 0.000500;
+    public double kF_LOW  = 0.000463;
+    public double kF_HIGH = 0.000408;
 
-    public double LOW_TARGET_TPS  = 700; // Old values 1213.0
-    public double HIGH_TARGET_TPS = 1260; // Old values 1540.0
+    public double LOW_TARGET_TPS  = 710; // Old values 1213.0
+    public double HIGH_TARGET_TPS = 1800; // Old values 1540.0
 
     public double MAX_CURRENT = 8.5;
     public double DANGER_THRESHOLD = 0.93;
@@ -62,14 +61,13 @@ public class FlywheelSystem {
 
         flywheel1 = hardwareMap.get(DcMotorEx.class, "launcher");
         flywheel2 = hardwareMap.get(DcMotorEx.class, "launcher2");
+        leftLoader = hardwareMap.get(CRServo.class, "leftLoader");
+        rightLoader = hardwareMap.get(CRServo.class, "rightLoader");
         intake    = hardwareMap.get(DcMotorEx.class, "Intake");
 
         batteryVoltage = hardwareMap.voltageSensor.iterator().next();
 
-        flywheel1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flywheel2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        flywheel1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         flywheel1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -228,6 +226,16 @@ public class FlywheelSystem {
         }
         lastPower = targetPower;
         return targetPower;
+    }
+
+    public void runLoader() {
+        leftLoader.setPower(-1.0);
+        rightLoader.setPower(1.0);
+    }
+
+    public void stopLoader() {
+        leftLoader.setPower(0.0);
+        rightLoader.setPower(0.0);
     }
 
     public double getVelocity() {

@@ -13,11 +13,12 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class MasterLogic {
 
     private final PanelsTelemetry panelsTelemetry;
-    private final DoubleMotorOuttakePID outtake;
+//    private final DoubleMotorOuttakePID outtake;
+    private final FlywheelSystem flywheel;
     private final Intake intake;
     private final TeleOpPathingManager pathingManager;
 
-    private double targetRPM = 3000;
+    private double targetTPS = 1200;
     private boolean dpadUpWasPressed = false;
     private boolean dpadDownWasPressed = false;
     
@@ -31,8 +32,9 @@ public class MasterLogic {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
         // Initialize all subsystems
-        outtake = new DoubleMotorOuttakePID(hardwareMap);
+//        outtake = new DoubleMotorOuttakePID(hardwareMap);
         intake = new Intake(hardwareMap);
+        flywheel = new FlywheelSystem(hardwareMap);
 
         if (isBlueAlliance) {
             isBlue = true;
@@ -69,7 +71,7 @@ public class MasterLogic {
         
         // If pathing is active, update the target RPM based on the selected path
         if (pathingManager.isAutomated()) {
-            targetRPM = pathingManager.getCurrentTargetRPM();
+            targetTPS = pathingManager.getCurrentTargetTPS();
             // Optionally disable auto aim if pathing starts
             autoAimActive = false; 
         }
@@ -83,16 +85,20 @@ public class MasterLogic {
 
         // Spin up shooter with Right Trigger
         if (gamepad1.right_trigger > 0.1) {
-            outtake.setTargetRPM(targetRPM);
+//            outtake.setTargetRPM(targetRPM);
+            flywheel.setTargetTPS(targetTPS);
         } else {
-            outtake.stop();
+//            outtake.stop();
+            flywheel.setTargetTPS(0);
         }
 
         // Feed mechanism with Right Bumper
         if (gamepad1.right_bumper) {
-            outtake.runLoader();
+//            outtake.runLoader();
+            flywheel.runLoader();
         } else {
-            outtake.stopLoader();
+//            outtake.stopLoader();
+            flywheel.stopLoader();
         }
 
         // --- 3. Intake Controls ---
@@ -119,10 +125,10 @@ public class MasterLogic {
         // For now, I'll keep them but be aware of the overlap.
 
         if (gamepad2.dpad_up && !dpadUpWasPressed) {
-            targetRPM += 100;
+            targetTPS += 50;
         }
         if (gamepad2.dpad_down && !dpadDownWasPressed) {
-            targetRPM -= 100;
+            targetTPS -= 50;
         }
         dpadUpWasPressed = gamepad2.dpad_up;
         dpadDownWasPressed = gamepad2.dpad_down;
@@ -135,7 +141,8 @@ public class MasterLogic {
         }
 
         // --- 5. Background Tasks ---
-        outtake.update();
+//        outtake.update();
+        flywheel.update();
 
         // --- 6. Feedback & Telemetry ---
         updateTelemetry(telemetry);
@@ -156,8 +163,8 @@ public class MasterLogic {
         // Standard Driver Hub Telemetry
         telemetry.addData("Mode", pathingManager.isAutomated() ? "PATHING" : "MANUAL");
         telemetry.addData("Auto Aim", autoAimActive ? "ACTIVE" : "INACTIVE");
-        telemetry.addData("Target RPM", targetRPM);
-        telemetry.addData("Actual RPM", outtake.getCurrentRPM());
+        telemetry.addData("Target RPM", targetTPS);
+        telemetry.addData("Actual RPM", flywheel.getVelocity());
         if (currentPose != null) {
             telemetry.addData("Robot X", currentPose.getX());
             telemetry.addData("Robot Y", currentPose.getY());

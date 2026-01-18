@@ -4,20 +4,25 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.subsystems.DoubleMotorOuttakePID;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelSystem;
 
 @TeleOp(name = "Flywheel TeleOp (Panels + PIDF Tuning)")
 public class FlywheelTeleOp extends LinearOpMode {
 
     private FlywheelSystem flywheel;
+    private DoubleMotorOuttakePID servos;
     private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
 
     private double targetTPS;
+
+    private boolean servoOn;
 
     @Override
     public void runOpMode() {
 
         flywheel = new FlywheelSystem(hardwareMap);
+        servos = new DoubleMotorOuttakePID(hardwareMap);
         targetTPS = flywheel.LOW_TARGET_TPS;
 
         telemetry.addData("Status", "Initialized and Ready");
@@ -35,11 +40,21 @@ public class FlywheelTeleOp extends LinearOpMode {
 
             // --- Target selection ---
             if (gamepad1.dpadUpWasPressed()) {
-                targetTPS = flywheel.HIGH_TARGET_TPS;
+                targetTPS = 1400;
                 flywheel.setTargetTPS(targetTPS);
             } else if (gamepad1.dpadDownWasPressed()) {
-                targetTPS = flywheel.LOW_TARGET_TPS;
+                targetTPS = 1260;
                 flywheel.setTargetTPS(targetTPS);
+            }
+
+            if (gamepad1.leftBumperWasPressed()) {
+                if (!servoOn) {
+                    servoOn = true;
+                    servos.runLoader();
+                } else {
+                    servoOn = false;
+                    servos.stopLoader();
+                }
             }
 
             // --- Firing control ---
@@ -58,9 +73,9 @@ public class FlywheelTeleOp extends LinearOpMode {
 
             // I tuning (Left/Right DPad)
             if (gamepad1.dpadRightWasPressed()) {
-                flywheel.kI += 0.00001;
+                flywheel.kD += 0.00001;
             } else if (gamepad1.dpadLeftWasPressed()) {
-                flywheel.kI = Math.max(0, flywheel.kI - 0.00001);
+                flywheel.kD = Math.max(0, flywheel.kI - 0.00001);
             }
 
             // D tuning (Up/Down DPad)
