@@ -32,8 +32,8 @@ public class TeleOpPathingManager {
     private final List<Pose> defaultTargets = new ArrayList<>();
     
     // RPMs corresponding to each target
-    private final double[] targetRPMs = {2600, 3100, 3800, 3900};
-    private double currentTargetTPS = 3000; // Default
+    private final double[] targetRPMs = {1213, 1400, 1773, 1820};
+    private double currentTargetTPS = 1200; // Default
 
     private Pose startingPose;
     private List<Pose> targetPoseList;
