@@ -20,6 +20,8 @@ public class closePaths {
     private Pose startPose = new Pose(22, 120);
     private Pose shootPose = new Pose(48,95);
     private Pose homePose = new Pose(58, 112);
+    private Pose gatePose = new Pose(16, 66);
+
 
     // All end poses for pickup in each 3 rows
     private Pose pickUpPose1 = new Pose(16, 80);
@@ -31,9 +33,10 @@ public class closePaths {
     private Pose pickupControl2 = new Pose(88.537, 58.3127);
     private Pose returnPose2 = new Pose(58.253, 60.628);
     private Pose pickupControl3 = new Pose(81.87, 31.63);
+    private Pose gateControl = new Pose(42.398, 67.851);
 
     // PathChain member variables, to be initialized in the constructor
-    public PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8;
+    public PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9, Path10;
 
     public closePaths(Follower follower, boolean teamColor) {
 
@@ -44,6 +47,7 @@ public class closePaths {
             resetHeading = reflect(resetHeading);
             startPose = reflect(startPose);
             shootPose = reflect(shootPose);
+            gatePose = reflect(gatePose);
             pickUpPose1 = reflect(pickUpPose1);
             pickUpPose2 = reflect(pickUpPose2);
             returnPose2 = reflect(returnPose2);
@@ -51,6 +55,7 @@ public class closePaths {
             pickupControl1 = reflect(pickupControl1);
             pickupControl2 = reflect(pickupControl2);
             pickupControl3 = reflect(pickupControl3);
+            gateControl = reflect(gatePose);
             homePose = reflect(homePose);
         }
 
@@ -103,6 +108,18 @@ public class closePaths {
         Path8 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, homePose))
                 .setLinearHeadingInterpolation(shootHeading, resetHeading)
+                .build();
+
+        // Path that opens the gate coming from picking up first row of balls
+        Path9 = follower.pathBuilder()
+                .addPath(new BezierLine(pickUpPose1, gatePose))
+                .setConstantHeadingInterpolation(pickUpHeading)
+                .build();
+
+        // Path that goes from gate to shooting position
+        Path10 = follower.pathBuilder()
+                .addPath(new BezierCurve(gatePose, gateControl, shootPose))
+                .setLinearHeadingInterpolation(pickUpHeading, shootHeading)
                 .build();
     }
 

@@ -36,6 +36,8 @@ public class AutonomousCycleManager {
     private boolean intake1 = false;
     private boolean intake2 = false;
     private boolean intake3 = false;
+    private boolean useGate = false;
+    private boolean gateTriggered = false;
 
     private Pose blueStartPose = new Pose(22,120, Math.toRadians(135));
     private Pose redStartPose = new Pose(122, 120, Math.toRadians(45));
@@ -63,10 +65,12 @@ public class AutonomousCycleManager {
      * @param runIntake2 Run the second intake path.
      * @param runIntake3 Run the third intake path.
      */
-    public void setCycles(boolean runIntake1, boolean runIntake2, boolean runIntake3) {
+    public void setCycles(boolean runIntake1, boolean runIntake2, boolean runIntake3, boolean openGate) {
         this.intake1 = runIntake1;
         this.intake2 = runIntake2;
         this.intake3 = runIntake3;
+        this.useGate = openGate;
+
     }
 
     /**
@@ -99,7 +103,6 @@ public class AutonomousCycleManager {
                     follower.followPath(paths.Path1);
                     beginningState = 1;
                 } else if (beginningState == 1 && !follower.isBusy()) {
-//                    outtake.autoRapidShoot(2600, 3000, 500);
                     flywheelSystem.autoRapidShoot(1200, 3000, 500);
                     beginningState = -1; // Mark as done
                     nextState();
@@ -119,11 +122,32 @@ public class AutonomousCycleManager {
             case PRESHOOTING:
                 if (!follower.isBusy()) {
                     intake.autoIntakeOff();
-                    follower.setMaxPower(1.0); // Reset speed
-                    if (currentSelection == 0) follower.followPath(paths.Path3);
-                    else if (currentSelection == 1) follower.followPath(paths.Path5);
-                    else if (currentSelection == 2) follower.followPath(paths.Path7);
-                    nextState();
+                    follower.setMaxPower(1.0);
+
+                    if (currentSelection == 0) {
+                        // Check if we need to START the gate path
+                        if (useGate) {
+                            follower.followPath(paths.Path9);
+                            useGate = false;        // "Consumes" the instruction from the OpMode
+                            gateTriggered = true;   // REMEMBERS we are currently in the gate sequence
+                        }
+                        // If we are already mid-gate sequence, return to shoot
+                        else if (gateTriggered) {
+                            follower.followPath(paths.Path10);
+                            gateTriggered = false;  // Reset for next time
+                            nextState();
+                        }
+                        // Normal flow: No gate was ever requested
+                        else {
+                            follower.followPath(paths.Path3);
+                            nextState();
+                        }
+                    } else {
+                        // Normal logic for Row 2 and 3
+                        if (currentSelection == 1) follower.followPath(paths.Path5);
+                        else if (currentSelection == 2) follower.followPath(paths.Path7);
+                        nextState();
+                    }
                 }
                 break;
 
@@ -132,7 +156,6 @@ public class AutonomousCycleManager {
                     intake.autoIntakeOn();
                     sleep(400);
                     intake.autoIntakeOff();
-//                    outtake.autoRapidShoot(2600, 2000, 500);
                     flywheelSystem.autoRapidShoot(1200, 3000, 500);
 
                     // Mark current task as done
