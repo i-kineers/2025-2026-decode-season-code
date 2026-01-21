@@ -90,10 +90,10 @@ public class MasterLogic {
         // Spin up shooter with Right Trigger
         if (gamepad1.right_trigger > 0.1) {
 //            outtake.setTargetRPM(targetRPM);
-            flywheel.setTargetTPS(targetTPS);
+            flywheel.setShotStateFire();
         } else {
 //            outtake.stop();
-            flywheel.setTargetTPS(0);
+            flywheel.setShotStateIdle();
         }
 
         // Feed mechanism with Right Bumper

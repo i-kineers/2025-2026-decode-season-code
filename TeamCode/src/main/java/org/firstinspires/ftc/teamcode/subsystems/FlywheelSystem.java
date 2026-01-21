@@ -16,7 +16,6 @@ public class FlywheelSystem {
     private final DcMotorEx flywheel2;
     private final CRServo leftLoader;
     private final CRServo rightLoader;
-    private final DcMotorEx intake;
     private final VoltageSensor batteryVoltage;
 
     /* ===================== Tunables ===================== */
@@ -56,6 +55,8 @@ public class FlywheelSystem {
     private enum ShotState { IDLE, FIRING, RECOVERING }
     private ShotState shotState = ShotState.IDLE;
 
+    private final ElapsedTime loopTimer;
+
     /* ===================== Constructor ===================== */
     public FlywheelSystem(HardwareMap hardwareMap) {
 
@@ -63,7 +64,6 @@ public class FlywheelSystem {
         flywheel2 = hardwareMap.get(DcMotorEx.class, "launcher2");
         leftLoader = hardwareMap.get(CRServo.class, "leftLoader");
         rightLoader = hardwareMap.get(CRServo.class, "rightLoader");
-        intake    = hardwareMap.get(DcMotorEx.class, "Intake");
 
         batteryVoltage = hardwareMap.voltageSensor.iterator().next();
 
@@ -78,23 +78,14 @@ public class FlywheelSystem {
         flywheel2.setDirection(DcMotor.Direction.FORWARD);
 
         pidTimer.reset();
+
+        loopTimer = new ElapsedTime();
     }
 
     /* ===================== Public Intent API ===================== */
 
     public void setTargetTPS(double tps) {
         targetTPS = Math.max(0, tps);
-    }
-
-    public void startFiring() {
-        if (shotState == ShotState.IDLE) {
-            shotsFired = 0;
-            shotState = ShotState.FIRING;
-        }
-    }
-
-    public void stopFiring() {
-        shotState = ShotState.IDLE;
     }
 
     public void stopFlywheel() {
@@ -173,26 +164,26 @@ public class FlywheelSystem {
 
         switch (shotState) {
             case IDLE:
-                intake.setPower(0);
+                setTargetTPS(1000); // Temporary value for idle flywheel speed
                 break;
 
             case FIRING:
+                setTargetTPS(1250);
                 if (wheelReady) {
-                    intake.setPower(1.0);
                     if (current < (target * DANGER_THRESHOLD)) {
+                        stopLoader();
                         shotsFired++;
-                        shotState = ShotState.RECOVERING;
+//                        shotState = ShotState.RECOVERING;
                         shotTimer.reset();
+                    } else {
+                        runLoader();
                     }
                 }
                 break;
 
             case RECOVERING:
-                intake.setPower(0);
                 if (wheelReady && shotTimer.milliseconds() > 100) {
-                    shotState = (shotsFired >= TARGET_SHOT_COUNT)
-                            ? ShotState.IDLE
-                            : ShotState.FIRING;
+                    shotState = (shotsFired >= TARGET_SHOT_COUNT) ? ShotState.IDLE : ShotState.FIRING;
                 }
                 break;
         }
@@ -240,6 +231,46 @@ public class FlywheelSystem {
 
     public double getVelocity() {
         return flywheel2.getVelocity();
+    }
+
+    public void autoRapidShoot(double tps, long time, double delay) {
+        loopTimer.reset();
+        setTargetTPS(tps);
+
+        // Wait for the launcher to reach the target speed before shooting.
+        ElapsedTime timer = new ElapsedTime();
+        // Give it up to 3 seconds to spin up.
+        while (timer.milliseconds() < time) {
+            if (loopTimer.milliseconds() > delay) {
+                runLoader();
+            }
+            update(); // This needs to be called to update the motor power from the PID controller.
+            sleep(10); // Small pause to prevent busy-waiting and allow other things to run.
+        }
+        stop();
+        update(); // Apply the change to stop the motors.
+    }
+
+    public void sleep(long milli) {
+        try {
+            Thread.sleep(milli);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public void stop() {
+        stopLoader();
+        setFlywheelPower(0);
+        targetTPS = 0;
+    }
+
+    public void setShotStateIdle() {
+        shotState = ShotState.IDLE;
+    }
+
+    public void setShotStateFire() {
+        shotState = ShotState.FIRING;
     }
 
     /* ===================== Read-only Accessors ===================== */

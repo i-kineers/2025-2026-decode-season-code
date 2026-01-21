@@ -15,6 +15,7 @@ public class AutonomousCycleManager {
     private final Follower follower;
     private final Intake intake;
     private final DoubleMotorOuttakePID outtake;
+    private final FlywheelSystem flywheelSystem;
     private final closePaths paths;
 
     // State Machine
@@ -43,6 +44,7 @@ public class AutonomousCycleManager {
         // Initialize subsystems
         intake = new Intake(hardwareMap);
         outtake = new DoubleMotorOuttakePID(hardwareMap);
+        flywheelSystem = new FlywheelSystem(hardwareMap);
         follower = Constants.createFollower(hardwareMap);
         paths = new closePaths(follower, isBlueSide);
 
@@ -97,7 +99,8 @@ public class AutonomousCycleManager {
                     follower.followPath(paths.Path1);
                     beginningState = 1;
                 } else if (beginningState == 1 && !follower.isBusy()) {
-                    outtake.autoRapidShoot(2600, 3000, 500);
+//                    outtake.autoRapidShoot(2600, 3000, 500);
+                    flywheelSystem.autoRapidShoot(1200, 3000, 500);
                     beginningState = -1; // Mark as done
                     nextState();
                 }
@@ -129,7 +132,8 @@ public class AutonomousCycleManager {
                     intake.autoIntakeOn();
                     sleep(400);
                     intake.autoIntakeOff();
-                    outtake.autoRapidShoot(2600, 2000, 500);
+//                    outtake.autoRapidShoot(2600, 2000, 500);
+                    flywheelSystem.autoRapidShoot(1200, 3000, 500);
 
                     // Mark current task as done
                     if (currentSelection == 0) intake1 = false;
