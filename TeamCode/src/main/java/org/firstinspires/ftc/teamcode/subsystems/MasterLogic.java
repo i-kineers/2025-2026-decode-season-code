@@ -19,6 +19,8 @@ public class MasterLogic {
     private final AutoAimWithOdometry autoAimWithOdometry;
 
     private double targetTPS = 1200;
+    private double idleTPS = 1000;
+
     private boolean dpadUpWasPressed = false;
     private boolean dpadDownWasPressed = false;
     
@@ -86,24 +88,31 @@ public class MasterLogic {
         }
 
         // --- 2. Outtake/Shooter Controls ---
-
-        // Spin up shooter with Right Trigger
-        if (gamepad1.right_trigger > 0.1) {
-//            outtake.setTargetRPM(targetRPM);
-            flywheel.setShotStateFire();
-        } else {
-//            outtake.stop();
-            flywheel.setShotStateIdle();
-        }
-
-        // Feed mechanism with Right Bumper
-        if (gamepad1.right_bumper) {
-//            outtake.runLoader();
-            flywheel.runLoader();
-        } else {
-//            outtake.stopLoader();
-            flywheel.stopLoader();
-        }
+        
+        // Always update the target TPS on the flywheel
+//        flywheel.setTargetTPS(targetTPS);
+//
+//        // Spin up shooter with Right Trigger
+//        if (gamepad1.right_trigger > 0.1) {
+////            outtake.setTargetRPM(targetRPM);
+//            flywheel.setShotStateFire();
+//        } else {
+////            outtake.stop();
+//            flywheel.setShotStateIdle();
+//        }
+//
+//        // Feed mechanism with Right Bumper
+//        if (gamepad1.right_bumper) {
+////            outtake.runLoader();
+//            flywheel.runLoader();
+//        } else {
+//            // Only stop loader if not in firing state (which handles loader automatically)
+//            // But if right bumper is released, we might want to stop manual feed.
+//            // The FlywheelSystem handles loader in FIRING state.
+//            if (flywheel.getShotState() != FlywheelSystem.ShotState.FIRING) {
+//                flywheel.stopLoader();
+//            }
+//        }
 
         // --- 3. Intake Controls ---
 
@@ -146,7 +155,9 @@ public class MasterLogic {
 
         // --- 5. Background Tasks ---
 //        outtake.update();
-        flywheel.update();
+        // Inside your TeleOp loop
+        flywheel.handleTriggerInput(gamepad1.right_trigger, targetTPS, idleTPS); // Replace 1800 with your desired TPS
+        flywheel.update(); // Crucial: this runs the PID and the State Machine
 
         // --- 6. Feedback & Telemetry ---
         updateTelemetry(telemetry);
@@ -166,6 +177,7 @@ public class MasterLogic {
 
         // Standard Driver Hub Telemetry
         telemetry.addData("Mode", autoAimWithOdometry.isAutomated() ? "PATHING" : "MANUAL");
+        telemetry.addData("Robot State", flywheel.getShotState());
         telemetry.addData("Auto Aim", autoAimActive ? "ACTIVE" : "INACTIVE");
         telemetry.addData("Target TPS", targetTPS);
         telemetry.addData("Actual TPS", flywheel.getVelocity());

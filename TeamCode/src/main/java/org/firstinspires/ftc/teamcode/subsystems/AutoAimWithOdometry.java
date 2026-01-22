@@ -32,7 +32,7 @@ public class AutoAimWithOdometry {
     private final List<Pose> defaultTargets = new ArrayList<>();
     
     // RPMs corresponding to each target
-    private final double[] targetTPS = {1213, 1447, 1773, 1820};
+    private final double[] targetTPS = {1213, 1397, 1773, 1820}; // Last 2 values unused
     private double currentTargetTPS = 1200; // Default
 
     private Pose startingPose;

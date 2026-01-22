@@ -20,7 +20,7 @@ public class closePaths {
     private Pose startPose = new Pose(22, 120);
     private Pose shootPose = new Pose(48,95);
     private Pose homePose = new Pose(58, 112);
-    private Pose gatePose = new Pose(16, 66);
+    private Pose gatePose = new Pose(16, 74);
 
 
     // All end poses for pickup in each 3 rows
@@ -33,7 +33,7 @@ public class closePaths {
     private Pose pickupControl2 = new Pose(88.537, 58.3127);
     private Pose returnPose2 = new Pose(58.253, 60.628);
     private Pose pickupControl3 = new Pose(81.87, 31.63);
-    private Pose gateControl = new Pose(42.398, 67.851);
+    private Pose gateControl = new Pose(44.182, 80.698);
 
     // PathChain member variables, to be initialized in the constructor
     public PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9, Path10;
@@ -112,13 +112,13 @@ public class closePaths {
 
         // Path that opens the gate coming from picking up first row of balls
         Path9 = follower.pathBuilder()
-                .addPath(new BezierLine(pickUpPose1, gatePose))
+                .addPath(new BezierCurve(pickUpPose1, gateControl, gatePose))
                 .setConstantHeadingInterpolation(pickUpHeading)
                 .build();
 
         // Path that goes from gate to shooting position
         Path10 = follower.pathBuilder()
-                .addPath(new BezierCurve(gatePose, gateControl, shootPose))
+                .addPath(new BezierLine(gatePose, shootPose))
                 .setLinearHeadingInterpolation(pickUpHeading, shootHeading)
                 .build();
     }

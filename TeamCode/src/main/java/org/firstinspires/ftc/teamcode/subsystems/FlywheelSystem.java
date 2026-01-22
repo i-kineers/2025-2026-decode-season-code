@@ -52,7 +52,7 @@ public class FlywheelSystem {
 
     private final List<Double> recoveryLog = new ArrayList<>();
 
-    private enum ShotState { IDLE, FIRING, RECOVERING }
+    public enum ShotState { IDLE, FIRING, RECOVERING }
     private ShotState shotState = ShotState.IDLE;
 
     private final ElapsedTime loopTimer;
@@ -96,6 +96,8 @@ public class FlywheelSystem {
     /* ===================== Main Update (call every loop) ===================== */
 
     public void update() {
+        // If targetTPS is 0, we just stop and return.
+        // This means MasterLogic MUST set a non-zero targetTPS if it wants it to spin.
         if (targetTPS <= 0) {
             setFlywheelPower(0);
             return;
@@ -109,8 +111,7 @@ public class FlywheelSystem {
         double finalPower = applySlew(compensated);
 
         monitorRecovery(targetTPS, currentTPS);
-        applySafety(finalPower, currentTPS);
-        handleShotLogic(targetTPS, currentTPS);
+        handleShotLogic(targetTPS, currentTPS, finalPower);
     }
 
     /* ===================== PIDF ===================== */
@@ -159,16 +160,17 @@ public class FlywheelSystem {
         }
     }
 
-    private void handleShotLogic(double target, double current) {
+    private void handleShotLogic(double target, double current, double finalPower) {
         boolean wheelReady = current >= target * 0.95;
 
         switch (shotState) {
             case IDLE:
-                setTargetTPS(1000); // Temporary value for idle flywheel speed
+                applySafety(finalPower, current);
+                stopLoader();
                 break;
 
             case FIRING:
-                setTargetTPS(1250);
+                applySafety(finalPower, current);
                 if (wheelReady) {
                     if (current < (target * DANGER_THRESHOLD)) {
                         stopLoader();
@@ -263,6 +265,17 @@ public class FlywheelSystem {
         stopLoader();
         setFlywheelPower(0);
         targetTPS = 0;
+    }
+
+    public void handleTriggerInput(double triggerValue, double tps, double idleTps) {
+        if (triggerValue > 0.1) { // If trigger is held down
+            setTargetTPS(tps);
+            setShotStateFire();
+        } else {
+            // When released, stop firing and spin down
+            setTargetTPS(idleTps);
+            setShotStateIdle();
+        }
     }
 
     public void setShotStateIdle() {
