@@ -74,69 +74,29 @@ public class MasterLogic {
                 gamepad1.dpad_left,
                 autoAimActive // Auto Aim
         );
-        
-        // If pathing is active, update the target RPM based on the selected path
+
         if (autoAimWithOdometry.isAutomated()) {
             targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
-            // Optionally disable auto aim if pathing starts
             autoAimActive = false; 
         }
 
-        // B button updates the target pose to the current position
         if (gamepad1.b) {
             autoAimWithOdometry.resetTargetPose();
         }
 
-        // --- 2. Outtake/Shooter Controls ---
-        
-        // Always update the target TPS on the flywheel
-//        flywheel.setTargetTPS(targetTPS);
-//
-//        // Spin up shooter with Right Trigger
-//        if (gamepad1.right_trigger > 0.1) {
-////            outtake.setTargetRPM(targetRPM);
-//            flywheel.setShotStateFire();
-//        } else {
-////            outtake.stop();
-//            flywheel.setShotStateIdle();
-//        }
-//
-//        // Feed mechanism with Right Bumper
-//        if (gamepad1.right_bumper) {
-////            outtake.runLoader();
-//            flywheel.runLoader();
-//        } else {
-//            // Only stop loader if not in firing state (which handles loader automatically)
-//            // But if right bumper is released, we might want to stop manual feed.
-//            // The FlywheelSystem handles loader in FIRING state.
-//            if (flywheel.getShotState() != FlywheelSystem.ShotState.FIRING) {
-//                flywheel.stopLoader();
-//            }
-//        }
-
-        // --- 3. Intake Controls ---
-
-        // Reverse intake with Left Trigger
         if (gamepad1.left_trigger > 0.1) {
-            intake.runIntake(-1);
+            intake.runIntake(-1); // Intake with Intake
             intake.runGate(0.75);
-        } 
-        // Forward intake with Left Bumper
+        }
         else if (gamepad1.left_bumper) {
-            intake.runIntake(1);
+            intake.runIntake(1); // Outtake with Intake
         } 
         else {
             intake.stopIntake();
             intake.runGate(0);
         }
 
-        // --- 4. Settings & Overrides ---
-
-        // Adjust Target RPM with D-pad (incremental)
-        // Note: D-pad is also used for pathing selection in drive() above.
-        // You might want to change RPM controls to something else if they conflict.
-        // For now, I'll keep them but be aware of the overlap.
-
+        // Manual control targetTPS
         if (gamepad2.dpad_up && !dpadUpWasPressed) {
             targetTPS += 50;
         }
@@ -153,13 +113,10 @@ public class MasterLogic {
             telemetry.addLine("Heading Reset.");
         }
 
-        // --- 5. Background Tasks ---
-//        outtake.update();
-        // Inside your TeleOp loop
-        flywheel.handleTriggerInput(gamepad1.right_trigger, targetTPS, idleTPS); // Replace 1800 with your desired TPS
-        flywheel.update(); // Crucial: this runs the PID and the State Machine
+        autoAimWithOdometry.dynamicTargetTPS();
+        flywheel.handleTriggerInput(gamepad1.right_trigger, targetTPS, idleTPS);
+        flywheel.update();
 
-        // --- 6. Feedback & Telemetry ---
         updateTelemetry(telemetry);
     }
 
@@ -181,6 +138,8 @@ public class MasterLogic {
         telemetry.addData("Auto Aim", autoAimActive ? "ACTIVE" : "INACTIVE");
         telemetry.addData("Target TPS", targetTPS);
         telemetry.addData("Actual TPS", flywheel.getVelocity());
+        telemetry.addData("Goal X", autoAimWithOdometry.getBackdropPoseX());
+        telemetry.addData("Goal Y", autoAimWithOdometry.getBackdropPoseY());
         if (currentPose != null) {
             telemetry.addData("Robot X", currentPose.getX());
             telemetry.addData("Robot Y", currentPose.getY());

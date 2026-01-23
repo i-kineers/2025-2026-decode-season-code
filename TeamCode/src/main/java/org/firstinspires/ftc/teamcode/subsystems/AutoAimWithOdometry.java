@@ -183,6 +183,25 @@ public class AutoAimWithOdometry {
         }
     }
 
+    public void dynamicTargetTPS() {
+        // Distance formula between 2 points: sqrt((x2-x1)^2 + (y2-y1)^2)
+        double thresholdRange = 71;
+
+        double robotPoseX = follower.getPose().getX();
+        double robotPoseY = follower.getPose().getY();
+
+        double goalPoseX = goalPose.getX();
+        double goalPoseY = goalPose.getY();
+
+        double nonAbsDistance = Math.sqrt(Math.pow(goalPoseX - robotPoseX, 2) + Math.pow(goalPoseY - robotPoseY, 2));
+        double finalDistance = Math.abs(nonAbsDistance);
+
+        if (finalDistance < thresholdRange) {
+            currentTargetTPS = targetTPS[0];
+        } else {
+            currentTargetTPS = targetTPS[1];
+        }
+    }
 
     public void setStartingPose(double x, double y, double h) {
         startingPose = new Pose(x, y, Math.toRadians(h));
@@ -191,19 +210,6 @@ public class AutoAimWithOdometry {
             follower.setStartingPose(startingPose);
         }
     }
-
-    public void setTargetPose(double x, double y, double h, int targetSelection) {
-        Pose newPose = new Pose(x, y, Math.toRadians(h));
-
-        // Update list entry if valid
-        if (targetPoseList != null
-                && targetSelection >= 0
-                && targetSelection < targetPoseList.size()) {
-
-            targetPoseList.set(targetSelection, newPose);
-        }
-    }
-
 
     /**
      * Resets all target poses based on the offset between the current robot pose
@@ -308,6 +314,9 @@ public class AutoAimWithOdometry {
     public double getCurrentTargetTPS() {
         return currentTargetTPS;
     }
+
+    public double getBackdropPoseX() { return goalPose.getX(); }
+    public double getBackdropPoseY() { return goalPose.getY(); }
 
     public boolean isAutomated() {
         return automatedDrive;
