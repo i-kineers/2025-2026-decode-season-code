@@ -20,17 +20,17 @@ public class closePaths {
     private Pose startPose = new Pose(22, 120);
     private Pose shootPose = new Pose(48,95);
     private Pose homePose = new Pose(58, 112);
-    private Pose gatePose = new Pose(16, 74);
+    private Pose gatePose = new Pose(16, 70);
 
 
     // All end poses for pickup in each 3 rows
-    private Pose pickUpPose1 = new Pose(16, 80);
-    private Pose pickUpPose2 = new Pose(10, 58.313);
+    private Pose pickUpPose1 = new Pose(14, 80);
+    private Pose pickUpPose2 = new Pose(8, 54);
     private Pose pickUpPose3 = new Pose(16, 35.71);
 
     // This is assuming the robot will always be going from the shooting to pick up
     private Pose pickupControl1 = new Pose(71.257, 80.833);
-    private Pose pickupControl2 = new Pose(88.537, 58.3127);
+    private Pose pickupControl2 = new Pose(88.537, 44.3127);
     private Pose returnPose2 = new Pose(58.253, 60.628);
     private Pose pickupControl3 = new Pose(81.87, 31.63);
     private Pose gateControl = new Pose(44.182, 80.698);
@@ -55,7 +55,7 @@ public class closePaths {
             pickupControl1 = reflect(pickupControl1);
             pickupControl2 = reflect(pickupControl2);
             pickupControl3 = reflect(pickupControl3);
-            gateControl = reflect(gatePose);
+            gateControl = reflect(gateControl);
             homePose = reflect(homePose);
         }
 
@@ -68,7 +68,7 @@ public class closePaths {
         // From shooting to intaking first rows of balls
         Path2 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl1, pickUpPose1))
-                .addParametricCallback(0.3, () -> follower.setMaxPower(0.4))
+                .addParametricCallback(0.3, () -> follower.setMaxPower(0.3))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.8)
                 .build();
 

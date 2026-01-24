@@ -185,7 +185,7 @@ public class AutoAimWithOdometry {
 
     public void dynamicTargetTPS() {
         // Distance formula between 2 points: sqrt((x2-x1)^2 + (y2-y1)^2)
-        double thresholdRange = 71;
+        double thresholdRange = 85;
 
         double robotPoseX = follower.getPose().getX();
         double robotPoseY = follower.getPose().getY();

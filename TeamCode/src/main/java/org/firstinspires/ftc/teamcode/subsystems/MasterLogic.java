@@ -21,6 +21,8 @@ public class MasterLogic {
     private double targetTPS = 1200;
     private double idleTPS = 1000;
 
+    private boolean idleOn = true;
+
     private boolean dpadUpWasPressed = false;
     private boolean dpadDownWasPressed = false;
     
@@ -78,6 +80,11 @@ public class MasterLogic {
         if (autoAimWithOdometry.isAutomated()) {
             targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
             autoAimActive = false; 
+        } else {
+            // Only update dynamic TPS if NOT in automated pathing mode
+            // because pathing mode sets its own targetTPS based on the path
+            autoAimWithOdometry.dynamicTargetTPS();
+            targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
         }
 
         if (gamepad1.b) {
@@ -94,6 +101,14 @@ public class MasterLogic {
         else {
             intake.stopIntake();
             intake.runGate(0);
+        }
+
+        if (gamepad1.rightBumperWasPressed() && idleOn) {
+            idleTPS = 0;
+            idleOn = false;
+        } else if (gamepad1.rightBumperWasPressed() && !idleOn) {
+            idleTPS = 1000;
+            idleOn = true;
         }
 
         // Manual control targetTPS
@@ -113,7 +128,6 @@ public class MasterLogic {
             telemetry.addLine("Heading Reset.");
         }
 
-        autoAimWithOdometry.dynamicTargetTPS();
         flywheel.handleTriggerInput(gamepad1.right_trigger, targetTPS, idleTPS);
         flywheel.update();
 

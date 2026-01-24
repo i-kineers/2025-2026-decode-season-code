@@ -127,6 +127,7 @@ public class AutonomousCycleManager {
                     if (currentSelection == 0) {
                         // Check if we need to START the gate path
                         if (useGate) {
+                            follower.setMaxPower(0.4);
                             follower.followPath(paths.Path9);
                             useGate = false;        // "Consumes" the instruction from the OpMode
                             gateTriggered = true;   // REMEMBERS we are currently in the gate sequence
@@ -134,6 +135,7 @@ public class AutonomousCycleManager {
                         // If we are already mid-gate sequence, return to shoot
                         else if (gateTriggered) {
                             flywheelSystem.sleep(2000);
+                            follower.setMaxPower(1.0);
                             follower.followPath(paths.Path10);
                             gateTriggered = false;  // Reset for next time
                             nextState();
