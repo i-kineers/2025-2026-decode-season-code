@@ -1,9 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -17,19 +14,20 @@ public class FlywheelSystem {
     /* ===================== Hardware ===================== */
     private final DcMotorEx flywheel1;
     private final DcMotorEx flywheel2;
-    private final DcMotorEx intake;
+    private final CRServo leftLoader;
+    private final CRServo rightLoader;
     private final VoltageSensor batteryVoltage;
 
     /* ===================== Tunables ===================== */
-    public double kP = 0.001;
-    public double kI = 0.0001;
-    public double kD = 0.0004;
+    public double kP = 0.003;
+    public double kI = 0.0; // Old value 0.0001
+    public double kD = 0.0; // Old value 0.0004
 
-    public double kF_LOW  = 0.000725;
-    public double kF_HIGH = 0.000500;
+    public double kF_LOW  = 0.000463;
+    public double kF_HIGH = 0.000408;
 
-    public double LOW_TARGET_TPS  = 700; // Old values 1213.0
-    public double HIGH_TARGET_TPS = 1260; // Old values 1540.0
+    public double LOW_TARGET_TPS  = 710; // Old values 1213.0
+    public double HIGH_TARGET_TPS = 1800; // Old values 1540.0
 
     public double MAX_CURRENT = 8.5;
     public double DANGER_THRESHOLD = 0.93;
@@ -54,22 +52,22 @@ public class FlywheelSystem {
 
     private final List<Double> recoveryLog = new ArrayList<>();
 
-    private enum ShotState { IDLE, FIRING, RECOVERING }
+    public enum ShotState { IDLE, FIRING, RECOVERING }
     private ShotState shotState = ShotState.IDLE;
+
+    private final ElapsedTime loopTimer;
 
     /* ===================== Constructor ===================== */
     public FlywheelSystem(HardwareMap hardwareMap) {
 
         flywheel1 = hardwareMap.get(DcMotorEx.class, "launcher");
         flywheel2 = hardwareMap.get(DcMotorEx.class, "launcher2");
-        intake    = hardwareMap.get(DcMotorEx.class, "Intake");
+        leftLoader = hardwareMap.get(CRServo.class, "leftLoader");
+        rightLoader = hardwareMap.get(CRServo.class, "rightLoader");
 
         batteryVoltage = hardwareMap.voltageSensor.iterator().next();
 
-        flywheel1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flywheel2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        flywheel1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         flywheel1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -80,23 +78,14 @@ public class FlywheelSystem {
         flywheel2.setDirection(DcMotor.Direction.FORWARD);
 
         pidTimer.reset();
+
+        loopTimer = new ElapsedTime();
     }
 
     /* ===================== Public Intent API ===================== */
 
     public void setTargetTPS(double tps) {
         targetTPS = Math.max(0, tps);
-    }
-
-    public void startFiring() {
-        if (shotState == ShotState.IDLE) {
-            shotsFired = 0;
-            shotState = ShotState.FIRING;
-        }
-    }
-
-    public void stopFiring() {
-        shotState = ShotState.IDLE;
     }
 
     public void stopFlywheel() {
@@ -107,6 +96,8 @@ public class FlywheelSystem {
     /* ===================== Main Update (call every loop) ===================== */
 
     public void update() {
+        // If targetTPS is 0, we just stop and return.
+        // This means MasterLogic MUST set a non-zero targetTPS if it wants it to spin.
         if (targetTPS <= 0) {
             setFlywheelPower(0);
             return;
@@ -120,8 +111,7 @@ public class FlywheelSystem {
         double finalPower = applySlew(compensated);
 
         monitorRecovery(targetTPS, currentTPS);
-        applySafety(finalPower, currentTPS);
-        handleShotLogic(targetTPS, currentTPS);
+        handleShotLogic(targetTPS, currentTPS, finalPower);
     }
 
     /* ===================== PIDF ===================== */
@@ -170,31 +160,32 @@ public class FlywheelSystem {
         }
     }
 
-    private void handleShotLogic(double target, double current) {
+    private void handleShotLogic(double target, double current, double finalPower) {
         boolean wheelReady = current >= target * 0.95;
 
         switch (shotState) {
             case IDLE:
-                intake.setPower(0);
+                applySafety(finalPower, current);
+                stopLoader();
                 break;
 
             case FIRING:
+                applySafety(finalPower, current);
                 if (wheelReady) {
-                    intake.setPower(1.0);
                     if (current < (target * DANGER_THRESHOLD)) {
+                        stopLoader();
                         shotsFired++;
-                        shotState = ShotState.RECOVERING;
+//                        shotState = ShotState.RECOVERING;
                         shotTimer.reset();
+                    } else {
+                        runLoader();
                     }
                 }
                 break;
 
             case RECOVERING:
-                intake.setPower(0);
                 if (wheelReady && shotTimer.milliseconds() > 100) {
-                    shotState = (shotsFired >= TARGET_SHOT_COUNT)
-                            ? ShotState.IDLE
-                            : ShotState.FIRING;
+                    shotState = (shotsFired >= TARGET_SHOT_COUNT) ? ShotState.IDLE : ShotState.FIRING;
                 }
                 break;
         }
@@ -230,8 +221,69 @@ public class FlywheelSystem {
         return targetPower;
     }
 
+    public void runLoader() {
+        leftLoader.setPower(-1.0);
+        rightLoader.setPower(1.0);
+    }
+
+    public void stopLoader() {
+        leftLoader.setPower(0.0);
+        rightLoader.setPower(0.0);
+    }
+
     public double getVelocity() {
         return flywheel2.getVelocity();
+    }
+
+    public void autoRapidShoot(double tps, long time, double delay) {
+        loopTimer.reset();
+        setTargetTPS(tps);
+
+        // Wait for the launcher to reach the target speed before shooting.
+        ElapsedTime timer = new ElapsedTime();
+        // Give it up to 3 seconds to spin up.
+        while (timer.milliseconds() < time) {
+            if (loopTimer.milliseconds() > delay) {
+                runLoader();
+            }
+            update(); // This needs to be called to update the motor power from the PID controller.
+            sleep(10); // Small pause to prevent busy-waiting and allow other things to run.
+        }
+        stop();
+        update(); // Apply the change to stop the motors.
+    }
+
+    public void sleep(long milli) {
+        try {
+            Thread.sleep(milli);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public void stop() {
+        stopLoader();
+        setFlywheelPower(0);
+        targetTPS = 0;
+    }
+
+    public void handleTriggerInput(double triggerValue, double tps, double idleTps) {
+        if (triggerValue > 0.1) { // If trigger is held down
+            setTargetTPS(tps);
+            setShotStateFire();
+        } else {
+            // When released, stop firing and spin down
+            setTargetTPS(idleTps);
+            setShotStateIdle();
+        }
+    }
+
+    public void setShotStateIdle() {
+        shotState = ShotState.IDLE;
+    }
+
+    public void setShotStateFire() {
+        shotState = ShotState.FIRING;
     }
 
     /* ===================== Read-only Accessors ===================== */

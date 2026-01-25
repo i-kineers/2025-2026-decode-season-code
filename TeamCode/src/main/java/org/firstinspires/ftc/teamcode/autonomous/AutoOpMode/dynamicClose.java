@@ -12,7 +12,7 @@ public class dynamicClose extends OpMode {
     private AutonomousCycleManager autoManager;
 
     // UI variables for path selection
-    private boolean[] toggles = {false, false, false};
+    private boolean[] toggles = {false, false, false, false};
     private int cursor = 0;
     private boolean isBlueAlliance = true; // Default to Blue
 
@@ -43,15 +43,16 @@ public class dynamicClose extends OpMode {
         telemetry.addLine();
 
         // Intake Path Selection
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) { // Changed 3 to 4
             String arrow = (i == cursor) ? ">" : " ";
             String state = toggles[i] ? "ON" : "off";
-            telemetry.addData(arrow + " Intake " + (i + 1), state);
+            String label = (i < 3) ? " Intake " + (i + 1) : " Open Gate"; // Added gate label
+            telemetry.addData(arrow + label, state); // Changed "Intake" to label
         }
         telemetry.update();
 
         // --- Handle UI input ---
-        
+
         // Toggle Alliance Color
         if (gamepad1.y && !yPrev) {
             isBlueAlliance = !isBlueAlliance;
@@ -59,11 +60,11 @@ public class dynamicClose extends OpMode {
 
         // Move cursor up
         if (gamepad1.dpad_up && !upPrev) {
-            cursor = (cursor - 1 + 3) % 3;
+            cursor = (cursor - 1 + 4) % 4; // Changed 3 to 4
         }
         // Move cursor down
         if (gamepad1.dpad_down && !downPrev) {
-            cursor = (cursor + 1) % 3;
+            cursor = (cursor + 1) % 4; // Changed 3 to 4
         }
         // Toggle current intake path
         if (gamepad1.a && !aPrev) {
@@ -80,7 +81,7 @@ public class dynamicClose extends OpMode {
     @Override
     public void start() {
         autoManager = new AutonomousCycleManager(hardwareMap, isBlueAlliance);
-        autoManager.setCycles(toggles[0], toggles[1], toggles[2]);
+        autoManager.setCycles(toggles[0], toggles[1], toggles[2], toggles[3]);
     }
 
     @Override

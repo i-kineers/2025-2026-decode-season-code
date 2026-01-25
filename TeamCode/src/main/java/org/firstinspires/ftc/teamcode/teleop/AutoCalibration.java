@@ -22,6 +22,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class AutoCalibration extends LinearOpMode {
 
     private DcMotorEx flywheel;
+    private DcMotorEx flywheel2;
     private VoltageSensor batteryVoltageSensor;
 
     // We use a 12V reference for all our normalized math
@@ -30,13 +31,14 @@ public class AutoCalibration extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Initialize Hardware
-        flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
+        flywheel = hardwareMap.get(DcMotorEx.class, "launcher");
+        flywheel2 = hardwareMap.get(DcMotorEx.class, "launcher2");
         batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         // Ensure motor is in the right mode for raw testing
-        flywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheel2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        flywheel2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
 
 
@@ -56,6 +58,7 @@ public class AutoCalibration extends LinearOpMode {
 
         // --- STEP 2: COOL DOWN ---
         flywheel.setPower(0);
+        flywheel2.setPower(0);
         telemetry.addLine("Cooling down for 3 seconds...");
         telemetry.update();
         sleep(3000);
@@ -66,6 +69,7 @@ public class AutoCalibration extends LinearOpMode {
 
         // --- STEP 4: FINAL RESULTS ---
         flywheel.setPower(0);
+        flywheel2.setPower(0);
         while (!isStopRequested()) {
             telemetry.addLine("--- CALIBRATION RESULTS ---");
             telemetry.addData("Calculated kF_LOW", "%.6f", kF_low);
@@ -90,16 +94,17 @@ public class AutoCalibration extends LinearOpMode {
             // Set power based on current battery to hit exactly targetVolts
             double powerToApply = targetVolts / vBat;
             flywheel.setPower(powerToApply);
+            flywheel2.setPower(powerToApply);
 
             telemetry.addData("Phase", label);
             telemetry.addData("Target Volts", targetVolts);
             telemetry.addData("Actual V_Bat", vBat);
-            telemetry.addData("Current TPS", flywheel.getVelocity());
+            telemetry.addData("Current TPS", flywheel2.getVelocity());
             telemetry.update();
         }
 
         // Capture data at steady state
-        double finalTPS = flywheel.getVelocity();
+        double finalTPS = flywheel2.getVelocity();
 
         // Formula: kF = (TargetVolts / ReferenceVolts) / MeasuredTPS
         // This normalizes the result to our 12V system.

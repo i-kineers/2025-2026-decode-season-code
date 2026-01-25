@@ -80,7 +80,7 @@ public class dynamicFar extends OpMode {
     @Override
     public void start() {
         autoManager = new AutonomousCycleManager(hardwareMap, isBlueAlliance);
-        autoManager.setCycles(toggles[0], toggles[1], toggles[2]);
+        autoManager.setCycles(toggles[0], toggles[1], toggles[2], toggles[3]);
     }
 
     @Override

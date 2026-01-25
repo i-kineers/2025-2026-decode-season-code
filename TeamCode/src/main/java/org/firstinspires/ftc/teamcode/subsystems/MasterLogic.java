@@ -13,11 +13,16 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class MasterLogic {
 
     private final PanelsTelemetry panelsTelemetry;
-    private final DoubleMotorOuttakePID outtake;
+//    private final DoubleMotorOuttakePID outtake;
+    private final FlywheelSystem flywheel;
     private final Intake intake;
-    private final TeleOpPathingManager pathingManager;
+    private final AutoAimWithOdometry autoAimWithOdometry;
 
-    private double targetRPM = 3000;
+    private double targetTPS = 1200;
+    private double idleTPS = 1000;
+
+    private boolean idleOn = true;
+
     private boolean dpadUpWasPressed = false;
     private boolean dpadDownWasPressed = false;
     
@@ -31,8 +36,9 @@ public class MasterLogic {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
         // Initialize all subsystems
-        outtake = new DoubleMotorOuttakePID(hardwareMap);
+//        outtake = new DoubleMotorOuttakePID(hardwareMap);
         intake = new Intake(hardwareMap);
+        flywheel = new FlywheelSystem(hardwareMap);
 
         if (isBlueAlliance) {
             isBlue = true;
@@ -41,11 +47,11 @@ public class MasterLogic {
         }
 
         // Initialize Pathing Manager with a default starting pose
-        pathingManager = new TeleOpPathingManager(hardwareMap, isBlue);
-        pathingManager.setStartingPose(startingX,startingY,startingH);
+        autoAimWithOdometry = new AutoAimWithOdometry(hardwareMap, isBlue);
+        autoAimWithOdometry.setStartingPose(startingX,startingY,startingH);
     }
     public void mainLogic(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
-        pathingManager.update();
+        autoAimWithOdometry.update();
 
         // --- 1. Drive & Pathing Control ---
         
@@ -55,8 +61,12 @@ public class MasterLogic {
         }
         previousYState = gamepad1.y;
 
+        if (gamepad1.xWasPressed()) {
+            autoAimWithOdometry.resetAim();
+        }
+
         // X button triggers the automated path defined in PathingManager
-        pathingManager.drive(
+        autoAimWithOdometry.drive(
                 gamepad1.left_stick_y, // Note: Y stick is usually reversed
                 gamepad1.left_stick_x,
                 -gamepad1.right_stick_x,
@@ -66,63 +76,47 @@ public class MasterLogic {
                 gamepad1.dpad_left,
                 autoAimActive // Auto Aim
         );
-        
-        // If pathing is active, update the target RPM based on the selected path
-        if (pathingManager.isAutomated()) {
-            targetRPM = pathingManager.getCurrentTargetRPM();
-            // Optionally disable auto aim if pathing starts
+
+        if (autoAimWithOdometry.isAutomated()) {
+            targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
             autoAimActive = false; 
+        } else {
+            // Only update dynamic TPS if NOT in automated pathing mode
+            // because pathing mode sets its own targetTPS based on the path
+            autoAimWithOdometry.dynamicTargetTPS();
+            targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
         }
 
-        // B button updates the target pose to the current position
         if (gamepad1.b) {
-            pathingManager.resetTargetPose();
+            autoAimWithOdometry.resetTargetPose();
         }
 
-        // --- 2. Outtake/Shooter Controls ---
-
-        // Spin up shooter with Right Trigger
-        if (gamepad1.right_trigger > 0.1) {
-            outtake.setTargetRPM(targetRPM);
-        } else {
-            outtake.stop();
-        }
-
-        // Feed mechanism with Right Bumper
-        if (gamepad1.right_bumper) {
-            outtake.runLoader();
-        } else {
-            outtake.stopLoader();
-        }
-
-        // --- 3. Intake Controls ---
-
-        // Reverse intake with Left Trigger
         if (gamepad1.left_trigger > 0.1) {
-            intake.runIntake(-1);
+            intake.runIntake(-1); // Intake with Intake
             intake.runGate(0.75);
-        } 
-        // Forward intake with Left Bumper
+        }
         else if (gamepad1.left_bumper) {
-            intake.runIntake(1);
+            intake.runIntake(1); // Outtake with Intake
         } 
         else {
             intake.stopIntake();
             intake.runGate(0);
         }
 
-        // --- 4. Settings & Overrides ---
+        if (gamepad1.startWasPressed() && idleOn) {
+            idleTPS = 0;
+            idleOn = false;
+        } else if (gamepad1.startWasPressed() && !idleOn) {
+            idleTPS = 1000;
+            idleOn = true;
+        }
 
-        // Adjust Target RPM with D-pad (incremental)
-        // Note: D-pad is also used for pathing selection in drive() above.
-        // You might want to change RPM controls to something else if they conflict.
-        // For now, I'll keep them but be aware of the overlap.
-
+        // Manual control targetTPS
         if (gamepad2.dpad_up && !dpadUpWasPressed) {
-            targetRPM += 100;
+            targetTPS += 50;
         }
         if (gamepad2.dpad_down && !dpadDownWasPressed) {
-            targetRPM -= 100;
+            targetTPS -= 50;
         }
         dpadUpWasPressed = gamepad2.dpad_up;
         dpadDownWasPressed = gamepad2.dpad_down;
@@ -130,20 +124,19 @@ public class MasterLogic {
 
         // Reset IMU heading with A button
         if (gamepad1.a) {
-            pathingManager.resetHeading();
+            autoAimWithOdometry.resetHeading();
             telemetry.addLine("Heading Reset.");
         }
 
-        // --- 5. Background Tasks ---
-        outtake.update();
+        flywheel.handleTriggerInput(gamepad1.right_trigger, targetTPS, idleTPS);
+        flywheel.update();
 
-        // --- 6. Feedback & Telemetry ---
         updateTelemetry(telemetry);
     }
 
     private void updateTelemetry(Telemetry telemetry) {
         // Panels Telemetry (for dashboards)
-        Pose currentPose = pathingManager.getFollower().getPose();
+        Pose currentPose = autoAimWithOdometry.getFollower().getPose();
 //        if (currentPose != null) {
 //            panelsTelemetry.getTelemetry().addData("Robot X", currentPose.getX());
 //            panelsTelemetry.getTelemetry().addData("Robot Y", currentPose.getY());
@@ -154,10 +147,13 @@ public class MasterLogic {
 //        panelsTelemetry.getTelemetry().update();
 
         // Standard Driver Hub Telemetry
-        telemetry.addData("Mode", pathingManager.isAutomated() ? "PATHING" : "MANUAL");
+        telemetry.addData("Mode", autoAimWithOdometry.isAutomated() ? "PATHING" : "MANUAL");
+        telemetry.addData("Robot State", flywheel.getShotState());
         telemetry.addData("Auto Aim", autoAimActive ? "ACTIVE" : "INACTIVE");
-        telemetry.addData("Target RPM", targetRPM);
-        telemetry.addData("Actual RPM", outtake.getCurrentRPM());
+        telemetry.addData("Target TPS", targetTPS);
+        telemetry.addData("Actual TPS", flywheel.getVelocity());
+        telemetry.addData("Goal X", autoAimWithOdometry.getBackdropPoseX());
+        telemetry.addData("Goal Y", autoAimWithOdometry.getBackdropPoseY());
         if (currentPose != null) {
             telemetry.addData("Robot X", currentPose.getX());
             telemetry.addData("Robot Y", currentPose.getY());
