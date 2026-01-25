@@ -103,10 +103,10 @@ public class MasterLogic {
             intake.runGate(0);
         }
 
-        if (gamepad1.rightBumperWasPressed() && idleOn) {
+        if (gamepad1.startWasPressed() && idleOn) {
             idleTPS = 0;
             idleOn = false;
-        } else if (gamepad1.rightBumperWasPressed() && !idleOn) {
+        } else if (gamepad1.startWasPressed() && !idleOn) {
             idleTPS = 1000;
             idleOn = true;
         }

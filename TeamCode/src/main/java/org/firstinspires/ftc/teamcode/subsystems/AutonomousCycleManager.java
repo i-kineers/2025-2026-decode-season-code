@@ -134,7 +134,7 @@ public class AutonomousCycleManager {
                         }
                         // If we are already mid-gate sequence, return to shoot
                         else if (gateTriggered) {
-                            flywheelSystem.sleep(2000);
+                            flywheelSystem.sleep(500);
                             follower.setMaxPower(1.0);
                             follower.followPath(paths.Path10);
                             gateTriggered = false;  // Reset for next time
