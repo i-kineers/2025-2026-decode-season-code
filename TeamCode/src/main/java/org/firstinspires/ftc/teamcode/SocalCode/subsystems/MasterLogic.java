@@ -13,19 +13,12 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class MasterLogic {
 
     private final PanelsTelemetry panelsTelemetry;
-//    private final DoubleMotorOuttakePID outtake;
     private final FlywheelSystem flywheel;
     private final DoubleIntake intake;
     private final AutoAimWithOdometry autoAimWithOdometry;
 
     private double targetTPS = 1200;
-    private double idleTPS = 1000;
 
-    private boolean idleOn = true;
-
-    private boolean dpadUpWasPressed = false;
-    private boolean dpadDownWasPressed = false;
-    
     // Auto Aim Toggle State
     private boolean autoAimActive = false;
     private boolean previousYState = false;
@@ -36,25 +29,21 @@ public class MasterLogic {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
         // Initialize all subsystems
-//        outtake = new DoubleMotorOuttakePID(hardwareMap);
         intake = new DoubleIntake(hardwareMap);
         flywheel = new FlywheelSystem(hardwareMap);
 
-        if (isBlueAlliance) {
-            isBlue = true;
-        } else {
-            isBlue = false;
-        }
+        isBlue = isBlueAlliance;
 
         // Initialize Pathing Manager with a default starting pose
         autoAimWithOdometry = new AutoAimWithOdometry(hardwareMap, isBlue);
         autoAimWithOdometry.setStartingPose(startingX,startingY,startingH);
     }
+
     public void mainLogic(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
         autoAimWithOdometry.update();
 
         // --- 1. Drive & Pathing Control ---
-        
+
         // Toggle Auto Aim with Y
         if (gamepad1.y && !previousYState) {
             autoAimActive = !autoAimActive;
@@ -65,24 +54,12 @@ public class MasterLogic {
             autoAimWithOdometry.resetAim();
         }
 
-        // X button triggers the automated path defined in PathingManager
-        autoAimWithOdometry.drive(
-                gamepad1.left_stick_y, // Note: Y stick is usually reversed
-                gamepad1.left_stick_x,
-                -gamepad1.right_stick_x,
-                gamepad1.dpad_up,
-                gamepad1.dpad_right,
-                gamepad1.dpad_down,
-                gamepad1.dpad_left,
-                autoAimActive // Auto Aim
-        );
+        autoAimWithOdometry.drive(gamepad1, autoAimActive);
 
         if (autoAimWithOdometry.isAutomated()) {
             targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
-            autoAimActive = false; 
+            autoAimActive = false;
         } else {
-            // Only update dynamic TPS if NOT in automated pathing mode
-            // because pathing mode sets its own targetTPS based on the path
             autoAimWithOdometry.dynamicTargetTPS();
             targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
         }
@@ -91,44 +68,16 @@ public class MasterLogic {
             autoAimWithOdometry.resetTargetPose();
         }
 
-        if (gamepad1.left_trigger > 0.1) {
-            intake.runIntake(-1); // Intake with Intake
-            intake.runGate(0.75);
-        }
-        else if (gamepad1.left_bumper) {
-            intake.runIntake(1); // Outtake with Intake
-        } 
-        else {
-            intake.stopIntake();
-            intake.runGate(0);
-        }
+        intake.runIntake(gamepad1);
+        flywheel.runFlywheel(gamepad1, gamepad2);
 
-        if (gamepad1.startWasPressed() && idleOn) {
-            idleTPS = 0;
-            idleOn = false;
-        } else if (gamepad1.startWasPressed() && !idleOn) {
-            idleTPS = 1000;
-            idleOn = true;
-        }
-
-        // Manual control targetTPS
-        if (gamepad2.dpad_up && !dpadUpWasPressed) {
-            targetTPS += 50;
-        }
-        if (gamepad2.dpad_down && !dpadDownWasPressed) {
-            targetTPS -= 50;
-        }
-        dpadUpWasPressed = gamepad2.dpad_up;
-        dpadDownWasPressed = gamepad2.dpad_down;
-
+        flywheel.setNormalTPS(targetTPS);
 
         // Reset IMU heading with A button
         if (gamepad1.a) {
             autoAimWithOdometry.resetHeading();
             telemetry.addLine("Heading Reset.");
         }
-
-        flywheel.runFlywheel(gamepad1, gamepad2);
 
         updateTelemetry(telemetry);
     }

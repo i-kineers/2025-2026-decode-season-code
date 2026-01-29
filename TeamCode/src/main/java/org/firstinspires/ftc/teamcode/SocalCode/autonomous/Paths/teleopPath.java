@@ -18,7 +18,7 @@ public class teleopPath {
 
         // Safety check for null pose
         if (currentPose == null) {
-            currentPose = new Pose(22, 120, 135);
+            currentPose = new Pose(20.183, 122.906, 135); // Updated with better precision on pedro pathing visualizer
         }
 
         return follower.pathBuilder()

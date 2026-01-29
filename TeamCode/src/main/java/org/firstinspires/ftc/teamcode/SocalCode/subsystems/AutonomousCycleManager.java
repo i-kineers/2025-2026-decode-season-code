@@ -12,8 +12,7 @@ public class AutonomousCycleManager {
 
     // Subsystems
     private final Follower follower;
-    private final Intake intake;
-    private final DoubleMotorOuttakePID outtake;
+    private final DoubleIntake intake;
     private final FlywheelSystem flywheelSystem;
     private final closePaths paths;
 
@@ -43,8 +42,7 @@ public class AutonomousCycleManager {
 
     public AutonomousCycleManager(HardwareMap hardwareMap, boolean isBlueSide) {
         // Initialize subsystems
-        intake = new Intake(hardwareMap);
-        outtake = new DoubleMotorOuttakePID(hardwareMap);
+        intake = new DoubleIntake(hardwareMap);
         flywheelSystem = new FlywheelSystem(hardwareMap);
         follower = Constants.createFollower(hardwareMap);
         paths = new closePaths(follower, isBlueSide);
@@ -75,12 +73,12 @@ public class AutonomousCycleManager {
     /**
      * Main update loop to be called from the OpMode.
      */
-    public void update() {
+    public void update(boolean isBlueSide) {
         follower.update();
-        cycleRoutine();
+        cycleRoutine(isBlueSide);
     }
 
-    private void cycleRoutine() {
+    private void cycleRoutine(boolean isBlueSide) {
         // Determine which cycle to run next if we are in a waiting state
         if (currentState == GeneralStates.START || (currentState == GeneralStates.INTAKING && !follower.isBusy())) {
             if (intake1) currentSelection = 0;
@@ -110,7 +108,7 @@ public class AutonomousCycleManager {
 
             case INTAKING:
                 if (!follower.isBusy()) {
-                    intake.autoIntakeOn();
+                    intake.autoIntakeOn(isBlueSide);
                     if (currentSelection == 0) follower.followPath(paths.Path2);
                     else if (currentSelection == 1) follower.followPath(paths.Path4);
                     else if (currentSelection == 2) follower.followPath(paths.Path6);
@@ -155,7 +153,7 @@ public class AutonomousCycleManager {
 
             case SHOOTING:
                 if (!follower.isBusy()) {
-                    intake.autoIntakeOn();
+                    intake.autoIntakeOn(isBlueSide);
                     sleep(400);
                     intake.autoIntakeOff();
                     flywheelSystem.autoRapidShoot(1200, 3000, 500);

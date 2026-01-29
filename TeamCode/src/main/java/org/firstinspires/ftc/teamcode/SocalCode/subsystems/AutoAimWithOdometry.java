@@ -6,6 +6,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.teamcode.SocalCode.autonomous.Paths.teleopPath;
 import org.firstinspires.ftc.teamcode.SocalCode.pedroPathing.Constants;
 
@@ -39,9 +40,15 @@ public class AutoAimWithOdometry {
 
     private boolean isBlue;
 
+    // Added FieldCentricDrive member
+    private final FieldCentricDrive fieldCentricDrive;
+
     public AutoAimWithOdometry(HardwareMap hardwareMap, boolean isBlueAlliance) {
         follower = Constants.createFollower(hardwareMap);
         headingController = new PIDFController(follower.constants.coefficientsHeadingPIDF);
+
+        // Initialize FieldCentricDrive
+        fieldCentricDrive = new FieldCentricDrive(hardwareMap);
 
         // Default starting pose if not set before init
         startingPose = new Pose(0, 0, 0);
@@ -49,7 +56,7 @@ public class AutoAimWithOdometry {
         follower.startTeleopDrive();
 
         // Check if Blue or Red alliance
-        if (!isBlueAlliance) { isBlue = false; } else { isBlue = true; }
+        isBlue = isBlueAlliance;
 
         if (!isBlue) {
             CLOSE_ONE = CLOSE_ONE.mirror();
@@ -76,111 +83,114 @@ public class AutoAimWithOdometry {
         follower.update();
     }
 
-    /**
-     * Handles TeleOp driving and automated path triggering.
-     * @param forward Forward movement (e.g. gamepad.left_stick_y)
-     * @param strafe Strafe movement (e.g. gamepad.left_stick_x)
-     * @param turn Turn movement (e.g. -gamepad.right_stick_x)
-     */
-    public void drive(double forward, double strafe, double turn,
-                      boolean dpadUp, boolean dpadRight,
-                      boolean dpadDown, boolean dpadLeft, boolean autoAim) {
+    public void drive(Gamepad gamepad, boolean autoAim) {
+        double forward = gamepad.left_stick_y;
+        double strafe = gamepad.left_stick_x;
+        double turn = -gamepad.right_stick_x;
 
         boolean manualInput = Math.abs(forward) > 0.1
                 || Math.abs(strafe) > 0.1
                 || Math.abs(turn) > 0.1;
-        
-        if (autoAim) manualInput = true;
 
-        // Trigger Pathing based on D-pad
-        if (!automatedDrive) {
-
-            int selectedIndex = -1;
-
-            if (dpadUp) {
-                selectedIndex = 0; // Close 1
-            } else if (dpadLeft) {
-                selectedIndex = 1; // Close 2
-            } else if (dpadRight) {
-                selectedIndex = 2; // Far 1
-            } else if (dpadDown) {
-                selectedIndex = 3; // Far 2
-            }
-
-            if (selectedIndex != -1 && targetPoseList != null
-                    && selectedIndex < targetPoseList.size()) {
-
-                Pose selectedTarget = targetPoseList.get(selectedIndex);
-                
-                // Update the target RPM based on selection
-                currentTargetTPS = targetTPS[selectedIndex];
-
-                if (selectedTarget != null) {
-                    PathChain path = teleopPath.getPath(follower, selectedTarget);
-                    follower.followPath(path);
-                    automatedDrive = true;
-                }
-            }
+        if (autoAim) {
+            manualInput = true;
         }
 
-        // Stop Pathing if done or manual override
+        handleAutomatedPathing(gamepad, manualInput);
+
+        if (!automatedDrive) {
+            handleManualDrive(gamepad, autoAim);
+        } else {
+            wasAutoAim = false;
+        }
+    }
+
+    private void handleAutomatedPathing(Gamepad gamepad, boolean manualInput) {
         if (automatedDrive) {
             if (!follower.isBusy() || manualInput) {
                 follower.startTeleopDrive();
                 automatedDrive = false;
             }
+            return;
         }
 
-        // Manual Drive
-        if (!automatedDrive) {
-            double turnPower = turn;
+        int selectedIndex = -1;
+        if (gamepad.dpad_up) selectedIndex = 0;
+        else if (gamepad.dpad_left) selectedIndex = 1;
+        else if (gamepad.dpad_right) selectedIndex = 2;
+        else if (gamepad.dpad_down) selectedIndex = 3;
 
-            if (autoAim) {
-                if (!wasAutoAim) {
-                    headingController.reset();
-                }
+        if (selectedIndex != -1 && targetPoseList != null && selectedIndex < targetPoseList.size()) {
+            Pose selectedTarget = targetPoseList.get(selectedIndex);
+            currentTargetTPS = targetTPS[selectedIndex];
 
-                Pose robot = follower.getPose();
-                double dx = goalPose.getX() - robot.getX();
-                double dy = goalPose.getY() - robot.getY();
-                double targetHeading = MathFunctions.normalizeAngle(Math.atan2(dy, dx));
-
-                double currentHeading = robot.getHeading();
-                double error = targetHeading - currentHeading;
-
-                // Normalize to [-π, π]
-                if (error > Math.PI) {
-                    error -= 2 * Math.PI;
-                } else if (error < -Math.PI) {
-                    error += 2 * Math.PI;
-                }
-
-                if (Math.abs(error) < Math.toRadians(1.5)) {
-                    turnPower = 0;
-                } else {
-                    headingController.updateError(error);
-                    turnPower = headingController.run();
-
-                    // Ramp down turn power near target
-                    double maxTurn = 0.4;
-                    if (Math.abs(error) < Math.toRadians(10)) {
-                        maxTurn = 0.2;
-                    }
-
-                    turnPower = MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
-                }
+            if (selectedTarget != null) {
+                PathChain path = teleopPath.getPath(follower, selectedTarget);
+                follower.followPath(path);
+                automatedDrive = true;
             }
-            wasAutoAim = autoAim;
-
-            if (isBlue) {
-                follower.setTeleOpDrive(forward, strafe, turnPower, false);
-            } else {
-                follower.setTeleOpDrive(-forward, -strafe, turnPower, false);
-            }
-        } else {
-            wasAutoAim = false;
         }
     }
+
+    private void handleManualDrive(Gamepad gamepad, boolean autoAim) {
+        double forward = gamepad.left_stick_y;
+        double strafe = gamepad.left_stick_x;
+        double turn = -gamepad.right_stick_x;
+
+        double turnPower = turn;
+
+        if (autoAim) {
+            turnPower = getAutoAimTurnPower();
+        }
+        wasAutoAim = autoAim;
+
+        if (isBlue) {
+            if (autoAim) {
+                fieldCentricDrive.drive(forward, strafe, turnPower);
+            } else {
+                fieldCentricDrive.drive(gamepad);
+            }
+        } else { // Red Alliance
+            if (autoAim) {
+                fieldCentricDrive.drive(-forward, -strafe, turnPower);
+            } else {
+                fieldCentricDrive.drive(-forward, -strafe, turn);
+            }
+        }
+    }
+
+    private double getAutoAimTurnPower() {
+        if (!wasAutoAim) {
+            headingController.reset();
+        }
+
+        Pose robot = follower.getPose();
+        double dx = goalPose.getX() - robot.getX();
+        double dy = goalPose.getY() - robot.getY();
+        double targetHeading = MathFunctions.normalizeAngle(Math.atan2(dy, dx));
+
+        double currentHeading = robot.getHeading();
+        double error = targetHeading - currentHeading;
+
+        if (error > Math.PI) error -= 2 * Math.PI;
+        else if (error < -Math.PI) error += 2 * Math.PI;
+
+        double turnPower;
+        if (Math.abs(error) < Math.toRadians(1.5)) {
+            turnPower = 0;
+        } else {
+            headingController.updateError(error);
+            turnPower = headingController.run();
+
+            double maxTurn = 0.4;
+            if (Math.abs(error) < Math.toRadians(10)) {
+                maxTurn = 0.2;
+            }
+            turnPower = MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
+        }
+        return turnPower;
+    }
+
 
     public void dynamicTargetTPS() {
         // Distance formula between 2 points: sqrt((x2-x1)^2 + (y2-y1)^2)
@@ -298,6 +308,8 @@ public class AutoAimWithOdometry {
             if (currentPose != null) {
                 // Create a new pose with the same X and Y, but a heading of 0
                 follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), 0));
+
+                fieldCentricDrive.resetIMU();
             }
         }
     }

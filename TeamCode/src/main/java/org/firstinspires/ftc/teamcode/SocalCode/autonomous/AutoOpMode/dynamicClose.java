@@ -86,7 +86,7 @@ public class dynamicClose extends OpMode {
     @Override
     public void loop() {
         if (autoManager != null) {
-            autoManager.update();
+            autoManager.update(isBlueAlliance);
 
             // --- Telemetry ---
             Pose currentPose = autoManager.getFollower().getPose();

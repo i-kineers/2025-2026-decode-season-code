@@ -9,6 +9,8 @@ import java.util.List;
 
 public class FlywheelSystem {
 
+    DoubleIntake doubleIntake;
+
     private final DcMotorEx flywheel;
     private final DcMotorEx kicker;
     private final VoltageSensor batteryVoltage;
@@ -50,7 +52,13 @@ public class FlywheelSystem {
 
     private final ElapsedTime loopTimer;
 
+    private enum AutoShootingState { LEFT, RIGHT, SHOOTING, DONE }
+    private AutoShootingState autoShootingState = AutoShootingState.SHOOTING;
+
+    private boolean leftIntakeFirst = true;
+
     public FlywheelSystem(HardwareMap hardwareMap) {
+        doubleIntake = new DoubleIntake(hardwareMap);
 
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         kicker = hardwareMap.get(DcMotorEx.class, "kicker");
@@ -191,22 +199,62 @@ public class FlywheelSystem {
         }
     }
 
-    public void autoRapidShoot(double tps, long time, double delay) {
-        loopTimer.reset();
+    private boolean autoRapidShoot(double tps, long shootingTime) {
         setTargetTPS(tps);
 
-        ElapsedTime timer = new ElapsedTime();
+        calculateCompensatedPower();
+        boolean wheelReady = getVelocity() >= targetTPS * 0.95;
 
-        while (timer.milliseconds() < time) {
-            if (loopTimer.milliseconds() > delay) {
-                runKicker();
-            }
-            update();
-            sleep(10);
+        if (shotTimer.milliseconds() == 0) {
+            shotTimer.reset();
         }
-        stop();
-        update();
+
+        if (wheelReady && shotTimer.milliseconds() < shootingTime) {
+            runKicker();
+        } else {
+            stopKicker();
+        }
+
+        // Check if the time has elapsed
+        if (shotTimer.milliseconds() >= shootingTime) {
+            shotTimer.reset();
+            return true;
+        }
+
+        return false;
     }
+
+    public void autoDoubleIntakeShooting() {
+        switch (autoShootingState) {
+            case SHOOTING:
+                if (autoRapidShoot(1213, 1500)) {
+                    if (leftIntakeFirst) {
+                        autoShootingState = AutoShootingState.LEFT;
+                    } else {
+                        autoShootingState = AutoShootingState.RIGHT;
+                    }
+                }
+                break;
+
+            case LEFT:
+                if (doubleIntake.autoShootingIntake(true, 800)) {
+                    leftIntakeFirst = false;
+                    autoShootingState = AutoShootingState.SHOOTING;
+                }
+                break;
+
+            case RIGHT:
+                if (doubleIntake.autoShootingIntake(false, 800)) {
+                    leftIntakeFirst = true;
+                    autoShootingState = AutoShootingState.SHOOTING;
+                }
+                break;
+
+            case DONE:
+                setFlywheelState(ShotState.IDLE);
+        }
+    }
+
 
     public void sleep(long milli) {
         try {
@@ -226,9 +274,7 @@ public class FlywheelSystem {
         flywheel.setPower(power);
     }
 
-    public void setTargetTPS(double tps) {
-        targetTPS = Math.max(0, tps);
-    }
+    public void setTargetTPS(double tps) { targetTPS = Math.max(0, tps); }
 
     public void runKicker() {
         kicker.setPower(1);
@@ -240,6 +286,10 @@ public class FlywheelSystem {
 
     public void setFlywheelState(ShotState state) {
         shotState = state;
+    }
+
+    public void setNormalTPS(double tps) {
+        this.normalTPS = tps;
     }
 
     public double getLastRecoveryTime() {

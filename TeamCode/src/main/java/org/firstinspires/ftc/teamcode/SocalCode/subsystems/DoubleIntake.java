@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class DoubleIntake {
 
+    FlywheelSystem flywheelSystem;
+
     DcMotor leftIntakeMotor;
     DcMotor rightIntakeMotor;
 
@@ -18,6 +20,8 @@ public class DoubleIntake {
     private boolean rightOuttake = false;
 
     public DoubleIntake(HardwareMap hardwaremap){
+        flywheelSystem = new FlywheelSystem(hardwaremap);
+
         leftIntakeMotor = hardwaremap.get(DcMotor.class, "leftIntake");
         rightIntakeMotor = hardwaremap.get(DcMotor.class, "rightIntake");
         leftIntakeMotor.setDirection(DcMotor.Direction.REVERSE); // Reverse one of the motors
@@ -50,6 +54,41 @@ public class DoubleIntake {
                 break;
         }
     }
+
+    public void autoIntakeOn(boolean isBlue) {
+        if (isBlue) {
+            setLeftIntake(1);
+        } else {
+            setRightIntake(1);
+        }
+    }
+
+    public boolean autoShootingIntake(boolean leftFirst, long sleep) {
+        if (leftFirst) {
+            setLeftIntake(1);
+            try {
+                Thread.sleep(sleep);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            setRightIntake(1);
+        } else {
+            setRightIntake(1);
+            try {
+                Thread.sleep(sleep);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            setLeftIntake(1);
+        }
+        return true;
+    }
+
+    public void autoIntakeOff() {
+        setLeftIntake(0);
+        setRightIntake(0);
+    }
+
 
     public void setLeftIntake(double power) {
         leftIntakeMotor.setPower(power);
