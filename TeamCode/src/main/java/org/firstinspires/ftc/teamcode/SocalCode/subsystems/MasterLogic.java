@@ -68,16 +68,16 @@ public class MasterLogic {
             autoAimWithOdometry.resetTargetPose();
         }
 
-        intake.runIntake(gamepad1);
-        flywheel.runFlywheel(gamepad1, gamepad2);
-
-        flywheel.setNormalTPS(targetTPS);
-
         // Reset IMU heading with A button
         if (gamepad1.a) {
             autoAimWithOdometry.resetHeading();
             telemetry.addLine("Heading Reset.");
         }
+
+        intake.runIntake(gamepad1);
+        flywheel.runFlywheel(gamepad1, gamepad2);
+        flywheel.setNormalTPS(targetTPS);
+        flywheel.update();
 
         updateTelemetry(telemetry);
     }

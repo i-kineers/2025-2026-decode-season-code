@@ -46,10 +46,10 @@ public class FlywheelTeleOp extends LinearOpMode {
             if (gamepad1.leftBumperWasPressed()) {
                 if (!servoOn) {
                     servoOn = true;
-                    flywheel.runLoader();
+//                    flywheel.runLoader();
                 } else {
                     servoOn = false;
-                    flywheel.stopLoader();
+//                    flywheel.stopLoader();
                 }
             }
 

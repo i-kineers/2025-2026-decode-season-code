@@ -6,8 +6,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class DoubleIntake {
 
-    FlywheelSystem flywheelSystem;
-
     DcMotor leftIntakeMotor;
     DcMotor rightIntakeMotor;
 
@@ -20,8 +18,6 @@ public class DoubleIntake {
     private boolean rightOuttake = false;
 
     public DoubleIntake(HardwareMap hardwaremap){
-        flywheelSystem = new FlywheelSystem(hardwaremap);
-
         leftIntakeMotor = hardwaremap.get(DcMotor.class, "leftIntake");
         rightIntakeMotor = hardwaremap.get(DcMotor.class, "rightIntake");
         leftIntakeMotor.setDirection(DcMotor.Direction.REVERSE); // Reverse one of the motors
@@ -36,21 +32,23 @@ public class DoubleIntake {
             setIntakeState(intakeState.IDLE);
         }
 
-        intakeFSM(1);
+        intakeFSM(1, gamepad);
     }
 
-    public void intakeFSM(double power) {
+    public void intakeFSM(double power, Gamepad gamepad) {
         switch (currentIntakeState) {
             case IDLE:
                 setBothIntakePower(0);
                 break;
+
             case INTAKE:
-                if (leftIntake) { setLeftIntake(power); }
-                if (rightIntake) {setRightIntake(power); }
+                setLeftIntake(gamepad.left_trigger > 0.1 ? power : 0);
+                setRightIntake(gamepad.right_trigger > 0.1 ? power : 0);
                 break;
+
             case OUTTAKE:
-                if (leftOuttake) { setLeftIntake(-power); }
-                if (rightOuttake) { setRightIntake(-power); }
+                setLeftIntake(gamepad.left_bumper ? -power : 0);
+                setRightIntake(gamepad.right_bumper ? -power : 0);
                 break;
         }
     }
@@ -63,32 +61,23 @@ public class DoubleIntake {
         }
     }
 
-    public boolean autoShootingIntake(boolean leftFirst, long sleep) {
-        if (leftFirst) {
-            setLeftIntake(1);
-            try {
-                Thread.sleep(sleep);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            setRightIntake(1);
-        } else {
-            setRightIntake(1);
-            try {
-                Thread.sleep(sleep);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            setLeftIntake(1);
-        }
-        return true;
-    }
-
-    public void autoIntakeOff() {
-        setLeftIntake(0);
-        setRightIntake(0);
-    }
-
+//    public boolean autoShootingIntake(boolean leftFirst, long sleep) {
+//        if (leftFirst) {
+//            setLeftIntake(1);
+//            flywheel.sleep(sleep);
+//            setRightIntake(1);
+//        } else {
+//            setRightIntake(1);
+//            flywheel.sleep(sleep);
+//            setLeftIntake(1);
+//        }
+//        return true;
+//    }
+//
+//    public void autoIntakeOff() {
+//        setLeftIntake(0);
+//        setRightIntake(0);
+//    }
 
     public void setLeftIntake(double power) {
         leftIntakeMotor.setPower(power);
