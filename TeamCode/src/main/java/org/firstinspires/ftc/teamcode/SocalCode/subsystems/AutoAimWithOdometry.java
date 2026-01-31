@@ -306,9 +306,6 @@ public class AutoAimWithOdometry {
         if (follower != null) {
             Pose currentPose = follower.getPose();
             if (currentPose != null) {
-                // Create a new pose with the same X and Y, but a heading of 0
-                follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), 0));
-
                 fieldCentricDrive.resetIMU();
             }
         }

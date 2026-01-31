@@ -12,11 +12,6 @@ public class DoubleIntake {
     public enum intakeState {IDLE, INTAKE, OUTTAKE}
     private intakeState currentIntakeState = intakeState.IDLE;
 
-    private boolean leftIntake = false;
-    private boolean rightIntake = false;
-    private boolean leftOuttake = false;
-    private boolean rightOuttake = false;
-
     public DoubleIntake(HardwareMap hardwaremap){
         leftIntakeMotor = hardwaremap.get(DcMotor.class, "leftIntake");
         rightIntakeMotor = hardwaremap.get(DcMotor.class, "rightIntake");
@@ -52,32 +47,6 @@ public class DoubleIntake {
                 break;
         }
     }
-
-    public void autoIntakeOn(boolean isBlue) {
-        if (isBlue) {
-            setLeftIntake(1);
-        } else {
-            setRightIntake(1);
-        }
-    }
-
-//    public boolean autoShootingIntake(boolean leftFirst, long sleep) {
-//        if (leftFirst) {
-//            setLeftIntake(1);
-//            flywheel.sleep(sleep);
-//            setRightIntake(1);
-//        } else {
-//            setRightIntake(1);
-//            flywheel.sleep(sleep);
-//            setLeftIntake(1);
-//        }
-//        return true;
-//    }
-//
-//    public void autoIntakeOff() {
-//        setLeftIntake(0);
-//        setRightIntake(0);
-//    }
 
     public void setLeftIntake(double power) {
         leftIntakeMotor.setPower(power);

@@ -9,8 +9,6 @@ import java.util.List;
 
 public class FlywheelSystem {
 
-    DoubleIntake doubleIntake;
-
     private final DcMotorEx flywheel;
     private final DcMotorEx flywheel2;
     private final DcMotorEx kicker;
@@ -51,17 +49,6 @@ public class FlywheelSystem {
     public enum ShotState { OFF, IDLE, FIRING}
     private ShotState shotState = ShotState.OFF;
 
-    private final ElapsedTime loopTimer;
-
-    private enum AutoShootingState { LEFT, RIGHT, SHOOTING, DONE }
-    private AutoShootingState autoShootingState = AutoShootingState.SHOOTING;
-
-    private boolean LEFTINTAKE = true;
-    private boolean RIGHTINTAKE = true;
-
-    private final ElapsedTime timer = new ElapsedTime();
-    private boolean timerRunning = false;
-
     public FlywheelSystem(HardwareMap hardwareMap) {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
@@ -79,8 +66,6 @@ public class FlywheelSystem {
         flywheel2.setDirection(DcMotor.Direction.REVERSE);
 
         pidTimer.reset();
-
-        loopTimer = new ElapsedTime();
     }
 
     public void runFlywheel(Gamepad gamepad1, Gamepad gamepad2) {
@@ -203,81 +188,6 @@ public class FlywheelSystem {
         }
     }
 
-//    private boolean autoRapidShoot(double tps, long shootingTime) {
-//        setTargetTPS(tps);
-//
-//        calculateCompensatedPower();
-//        boolean wheelReady = getVelocity() >= targetTPS * 0.95;
-//
-//        if (shotTimer.milliseconds() == 0) {
-//            shotTimer.reset();
-//        }
-//
-//        if (wheelReady && shotTimer.milliseconds() < shootingTime) {
-//            runKicker();
-//        } else {
-//            stopKicker();
-//        }
-//
-//        // Check if the time has elapsed
-//        if (shotTimer.milliseconds() >= shootingTime) {
-//            shotTimer.reset();
-//            return true;
-//        }
-//
-//        return false;
-//    }
-
-//    public void autoDoubleIntakeShooting() {
-//        switch (autoShootingState) {
-//            case SHOOTING:
-//                if (autoRapidShoot(1213, 1500)) {
-//                    if (LEFTINTAKE) {
-//                        autoShootingState = AutoShootingState.LEFT;
-//                    } else if (RIGHTINTAKE) {
-//                        autoShootingState = AutoShootingState.RIGHT;
-//                    } else {
-//                        autoShootingState = AutoShootingState.DONE;
-//                    }
-//                }
-//                break;
-//
-//            case LEFT:
-//                if (doubleIntake.autoShootingIntake(true, 800)) {
-//                    LEFTINTAKE = false;
-//                    autoShootingState = AutoShootingState.SHOOTING;
-//                }
-//                break;
-//
-//            case RIGHT:
-//                if (doubleIntake.autoShootingIntake(false, 800)) {
-//                    RIGHTINTAKE = true;
-//                    autoShootingState = AutoShootingState.DONE;
-//                }
-//                break;
-//
-//            case DONE:
-//                setFlywheelState(ShotState.IDLE);
-//        }
-//    }
-
-
-//    public boolean sleep(long milliseconds) {
-//        // If the timer isn't running yet, start it now
-//        if (!timerRunning) {
-//            timer.reset();
-//            timerRunning = true;
-//        }
-//
-//        // Check if the time has elapsed
-//        if (timer.milliseconds() >= milliseconds) {
-//            timerRunning = false; // Reset for the next time we need to wait
-//            return true;
-//        }
-//
-//        return false; // Still waiting...
-//    }
-
     public void stop() {
         stopKicker();
         setFlywheelPower(0);
@@ -303,9 +213,7 @@ public class FlywheelSystem {
         shotState = state;
     }
 
-    public void setNormalTPS(double tps) {
-        this.normalTPS = tps;
-    }
+    public void setNormalTPS(double tps) { this.normalTPS = tps; }
 
     public double getLastRecoveryTime() {
         return lastRecoveryTime;

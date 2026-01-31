@@ -13,7 +13,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class MasterLogic {
 
     private final PanelsTelemetry panelsTelemetry;
-    private final FlywheelSystem flywheel;
+//    private final FlywheelSystem flywheel;
     private final DoubleIntake intake;
     private final AutoAimWithOdometry autoAimWithOdometry;
 
@@ -30,7 +30,7 @@ public class MasterLogic {
 
         // Initialize all subsystems
         intake = new DoubleIntake(hardwareMap);
-        flywheel = new FlywheelSystem(hardwareMap);
+//        flywheel = new FlywheelSystem(hardwareMap);
 
         isBlue = isBlueAlliance;
 
@@ -75,9 +75,9 @@ public class MasterLogic {
         }
 
         intake.runIntake(gamepad1);
-        flywheel.runFlywheel(gamepad1, gamepad2);
-        flywheel.setNormalTPS(targetTPS);
-        flywheel.update();
+//        flywheel.runFlywheel(gamepad1, gamepad2);
+//        flywheel.setNormalTPS(targetTPS);
+//        flywheel.update();
 
         updateTelemetry(telemetry);
     }
@@ -86,10 +86,10 @@ public class MasterLogic {
         Pose currentPose = autoAimWithOdometry.getFollower().getPose();
 
         telemetry.addData("Mode", autoAimWithOdometry.isAutomated() ? "PATHING" : "MANUAL");
-        telemetry.addData("Robot State", flywheel.getShotState());
+//        telemetry.addData("Robot State", flywheel.getShotState());
         telemetry.addData("Auto Aim", autoAimActive ? "ACTIVE" : "INACTIVE");
         telemetry.addData("Target TPS", targetTPS);
-        telemetry.addData("Actual TPS", flywheel.getVelocity());
+//        telemetry.addData("Actual TPS", flywheel.getVelocity());
         telemetry.addData("Goal X", autoAimWithOdometry.getBackdropPoseX());
         telemetry.addData("Goal Y", autoAimWithOdometry.getBackdropPoseY());
         if (currentPose != null) {
