@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.SocalCode.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.FieldCentricDrive;
 
 @TeleOp(name = "Field Centric Drive Test", group = "Tests")
+@Disabled
 public class FieldCentricDriveTest extends LinearOpMode {
 
     private FieldCentricDrive drive;
