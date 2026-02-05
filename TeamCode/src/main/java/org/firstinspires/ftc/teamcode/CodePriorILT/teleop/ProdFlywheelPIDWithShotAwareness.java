@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
 
 
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,6 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import com.bylazar.telemetry.PanelsTelemetry;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -23,7 +25,7 @@ import java.util.List;
 
 @TeleOp(name = "Production Flywheel System with shot awareness")
 public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
-
+    private PanelsTelemetry panelsTelemetry;
 
     // --- 1. Motor & Hardware ---
     private DcMotorEx flywheel;
@@ -38,8 +40,8 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
 
 
     // Normalized to 12V scale (found via Calibration)
-    public double kF_LOW = 0.000725;  // For 1500 Wheel RPM
-    public double kF_HIGH = 0.000500; // For 3300 Wheel RPM
+    public double kF_LOW = 0.000463;  // For 1500 Wheel RPM
+    public double kF_HIGH = 0.000436; // For 3300 Wheel RPM
 
 
     public double LOW_TARGET_TPS = 1213.0;
@@ -62,7 +64,7 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
     private ElapsedTime recoveryTimer = new ElapsedTime();
     private double lastRecoveryTime = 0;
     private boolean isRecovering = false;
-
+    double targetTPS = 1213;
     int shotsFired = 0;
     public static int TARGET_SHOT_COUNT = 3; // Number of rings/balls to fire
     ElapsedTime shotTimer = new ElapsedTime();
@@ -74,6 +76,7 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Initialization
+        panelsTelemetry = PanelsTelemetry.INSTANCE;
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
 
         // Initialize intake with error handling
@@ -98,7 +101,6 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
 
         while (opModeIsActive()) {
             // Select Target (D-Pad Control)
-            double targetTPS = 1213;
             if (gamepad1.dpad_up) targetTPS = HIGH_TARGET_TPS;
             else if (gamepad1.dpad_down) targetTPS = LOW_TARGET_TPS;
 
@@ -190,6 +192,8 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
                 }
             }
 
+            double CONVERTED_DANGER_THRESHOLD = DANGER_THRESHOLD * targetTPS;
+            double RECOVERED_THRESHOLD = targetTPS * 0.98;
 
             // Dashboard Graphing
             telemetry.addData("Target", targetTPS);
@@ -197,7 +201,16 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
             telemetry.addData("V_Battery", vBat);
             telemetry.addData("State", currentShotState);
             telemetry.update();
-            saveLog();
+
+            // Make telemetry for panels as well
+            panelsTelemetry.getTelemetry().addData("Recovery Time (ms)", lastRecoveryTime);
+            panelsTelemetry.getTelemetry().addData("Danger Threshold", CONVERTED_DANGER_THRESHOLD);
+            panelsTelemetry.getTelemetry().addData("Danger Threshold", RECOVERED_THRESHOLD);
+            panelsTelemetry.getTelemetry().addData("Target", targetTPS);
+            panelsTelemetry.getTelemetry().addData("Actual", currentTPS);
+            panelsTelemetry.getTelemetry().addData("State", currentShotState);
+            panelsTelemetry.getTelemetry().addData("V_Battery", vBat);
+            panelsTelemetry.getTelemetry().update();
         }
     }
 
