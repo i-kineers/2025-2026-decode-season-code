@@ -31,8 +31,7 @@ public class AutoCalibration extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Initialize Hardware
-        flywheel = hardwareMap.get(DcMotorEx.class, "launcher");
-        flywheel2 = hardwareMap.get(DcMotorEx.class, "launcher2");
+        flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel");
         batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         // Ensure motor is in the right mode for raw testing
@@ -57,7 +56,6 @@ public class AutoCalibration extends LinearOpMode {
         double kF_low = performTest(lowTargetVolts, "LOW SPEED");
 
         // --- STEP 2: COOL DOWN ---
-        flywheel.setPower(0);
         flywheel2.setPower(0);
         telemetry.addLine("Cooling down for 3 seconds...");
         telemetry.update();
@@ -68,7 +66,6 @@ public class AutoCalibration extends LinearOpMode {
         double kF_high = performTest(highTargetVolts, "HIGH SPEED");
 
         // --- STEP 4: FINAL RESULTS ---
-        flywheel.setPower(0);
         flywheel2.setPower(0);
         while (!isStopRequested()) {
             telemetry.addLine("--- CALIBRATION RESULTS ---");
@@ -93,7 +90,6 @@ public class AutoCalibration extends LinearOpMode {
 
             // Set power based on current battery to hit exactly targetVolts
             double powerToApply = targetVolts / vBat;
-            flywheel.setPower(powerToApply);
             flywheel2.setPower(powerToApply);
 
             telemetry.addData("Phase", label);
