@@ -188,6 +188,11 @@ public class FlywheelSystem {
         }
     }
 
+
+    public void autoRapidShoot() {
+
+    }
+
     public void stop() {
         stopKicker();
         setFlywheelPower(0);
