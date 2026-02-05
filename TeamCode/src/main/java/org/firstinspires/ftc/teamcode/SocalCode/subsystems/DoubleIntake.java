@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.SocalCode.subsystems;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.pedropathing.util.Timer;
 
 public class DoubleIntake {
 
@@ -12,10 +13,9 @@ public class DoubleIntake {
     public enum intakeState {IDLE, INTAKE, OUTTAKE}
     private intakeState currentIntakeState = intakeState.IDLE;
 
-    private boolean leftIntake = false;
-    private boolean rightIntake = false;
-    private boolean leftOuttake = false;
-    private boolean rightOuttake = false;
+    public enum autoIntakeState {IDLE, INTAKE, SHOOTING}
+    private autoIntakeState currentAutoIntakeState = autoIntakeState.IDLE;
+    private Timer autoTimer = new Timer();
 
     public DoubleIntake(HardwareMap hardwaremap){
         leftIntakeMotor = hardwaremap.get(DcMotor.class, "leftIntake");
@@ -54,36 +54,41 @@ public class DoubleIntake {
     }
 
     public void autoIntakeOn(boolean isBlue) {
-        if (isBlue) {
-            setLeftIntake(1);
-        } else {
-            setRightIntake(1);
+        switch (currentAutoIntakeState) {
+            case IDLE:
+                autoIntakeOff();
+                break;
+            case INTAKE:
+                if (isBlue) {
+                    setLeftIntake(1);
+                } else {
+                    setRightIntake(1);
+                }
+                break;
+            case SHOOTING:
+                if (autoTimer.getElapsedTimeSeconds() < 0.8) {
+                    setLeftIntake(1);
+                    setRightIntake(0);
+                } else if (autoTimer.getElapsedTimeSeconds() < 1.6) {
+                    setLeftIntake(0);
+                    setRightIntake(1);
+                } else {
+                    autoIntakeOff();
+                }
+                break;
         }
     }
 
-//    public boolean autoShootingIntake(boolean leftFirst, long sleep) {
-//        if (leftFirst) {
-//            setLeftIntake(1);
-//            flywheel.sleep(sleep);
-//            setRightIntake(1);
-//        } else {
-//            setRightIntake(1);
-//            flywheel.sleep(sleep);
-//            setLeftIntake(1);
-//        }
-//        return true;
-//    }
-//
-//    public void autoIntakeOff() {
-//        setLeftIntake(0);
-//        setRightIntake(0);
-//    }
+    public void autoIntakeOff() {
+        setLeftIntake(0);
+        setRightIntake(0);
+    }
 
     public void setLeftIntake(double power) {
         leftIntakeMotor.setPower(power);
     }
     public void setRightIntake(double power) {
-        rightIntakeMotor.setPower(power);
+        rightIntakeMotor.setPower(-power);
     }
 
     public void setBothIntakePower (double power) {
@@ -93,5 +98,12 @@ public class DoubleIntake {
 
     public void setIntakeState(intakeState state) {
         currentIntakeState = state;
+    }
+
+    public void setAutoIntakeState(autoIntakeState autoState) {
+        if (autoState == autoIntakeState.SHOOTING && currentAutoIntakeState != autoIntakeState.SHOOTING) {
+            autoTimer.resetTimer();
+        }
+        currentAutoIntakeState = autoState;
     }
 }

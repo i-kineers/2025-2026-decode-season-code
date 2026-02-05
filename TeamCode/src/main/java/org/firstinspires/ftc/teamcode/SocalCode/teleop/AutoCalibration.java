@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.SocalCode.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -18,6 +19,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @TeleOp(name="Flywheel kF Calibration", group="Calibration")
+@Disabled
 public class AutoCalibration extends LinearOpMode {
 
     private DcMotorEx flywheel;

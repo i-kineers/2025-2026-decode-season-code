@@ -5,6 +5,8 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.SocalCode.autonomous.Paths.closePaths;
 import org.firstinspires.ftc.teamcode.SocalCode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.SocalCode.subsystems.FlywheelSystem;
+import org.firstinspires.ftc.teamcode.SocalCode.subsystems.DoubleIntake;
 
 import static android.os.SystemClock.sleep;
 
@@ -40,6 +42,8 @@ public class AutonomousCycleManager {
     private Pose blueStartPose = new Pose(22,120, Math.toRadians(135));
     private Pose redStartPose = new Pose(122, 120, Math.toRadians(45));
 
+    private static boolean isBlue = true;
+
     public AutonomousCycleManager(HardwareMap hardwareMap, boolean isBlueSide) {
         // Initialize subsystems
         intake = new DoubleIntake(hardwareMap);
@@ -50,8 +54,10 @@ public class AutonomousCycleManager {
         // Set starting pose
         if (isBlueSide) {
             follower.setStartingPose(blueStartPose);
+            isBlue = true;
         } else {
             follower.setStartingPose(redStartPose);
+            isBlue = false;
         }
 
     }
@@ -73,12 +79,13 @@ public class AutonomousCycleManager {
     /**
      * Main update loop to be called from the OpMode.
      */
-    public void update(boolean isBlueSide) {
+    public void update() {
         follower.update();
-        cycleRoutine(isBlueSide);
+        intake.autoIntakeOn(isBlue);
+        cycleRoutine();
     }
 
-    private void cycleRoutine(boolean isBlueSide) {
+    private void cycleRoutine() {
         // Determine which cycle to run next if we are in a waiting state
         if (currentState == GeneralStates.START || (currentState == GeneralStates.INTAKING && !follower.isBusy())) {
             if (intake1) currentSelection = 0;
@@ -96,6 +103,7 @@ public class AutonomousCycleManager {
 
         switch (currentState) {
             case START:
+                intake.setAutoIntakeState(DoubleIntake.autoIntakeState.IDLE);
                 if (beginningState == 0 && !follower.isBusy()) {
                     follower.followPath(paths.Path1);
                     beginningState = 1;
@@ -108,7 +116,7 @@ public class AutonomousCycleManager {
 
             case INTAKING:
                 if (!follower.isBusy()) {
-                    intake.autoIntakeOn(isBlueSide);
+                    intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
                     if (currentSelection == 0) follower.followPath(paths.Path2);
                     else if (currentSelection == 1) follower.followPath(paths.Path4);
                     else if (currentSelection == 2) follower.followPath(paths.Path6);
@@ -118,7 +126,7 @@ public class AutonomousCycleManager {
 
             case PRESHOOTING:
                 if (!follower.isBusy()) {
-                    intake.autoIntakeOff();
+                    intake.setAutoIntakeState(DoubleIntake.autoIntakeState.IDLE);
                     follower.setMaxPower(1.0);
 
                     if (currentSelection == 0) {
@@ -153,9 +161,8 @@ public class AutonomousCycleManager {
 
             case SHOOTING:
                 if (!follower.isBusy()) {
-                    intake.autoIntakeOn(isBlueSide);
-                    sleep(400);
-                    intake.autoIntakeOff();
+                    intake.setAutoIntakeState(DoubleIntake.autoIntakeState.SHOOTING);
+//                    sleep(400);
                     flywheelSystem.autoRapidShoot(1200, 3000, 500);
 
                     // Mark current task as done

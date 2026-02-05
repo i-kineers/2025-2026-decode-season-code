@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.SocalCode.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.MasterLogic;
 
 @TeleOp(name = "Blue Close TeleOp", group = "Main")
+@Disabled
 public class blueCloseTeleop extends OpMode {
 
     private MasterLogic master;

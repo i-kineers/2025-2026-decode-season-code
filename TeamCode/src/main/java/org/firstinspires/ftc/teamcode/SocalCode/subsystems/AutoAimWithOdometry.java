@@ -191,6 +191,22 @@ public class AutoAimWithOdometry {
         return turnPower;
     }
 
+    public void NEWdynamicTargetTPS(double goalDist) {
+        // need to create a model that helps find target tps for different locations
+    }
+
+    public double getGoalDistance() {
+        double robotPoseX = follower.getPose().getX();
+        double robotPoseY = follower.getPose().getY();
+
+        double goalPoseX = goalPose.getX();
+        double goalPoseY = goalPose.getY();
+
+        double nonAbsDistance = Math.sqrt(Math.pow(goalPoseX - robotPoseX, 2) + Math.pow(goalPoseY - robotPoseY, 2));
+        double finalDistance = Math.abs(nonAbsDistance);
+
+        return finalDistance;
+    }
 
     public void dynamicTargetTPS() {
         // Distance formula between 2 points: sqrt((x2-x1)^2 + (y2-y1)^2)
@@ -306,9 +322,6 @@ public class AutoAimWithOdometry {
         if (follower != null) {
             Pose currentPose = follower.getPose();
             if (currentPose != null) {
-                // Create a new pose with the same X and Y, but a heading of 0
-                follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), 0));
-
                 fieldCentricDrive.resetIMU();
             }
         }

@@ -1,5 +1,12 @@
 package org.firstinspires.ftc.teamcode.SocalCode.pedroPathing;
 
+import static org.firstinspires.ftc.teamcode.SocalCode.pedroPathing.Tuning.changes;
+import static org.firstinspires.ftc.teamcode.SocalCode.pedroPathing.Tuning.drawOnlyCurrent;
+import static org.firstinspires.ftc.teamcode.SocalCode.pedroPathing.Tuning.draw;
+import static org.firstinspires.ftc.teamcode.SocalCode.pedroPathing.Tuning.follower;
+import static org.firstinspires.ftc.teamcode.SocalCode.pedroPathing.Tuning.stopRobot;
+import static org.firstinspires.ftc.teamcode.SocalCode.pedroPathing.Tuning.telemetryM;
+
 import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
@@ -18,6 +25,7 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.telemetry.SelectableOpMode;
 import com.pedropathing.util.PoseHistory;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -34,6 +42,7 @@ import static org.firstinspires.ftc.teamcode.CodePriorILT.pedroPathing.Tuning.*;
  */
 @Configurable
 @TeleOp(name = "Tuning", group = "Pedro Pathing")
+@Disabled
 public class Tuning extends SelectableOpMode {
     public static Follower follower;
 

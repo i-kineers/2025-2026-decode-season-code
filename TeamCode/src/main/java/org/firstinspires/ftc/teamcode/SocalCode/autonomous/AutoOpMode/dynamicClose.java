@@ -2,10 +2,12 @@ package org.firstinspires.ftc.teamcode.SocalCode.autonomous.AutoOpMode;
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.AutonomousCycleManager;
 
 @Autonomous(name = "Close Auto", group = "Main")
+@Disabled
 public class dynamicClose extends OpMode {
 
     private AutonomousCycleManager autoManager;
@@ -86,7 +88,7 @@ public class dynamicClose extends OpMode {
     @Override
     public void loop() {
         if (autoManager != null) {
-            autoManager.update(isBlueAlliance);
+            autoManager.update();
 
             // --- Telemetry ---
             Pose currentPose = autoManager.getFollower().getPose();
