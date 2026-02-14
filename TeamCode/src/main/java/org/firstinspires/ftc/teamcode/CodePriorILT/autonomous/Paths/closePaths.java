@@ -68,7 +68,7 @@ public class closePaths {
         // From shooting to intaking first rows of balls
         Path2 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl1, pickUpPose1))
-                .addParametricCallback(0.3, () -> follower.setMaxPower(0.3))
+                .addParametricCallback(0.3, () -> follower.setMaxPower(0.45))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.8)
                 .build();
 
@@ -82,7 +82,7 @@ public class closePaths {
         // Move from shooting position to intake 2nd row of balls
         Path4 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl2, pickUpPose2))
-                .addParametricCallback(0.45, () -> follower.setMaxPower(0.3))
+                .addParametricCallback(0.45, () -> follower.setMaxPower(0.45))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.5)
                 .build();
         // Move from intake 2nd row of balls to shooting position
