@@ -38,8 +38,8 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
 
 
     // Normalized to 12V scale (found via Calibration)
-    public double kF_LOW = 0.000725;  // For 1500 Wheel RPM
-    public double kF_HIGH = 0.000500; // For 3300 Wheel RPM
+    public double kF_LOW = 0.000538;  // For 1500 Wheel RPM
+    public double kF_HIGH = 0.000441; // For 3300 Wheel RPM
 
 
     public double LOW_TARGET_TPS = 1213.0;
@@ -90,17 +90,22 @@ public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
 
         // Combine standard and dashboard telemetry
 
-
-
+        if (gamepad1.rightBumperWasPressed()) {
+            HIGH_TARGET_TPS += 50;
+            LOW_TARGET_TPS += 50;
+        } else if (gamepad1.leftBumperWasPressed()) {
+            HIGH_TARGET_TPS -= 50;
+            LOW_TARGET_TPS -= 50;
+        }
 
         waitForStart();
 
 
         while (opModeIsActive()) {
             // Select Target (D-Pad Control)
-            double targetTPS = 1213;
-            if (gamepad1.dpad_up) targetTPS = HIGH_TARGET_TPS;
-            else if (gamepad1.dpad_down) targetTPS = LOW_TARGET_TPS;
+            double targetTPS = 0;
+            if (gamepad1.dpadUpWasPressed()) targetTPS = HIGH_TARGET_TPS;
+            else if (gamepad1.dpadDownWasPressed()) targetTPS = LOW_TARGET_TPS;
 
 
             double currentTPS = flywheel.getVelocity();
