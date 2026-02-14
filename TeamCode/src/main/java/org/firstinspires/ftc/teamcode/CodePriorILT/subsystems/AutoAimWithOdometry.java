@@ -20,7 +20,8 @@ public class AutoAimWithOdometry {
 
     // Auto Aim
     private PIDFController headingController;
-    private Pose goalPose = new Pose(8.472, 139.091);
+    private Pose aimGoalPose = new Pose(10.527, 136.505); // Old goal pose 22, 139.091
+    private final Pose shootingGoalPose = new Pose(22, 120);
     private boolean wasAutoAim = false;
 
     // Base default poses (constants)
@@ -57,7 +58,7 @@ public class AutoAimWithOdometry {
             CLOSE_TWO = CLOSE_TWO.mirror();
             FAR_ONE = FAR_ONE.mirror();
             FAR_TWO = FAR_TWO.mirror();
-            goalPose = goalPose.mirror();
+            aimGoalPose = aimGoalPose.mirror();
         }
 
         // Initialize default targets list for easy iteration
@@ -142,8 +143,8 @@ public class AutoAimWithOdometry {
                 }
 
                 Pose robot = follower.getPose();
-                double dx = goalPose.getX() - robot.getX();
-                double dy = goalPose.getY() - robot.getY();
+                double dx = aimGoalPose.getX() - robot.getX();
+                double dy = aimGoalPose.getY() - robot.getY();
                 double targetHeading = MathFunctions.normalizeAngle(Math.atan2(dy, dx));
 
                 double currentHeading = robot.getHeading();
@@ -183,6 +184,17 @@ public class AutoAimWithOdometry {
         }
     }
 
+    public double getDistanceFromGoal() {
+        double robotPoseX = follower.getPose().getX();
+        double robotPoseY = follower.getPose().getY();
+
+        double goalPoseX = shootingGoalPose.getX();
+        double goalPoseY = shootingGoalPose.getY();
+
+        double nonAbsDistance = Math.sqrt(Math.pow(goalPoseX - robotPoseX, 2) + Math.pow(goalPoseY - robotPoseY, 2));
+        return Math.abs(nonAbsDistance);
+    }
+
     public void dynamicTargetTPS() {
         // Distance formula between 2 points: sqrt((x2-x1)^2 + (y2-y1)^2)
         double thresholdRange = 85;
@@ -190,8 +202,8 @@ public class AutoAimWithOdometry {
         double robotPoseX = follower.getPose().getX();
         double robotPoseY = follower.getPose().getY();
 
-        double goalPoseX = goalPose.getX();
-        double goalPoseY = goalPose.getY();
+        double goalPoseX = aimGoalPose.getX();
+        double goalPoseY = aimGoalPose.getY();
 
         double nonAbsDistance = Math.sqrt(Math.pow(goalPoseX - robotPoseX, 2) + Math.pow(goalPoseY - robotPoseY, 2));
         double finalDistance = Math.abs(nonAbsDistance);
@@ -203,8 +215,8 @@ public class AutoAimWithOdometry {
         }
     }
 
-    public static double newdynamicTargetTPS(double goalDist) {
-        return MathFunctions.clamp(0.02 * Math.pow(goalDist, 2)+ 0.06 * goalDist + 712.9,0,1400);
+    public double newDynamicTargetTPS(double goalDist) {
+        return MathFunctions.clamp((0.0000287687 * Math.pow(goalDist, 4)) - (0.00868119 * Math.pow(goalDist, 3)) + (0.925959 * Math.pow(goalDist, 2)) - (35.75174 * goalDist) + 1592.26017, 0, 2000);
     }
 
     public void setStartingPose(double x, double y, double h) {
@@ -265,7 +277,7 @@ public class AutoAimWithOdometry {
         double dy = Math.sin(theta);
 
         // Backdrop Y (constant)
-        double backdropY = goalPose.getY();
+        double backdropY = aimGoalPose.getY();
 
         // Prevent divide-by-zero if robot is facing nearly horizontal
         if (Math.abs(dy) < 1e-6) {
@@ -280,7 +292,7 @@ public class AutoAimWithOdometry {
         double intersectY = backdropY;
 
         // Update goal pose (keep same Y, slide X)
-        goalPose = new Pose(intersectX, intersectY);
+        aimGoalPose = new Pose(intersectX, intersectY);
 
         // Reset controller so it doesn't fight the new target
         headingController.reset();
@@ -319,8 +331,8 @@ public class AutoAimWithOdometry {
         return currentTargetTPS;
     }
 
-    public double getBackdropPoseX() { return goalPose.getX(); }
-    public double getBackdropPoseY() { return goalPose.getY(); }
+    public double getBackdropPoseX() { return aimGoalPose.getX(); }
+    public double getBackdropPoseY() { return aimGoalPose.getY(); }
 
     public boolean isAutomated() {
         return automatedDrive;

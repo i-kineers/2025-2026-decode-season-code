@@ -157,9 +157,9 @@ public class AutonomousCycleManager {
             case SHOOTING:
                 if (!follower.isBusy()) {
                     intake.autoIntakeOn();
-                    sleep(400);
+                    sleep(200);
                     intake.autoIntakeOff();
-                    flywheelSystem.autoRapidShoot(1200, 3000, 500);
+                    flywheelSystem.autoRapidShoot(1200, 2000, 500);
 
                     // Mark current task as done
                     if (currentSelection == 0) intake1 = false;

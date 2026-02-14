@@ -30,7 +30,8 @@ public class FlywheelSystem {
     public double HIGH_TARGET_TPS = 1800; // Old values 1540.0
 
     public double MAX_CURRENT = 8.5;
-    public double DANGER_THRESHOLD = 0.93;
+    public double DANGER_THRESHOLD = 0.92;
+    public double RECOVERED_THRESHOLD = 0.93;
     public double RECOVERY_SLEW = 1.0;
 
     public int TARGET_SHOT_COUNT = 3;
@@ -153,7 +154,7 @@ public class FlywheelSystem {
             recoveryTimer.reset();
         }
 
-        if (isRecovering && ratio >= 0.98) {
+        if (isRecovering && ratio >= RECOVERED_THRESHOLD) {
             isRecovering = false;
             lastRecoveryTime = recoveryTimer.milliseconds();
             recoveryLog.add(lastRecoveryTime);
@@ -161,7 +162,7 @@ public class FlywheelSystem {
     }
 
     private void handleShotLogic(double target, double current, double finalPower) {
-        boolean wheelReady = current >= target * 0.95;
+        boolean wheelReady = current >= target * RECOVERED_THRESHOLD;
 
         switch (shotState) {
             case IDLE:

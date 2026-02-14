@@ -32,6 +32,8 @@ public class MasterLogic {
 
     private boolean isBlue;
 
+    private double goalDist;
+
     public MasterLogic(HardwareMap hardwareMap, double startingX, double startingY, double startingH, boolean isBlueAlliance) {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
@@ -85,6 +87,8 @@ public class MasterLogic {
             // because pathing mode sets its own targetTPS based on the path
 //            autoAimWithOdometry.dynamicTargetTPS();
 //            targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
+            goalDist = autoAimWithOdometry.getDistanceFromGoal();
+            targetTPS = autoAimWithOdometry.newDynamicTargetTPS(goalDist);
         }
 
         if (gamepad1.b) {
@@ -154,6 +158,7 @@ public class MasterLogic {
         telemetry.addData("Actual TPS", flywheel.getVelocity());
         telemetry.addData("Goal X", autoAimWithOdometry.getBackdropPoseX());
         telemetry.addData("Goal Y", autoAimWithOdometry.getBackdropPoseY());
+        telemetry.addData("Recovery Time", flywheel.getLastRecoveryTime());
         if (currentPose != null) {
             telemetry.addData("Robot X", currentPose.getX());
             telemetry.addData("Robot Y", currentPose.getY());
