@@ -83,8 +83,8 @@ public class MasterLogic {
         } else {
             // Only update dynamic TPS if NOT in automated pathing mode
             // because pathing mode sets its own targetTPS based on the path
-            autoAimWithOdometry.dynamicTargetTPS();
-            targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
+//            autoAimWithOdometry.dynamicTargetTPS();
+//            targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
         }
 
         if (gamepad1.b) {
@@ -113,10 +113,10 @@ public class MasterLogic {
 
         // Manual control targetTPS
         if (gamepad2.dpad_up && !dpadUpWasPressed) {
-            targetTPS += 50;
+            targetTPS += 10;
         }
         if (gamepad2.dpad_down && !dpadDownWasPressed) {
-            targetTPS -= 50;
+            targetTPS -= 10;
         }
         dpadUpWasPressed = gamepad2.dpad_up;
         dpadDownWasPressed = gamepad2.dpad_down;
