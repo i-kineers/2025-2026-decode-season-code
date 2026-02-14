@@ -203,6 +203,10 @@ public class AutoAimWithOdometry {
         }
     }
 
+    public static double newdynamicTargetTPS(double goalDist) {
+        return MathFunctions.clamp(0.02 * Math.pow(goalDist, 2)+ 0.06 * goalDist + 712.9,0,1400);
+    }
+
     public void setStartingPose(double x, double y, double h) {
         startingPose = new Pose(x, y, Math.toRadians(h));
         // Update follower's starting pose immediately if this is called
