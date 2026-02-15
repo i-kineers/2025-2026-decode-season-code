@@ -58,10 +58,16 @@ public class MasterLogic {
         // --- 1. Drive & Pathing Control ---
         
         // Toggle Auto Aim with Y
-        if (gamepad1.y && !previousYState) {
-            autoAimActive = !autoAimActive;
+//        if (gamepad1.y && !previousYState) {
+//            autoAimActive = !autoAimActive;
+//        }
+//        previousYState = gamepad1.y;
+//
+        if (gamepad1.right_bumper) {
+            autoAimActive = true;
+        } else {
+            autoAimActive = false;
         }
-        previousYState = gamepad1.y;
 
         if (gamepad1.xWasPressed()) {
             autoAimWithOdometry.resetAim();

@@ -8,14 +8,27 @@ import com.pedropathing.paths.PathChain;
 
 public class testPathFarRed {
     public PathChain Path1;
+    public PathChain Path2;
 
     public testPathFarRed(Follower follower) {
-        Path1 = follower
-                .pathBuilder()
-                .addPath(
-                        new BezierLine(new Pose(91.031, 11.151), new Pose(110.546, 11.151))
-                )
-                .setLinearHeadingInterpolation(Math.toRadians(70), Math.toRadians(90))
+        Path1 = follower.pathBuilder().addPath(
+                        new BezierLine(
+                                new Pose(88.727, 7.516),
+
+                                new Pose(89.211, 14.079)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(65))
+
+                .build();
+
+        Path2 = follower.pathBuilder().addPath(
+                        new BezierLine(
+                                new Pose(89.211, 14.079),
+
+                                new Pose(107.961, 14.079)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(65), Math.toRadians(90))
+
                 .build();
     }
 }

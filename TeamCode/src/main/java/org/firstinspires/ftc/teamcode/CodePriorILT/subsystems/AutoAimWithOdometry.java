@@ -195,26 +195,6 @@ public class AutoAimWithOdometry {
         return Math.abs(nonAbsDistance);
     }
 
-    public void dynamicTargetTPS() {
-        // Distance formula between 2 points: sqrt((x2-x1)^2 + (y2-y1)^2)
-        double thresholdRange = 85;
-
-        double robotPoseX = follower.getPose().getX();
-        double robotPoseY = follower.getPose().getY();
-
-        double goalPoseX = aimGoalPose.getX();
-        double goalPoseY = aimGoalPose.getY();
-
-        double nonAbsDistance = Math.sqrt(Math.pow(goalPoseX - robotPoseX, 2) + Math.pow(goalPoseY - robotPoseY, 2));
-        double finalDistance = Math.abs(nonAbsDistance);
-
-        if (finalDistance < thresholdRange) {
-            currentTargetTPS = targetTPS[0];
-        } else {
-            currentTargetTPS = targetTPS[1];
-        }
-    }
-
     public double newDynamicTargetTPS(double goalDist) {
         return MathFunctions.clamp((0.0000287687 * Math.pow(goalDist, 4)) - (0.00868119 * Math.pow(goalDist, 3)) + (0.925959 * Math.pow(goalDist, 2)) - (35.75174 * goalDist) + 1592.26017, 0, 2000);
     }

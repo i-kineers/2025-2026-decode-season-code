@@ -13,7 +13,7 @@ public class blueFarTeleop extends OpMode {
     public void init() {
         // Initialize the logic master
         // Starting pose from testFarBlue: (52.969, 11.151, 110 degrees)
-        master = new MasterLogic(hardwareMap, 33.454,11.151, 90, true);
+        master = new MasterLogic(hardwareMap, 36.039,14.079, 90, true);
 
         telemetry.addLine("Blue Far TeleOp Initialized.");
         telemetry.update();

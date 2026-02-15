@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.CodePriorILT.subsystems;
+package org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.AutoLogicControl;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -6,10 +6,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.Paths.closePaths;
 import org.firstinspires.ftc.teamcode.CodePriorILT.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.DoubleMotorOuttakePID;
+import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.FlywheelSystem;
+import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.Intake;
 
 import static android.os.SystemClock.sleep;
 
-public class AutonomousCycleManager {
+public class FarAutonomousCycleManager {
 
     // Subsystems
     private final Follower follower;
@@ -38,11 +41,12 @@ public class AutonomousCycleManager {
     private boolean intake3 = false;
     private boolean useGate = false;
     private boolean gateTriggered = false;
+    private boolean alignedForPath6 = false;
 
     private Pose blueStartPose = new Pose(22,120, Math.toRadians(135));
     private Pose redStartPose = new Pose(122, 120, Math.toRadians(45));
 
-    public AutonomousCycleManager(HardwareMap hardwareMap, boolean isBlueSide) {
+    public FarAutonomousCycleManager(HardwareMap hardwareMap, boolean isBlueSide) {
         // Initialize subsystems
         intake = new Intake(hardwareMap);
         outtake = new DoubleMotorOuttakePID(hardwareMap);
@@ -111,11 +115,25 @@ public class AutonomousCycleManager {
 
             case INTAKING:
                 if (!follower.isBusy()) {
-                    intake.autoIntakeOn();
-                    if (currentSelection == 0) follower.followPath(paths.Path2);
-                    else if (currentSelection == 1) follower.followPath(paths.Path4);
-                    else if (currentSelection == 2) follower.followPath(paths.Path6);
-                    nextState();
+                    if (currentSelection == 0) {
+                        intake.autoIntakeOn();
+                        follower.followPath(paths.Path2);
+                        nextState();
+                    } else if (currentSelection == 1) {
+                        intake.autoIntakeOn();
+                        follower.followPath(paths.Path4);
+                        nextState();
+                    } else if (currentSelection == 2) {
+                        if (!alignedForPath6) {
+                            follower.followPath(paths.prePath6);
+                            alignedForPath6 = true;
+                        } else {
+                            intake.autoIntakeOn();
+                            follower.followPath(paths.Path6);
+                            alignedForPath6 = false;
+                            nextState();
+                        }
+                    }
                 }
                 break;
 

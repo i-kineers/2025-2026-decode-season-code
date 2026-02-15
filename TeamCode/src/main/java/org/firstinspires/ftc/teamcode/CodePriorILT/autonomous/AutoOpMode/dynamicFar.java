@@ -4,12 +4,12 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.AutonomousCycleManager;
+import org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.AutoLogicControl.CloseAutonomousCycleManager;
 
 @Autonomous(name = "Far Auto", group = "Main")
 public class dynamicFar extends OpMode {
 
-    private AutonomousCycleManager autoManager;
+    private CloseAutonomousCycleManager autoManager;
 
     // UI variables for path selection
     private boolean[] toggles = {false, false, false};
@@ -79,7 +79,7 @@ public class dynamicFar extends OpMode {
 
     @Override
     public void start() {
-        autoManager = new AutonomousCycleManager(hardwareMap, isBlueAlliance);
+        autoManager = new CloseAutonomousCycleManager(hardwareMap, isBlueAlliance);
         autoManager.setCycles(toggles[0], toggles[1], toggles[2], toggles[3]);
     }
 
