@@ -88,42 +88,14 @@ public class AutoAimWithOdometry {
                       boolean dpadUp, boolean dpadRight,
                       boolean dpadDown, boolean dpadLeft, boolean autoAim) {
 
-        boolean manualInput = Math.abs(forward) > 0.1
-                || Math.abs(strafe) > 0.1
-                || Math.abs(turn) > 0.1;
-        
-        if (autoAim) manualInput = true;
+        boolean manualInput =
+                Math.abs(forward) > 0.1 ||
+                        Math.abs(strafe) > 0.1 ||
+                        Math.abs(turn) > 0.1 ||
+                        autoAim;
 
-        // Trigger Pathing based on D-pad
-        if (!automatedDrive) {
-
-            int selectedIndex = -1;
-
-            if (dpadUp) {
-                selectedIndex = 0; // Close 1
-            } else if (dpadLeft) {
-                selectedIndex = 1; // Close 2
-            } else if (dpadRight) {
-                selectedIndex = 2; // Far 1
-            } else if (dpadDown) {
-                selectedIndex = 3; // Far 2
-            }
-
-            if (selectedIndex != -1 && targetPoseList != null
-                    && selectedIndex < targetPoseList.size()) {
-
-                Pose selectedTarget = targetPoseList.get(selectedIndex);
-                
-                // Update the target RPM based on selection
-                currentTargetTPS = targetTPS[selectedIndex];
-
-                if (selectedTarget != null) {
-                    PathChain path = teleopPath.getPath(follower, selectedTarget);
-                    follower.followPath(path);
-                    automatedDrive = true;
-                }
-            }
-        }
+        handlePathing(dpadUp, dpadRight, dpadDown, dpadLeft);
+        handlePathCancel(manualInput);
 
         // Stop Pathing if done or manual override
         if (automatedDrive) {
@@ -141,36 +113,7 @@ public class AutoAimWithOdometry {
                 if (!wasAutoAim) {
                     headingController.reset();
                 }
-
-                Pose robot = follower.getPose();
-                double dx = aimGoalPose.getX() - robot.getX();
-                double dy = aimGoalPose.getY() - robot.getY();
-                double targetHeading = MathFunctions.normalizeAngle(Math.atan2(dy, dx));
-
-                double currentHeading = robot.getHeading();
-                double error = targetHeading - currentHeading;
-
-                // Normalize to [-π, π]
-                if (error > Math.PI) {
-                    error -= 2 * Math.PI;
-                } else if (error < -Math.PI) {
-                    error += 2 * Math.PI;
-                }
-
-                if (Math.abs(error) < Math.toRadians(1.5)) {
-                    turnPower = 0;
-                } else {
-                    headingController.updateError(error);
-                    turnPower = headingController.run();
-
-                    // Ramp down turn power near target
-                    double maxTurn = 0.4;
-                    if (Math.abs(error) < Math.toRadians(10)) {
-                        maxTurn = 0.2;
-                    }
-
-                    turnPower = MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
-                }
+                turnPower = autoAim();
             }
             wasAutoAim = autoAim;
 
@@ -183,6 +126,86 @@ public class AutoAimWithOdometry {
             wasAutoAim = false;
         }
     }
+
+    public void handlePathing(boolean dpadUp, boolean dpadRight,
+                              boolean dpadDown, boolean dpadLeft) {
+
+        if (automatedDrive) return;
+
+        int selectedIndex = -1;
+
+        if (dpadUp) {
+            selectedIndex = 0;
+        } else if (dpadLeft) {
+            selectedIndex = 1;
+        } else if (dpadRight) {
+            selectedIndex = 2;
+        } else if (dpadDown) {
+            selectedIndex = 3;
+        }
+
+        if (selectedIndex == -1) return;
+        if (targetPoseList == null || selectedIndex >= targetPoseList.size()) return;
+
+        Pose selectedTarget = targetPoseList.get(selectedIndex);
+        if (selectedTarget == null) return;
+
+        currentTargetTPS = targetTPS[selectedIndex];
+
+        PathChain path = teleopPath.getPath(follower, selectedTarget);
+        follower.followPath(path);
+        automatedDrive = true;
+    }
+
+    public void handlePathCancel(boolean manualInput) {
+        if (!automatedDrive) return;
+
+        if (!follower.isBusy() || manualInput) {
+            follower.startTeleopDrive();
+            automatedDrive = false;
+        }
+    }
+
+    public double autoAim() {
+        Pose robot = follower.getPose();
+
+        double dx = aimGoalPose.getX() - robot.getX();
+        double dy = aimGoalPose.getY() - robot.getY();
+
+        double targetHeading = MathFunctions.normalizeAngle(Math.atan2(dy, dx));
+        double currentHeading = robot.getHeading();
+
+        double error = targetHeading - currentHeading;
+
+        // Normalize error to [-π, π]
+        if (error > Math.PI) {
+            error -= 2 * Math.PI;
+        } else if (error < -Math.PI) {
+            error += 2 * Math.PI;
+        }
+
+        // Deadband
+        if (Math.abs(error) < Math.toRadians(1.5)) {
+            return 0;
+        }
+
+        headingController.updateError(error);
+        double turnPower = headingController.run();
+
+        // Ramp down near target
+        double maxTurn = Math.abs(error) < Math.toRadians(10) ? 0.2 : 0.4;
+        return MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
+    }
+
+    public double aimWhileMoving() {
+        follower.getVelocity();
+
+    }
+
+    public double shootWhileMoving() {
+
+    }
+
 
     public double getDistanceFromGoal() {
         double robotPoseX = follower.getPose().getX();

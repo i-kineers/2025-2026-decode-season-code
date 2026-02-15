@@ -28,7 +28,6 @@ public class MasterLogic {
     
     // Auto Aim Toggle State
     private boolean autoAimActive = false;
-    private boolean previousYState = false;
 
     private boolean isBlue;
 
@@ -52,16 +51,18 @@ public class MasterLogic {
         autoAimWithOdometry = new AutoAimWithOdometry(hardwareMap, isBlue);
         autoAimWithOdometry.setStartingPose(startingX,startingY,startingH);
     }
+
     public void mainLogic(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
         autoAimWithOdometry.update();
 
-        // --- 1. Drive & Pathing Control ---
-        
-        // Toggle Auto Aim with Y
-//        if (gamepad1.y && !previousYState) {
-//            autoAimActive = !autoAimActive;
-//        }
-//        previousYState = gamepad1.y;
+        // Reset the overall odometry by going into the human player zone corner.
+        if (gamepad1.yWasPressed()) {
+            if (isBlue) {
+                autoAimWithOdometry.setStartingPose(136.296, 7.394, 180);
+            } else {
+                autoAimWithOdometry.setStartingPose(7.704, 7.394, 0);
+            }
+        }
 //
         if (gamepad1.right_bumper) {
             autoAimActive = true;
