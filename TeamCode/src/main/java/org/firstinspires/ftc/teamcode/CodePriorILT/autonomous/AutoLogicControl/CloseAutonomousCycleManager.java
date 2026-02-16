@@ -107,7 +107,7 @@ public class CloseAutonomousCycleManager {
                     follower.followPath(paths.Path1);
                     beginningState = 1;
                 } else if (beginningState == 1 && !follower.isBusy()) {
-                    flywheelSystem.autoRapidShoot(1200, 2000, 500);
+                    flywheelSystem.autoRapidShoot(1200, 2000, 300);
                     beginningState = -1; // Mark as done
                     nextState();
                 }
@@ -123,16 +123,20 @@ public class CloseAutonomousCycleManager {
                         intake.autoIntakeOn();
                         follower.followPath(paths.Path4);
                         nextState();
-                    } else if (currentSelection == 2) {
-                        if (!alignedForPath6) {
-                            follower.followPath(paths.prePath6);
-                            alignedForPath6 = true;
-                        } else {
-                            intake.autoIntakeOn();
-                            follower.followPath(paths.Path6);
-                            alignedForPath6 = false;
-                            nextState();
-                        }
+                    }
+                    else if (currentSelection == 2) {
+                        intake.autoIntakeOn();
+                        follower.followPath(paths.Path6);
+                        nextState();
+//                        if (!alignedForPath6) {
+//                            follower.followPath(paths.prePath6);
+//                            alignedForPath6 = true;
+//                        } else {
+//                            intake.autoIntakeOn();
+//                            follower.followPath(paths.Path6);
+//                            alignedForPath6 = false;
+//                            nextState();
+//                        }
                     }
                 }
                 break;
@@ -145,14 +149,14 @@ public class CloseAutonomousCycleManager {
                     if (currentSelection == 0) {
                         // Check if we need to START the gate path
                         if (useGate) {
-                            follower.setMaxPower(0.4);
+                            follower.setMaxPower(0.6);
                             follower.followPath(paths.Path9);
                             useGate = false;        // "Consumes" the instruction from the OpMode
                             gateTriggered = true;   // REMEMBERS we are currently in the gate sequence
                         }
                         // If we are already mid-gate sequence, return to shoot
                         else if (gateTriggered) {
-                            flywheelSystem.sleep(500);
+                            flywheelSystem.sleep(200);
                             follower.setMaxPower(1.0);
                             follower.followPath(paths.Path10);
                             gateTriggered = false;  // Reset for next time
@@ -177,7 +181,7 @@ public class CloseAutonomousCycleManager {
                     intake.autoIntakeOn();
                     sleep(200);
                     intake.autoIntakeOff();
-                    flywheelSystem.autoRapidShoot(1200, 2000, 500);
+                    flywheelSystem.autoRapidShoot(1200, 2000, 300);
 
                     // Mark current task as done
                     if (currentSelection == 0) intake1 = false;

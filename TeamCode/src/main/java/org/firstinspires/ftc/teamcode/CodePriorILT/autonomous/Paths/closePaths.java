@@ -101,10 +101,12 @@ public class closePaths {
                 .build();
 
         Path6 = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, alignPickupPose3))
+                .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.8)
                 .addPath(new BezierLine(alignPickupPose3, pickUpPose3))
                 .addParametricCallback(0.25, () -> follower.setMaxPower(0.6))
-                .setConstantHeadingInterpolation(pickUpHeading)
                 .build();
+
         // Move from intake 3rd row of balls to shooting position
         Path7 = follower.pathBuilder()
                 .addPath(new BezierLine(pickUpPose3, shootPose))

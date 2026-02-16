@@ -248,7 +248,6 @@ public class FlywheelSystem {
                 runLoader();
             }
             update(); // This needs to be called to update the motor power from the PID controller.
-            sleep(10); // Small pause to prevent busy-waiting and allow other things to run.
         }
         stop();
         update(); // Apply the change to stop the motors.

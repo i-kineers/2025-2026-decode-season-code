@@ -199,11 +199,11 @@ public class AutoAimWithOdometry {
 
     public double aimWhileMoving() {
         follower.getVelocity();
-
+        return 0;
     }
 
     public double shootWhileMoving() {
-
+        return 0;
     }
 
 

@@ -50,7 +50,7 @@ public class testFarBlue extends OpMode {
                 // 2. Wait until Path 1 is done
                 if (!follower.isBusy()) {
                     // 3. Perform action
-                    flywheelSystem.autoRapidShoot(1600, 3000, 500);
+                    flywheelSystem.autoRapidShoot(1540, 3000, 500);
                     setPathState(2);
                 }
                 break;

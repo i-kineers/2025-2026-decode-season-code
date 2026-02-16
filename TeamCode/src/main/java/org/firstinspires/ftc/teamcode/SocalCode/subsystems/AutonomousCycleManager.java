@@ -114,7 +114,7 @@ public class AutonomousCycleManager {
                         beginningState = 1;
                     }
                 } else if (beginningState == 1) {
-                    flywheelSystem.autoRapidShoot(1200, 3000, 500);
+//                    flywheelSystem.autoRapidShoot(1200, 3000, 500);
                     beginningState = -1; // Mark as done
                     currentState = GeneralStates.INTAKING;
                 }
@@ -181,7 +181,7 @@ public class AutonomousCycleManager {
                 if (!follower.isBusy()) {
                     intake.setAutoIntakeState(DoubleIntake.autoIntakeState.SHOOTING);
 //                    sleep(400);
-                    flywheelSystem.autoRapidShoot(1200, 3000, 500);
+//                    flywheelSystem.autoRapidShoot(1200, 3000, 500);
 
                     // Mark current task as done
                     if (currentSelection == 0) intake1 = false;

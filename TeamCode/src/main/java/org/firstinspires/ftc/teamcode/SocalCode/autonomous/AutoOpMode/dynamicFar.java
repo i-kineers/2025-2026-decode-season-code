@@ -2,10 +2,12 @@ package org.firstinspires.ftc.teamcode.SocalCode.autonomous.AutoOpMode;
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.AutonomousCycleManager;
 
 @Autonomous(name = "Far Auto", group = "Main")
+@Disabled
 public class dynamicFar extends OpMode {
 
     private AutonomousCycleManager autoManager;
