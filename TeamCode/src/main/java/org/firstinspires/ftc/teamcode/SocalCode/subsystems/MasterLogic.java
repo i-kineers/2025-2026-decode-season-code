@@ -21,47 +21,51 @@ public class MasterLogic {
 
     // Auto Aim Toggle State
     private boolean autoAimActive = false;
-    private boolean previousYState = false;
 
     private boolean isBlue;
+
+    private double goalDist;
 
     public MasterLogic(HardwareMap hardwareMap, double startingX, double startingY, double startingH, boolean isBlueAlliance) {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
-        // Initialize all subsystems
         intake = new DoubleIntake(hardwareMap);
-//        flywheel = new FlywheelSystem(hardwareMap);
-
-        isBlue = isBlueAlliance;
-
-        // Initialize Pathing Manager with a default starting pose
         autoAimWithOdometry = new AutoAimWithOdometry(hardwareMap, isBlue);
         autoAimWithOdometry.setStartingPose(startingX,startingY,startingH);
+
+        isBlue = isBlueAlliance;
     }
 
     public void mainLogic(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
         autoAimWithOdometry.update();
 
-        // --- 1. Drive & Pathing Control ---
-
-        // Toggle Auto Aim with Y
-        if (gamepad1.y && !previousYState) {
-            autoAimActive = !autoAimActive;
+        if (gamepad1.right_bumper) {
+            autoAimActive = true;
+        } else {
+            autoAimActive = false;
         }
-        previousYState = gamepad1.y;
 
         if (gamepad1.xWasPressed()) {
             autoAimWithOdometry.resetAim();
         }
 
-        autoAimWithOdometry.drive(gamepad1, autoAimActive);
+        autoAimWithOdometry.drive(
+                gamepad1.left_stick_y,
+                gamepad1.left_stick_x,
+                -gamepad1.right_stick_x,
+                gamepad1.dpad_up,
+                gamepad1.dpad_right,
+                gamepad1.dpad_down,
+                gamepad1.dpad_left,
+                autoAimActive
+        );
 
         if (autoAimWithOdometry.isAutomated()) {
             targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
             autoAimActive = false;
         } else {
-            autoAimWithOdometry.dynamicTargetTPS();
-            targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
+            goalDist = autoAimWithOdometry.getDistanceFromGoal();
+            targetTPS = autoAimWithOdometry.newDynamicTargetTPS(goalDist);
         }
 
         if (gamepad1.b) {
@@ -69,22 +73,29 @@ public class MasterLogic {
         }
 
         // Reset IMU heading with A button
-        if (gamepad1.a) {
-            autoAimWithOdometry.resetHeading();
-            telemetry.addLine("Heading Reset.");
-        }
+//        if (gamepad1.a) {
+//            autoAimWithOdometry.resetHeading();
+//            telemetry.addLine("Heading Reset.");
+//        }
 
         intake.runIntake(gamepad1);
-//        flywheel.runFlywheel(gamepad1, gamepad2);
-//        flywheel.setNormalTPS(targetTPS);
-//        flywheel.update();
 
         updateTelemetry(telemetry);
     }
 
     private void updateTelemetry(Telemetry telemetry) {
+        // Panels Telemetry (for dashboards)
         Pose currentPose = autoAimWithOdometry.getFollower().getPose();
+//        if (currentPose != null) {
+//            panelsTelemetry.getTelemetry().addData("Robot X", currentPose.getX());
+//            panelsTelemetry.getTelemetry().addData("Robot Y", currentPose.getY());
+//            panelsTelemetry.getTelemetry().addData("Robot H", Math.toDegrees(currentPose.getHeading()));
+//        }
+//        panelsTelemetry.getTelemetry().addData("Target RPM", outtake.getTargetRPM());
+//        panelsTelemetry.getTelemetry().addData("Current RPM", outtake.getCurrentRPM());
+//        panelsTelemetry.getTelemetry().update();
 
+        // Standard Driver Hub Telemetry
         telemetry.addData("Mode", autoAimWithOdometry.isAutomated() ? "PATHING" : "MANUAL");
 //        telemetry.addData("Robot State", flywheel.getShotState());
         telemetry.addData("Auto Aim", autoAimActive ? "ACTIVE" : "INACTIVE");
@@ -92,6 +103,7 @@ public class MasterLogic {
 //        telemetry.addData("Actual TPS", flywheel.getVelocity());
         telemetry.addData("Goal X", autoAimWithOdometry.getBackdropPoseX());
         telemetry.addData("Goal Y", autoAimWithOdometry.getBackdropPoseY());
+//        telemetry.addData("Recovery Time", flywheel.getLastRecoveryTime());
         if (currentPose != null) {
             telemetry.addData("Robot X", currentPose.getX());
             telemetry.addData("Robot Y", currentPose.getY());

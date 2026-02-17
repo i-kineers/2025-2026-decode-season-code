@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.CodePriorILT.subsystems;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.pedropathing.control.PIDFController;
@@ -113,7 +114,8 @@ public class AutoAimWithOdometry {
                 if (!wasAutoAim) {
                     headingController.reset();
                 }
-                turnPower = autoAim();
+//                turnPower = autoAim();
+                turnPower = aimWhileMoving();
             }
             wasAutoAim = autoAim;
 
@@ -198,8 +200,68 @@ public class AutoAimWithOdometry {
     }
 
     public double aimWhileMoving() {
-        follower.getVelocity();
-        return 0;
+        Pose robot = follower.getPose();
+        Vector velocity = follower.getVelocity();
+
+        if (robot == null || velocity == null) return 0;
+
+        // Robot position
+        double rx = robot.getX();
+        double ry = robot.getY();
+
+        // Goal position
+        double gx = aimGoalPose.getX();
+        double gy = aimGoalPose.getY();
+
+        // Vector to goal
+        double dx = gx - rx;
+        double dy = gy - ry;
+
+        double distance = Math.hypot(dx, dy);
+        if (distance < 1e-6) return 0;
+
+        // Normal aim heading
+        double baseHeading = Math.atan2(dy, dx);
+
+        // Unit vector toward goal
+        double ux = dx / distance;
+        double uy = dy / distance;
+
+        // --- Extract velocity components from Vector ---
+        double speed = velocity.getMagnitude();
+        double vx = velocity.getXComponent();
+        double vy = velocity.getYComponent();
+
+        // Perpendicular (sideways) velocity relative to target
+        double vPerp = vx * (-uy) + vy * (ux);
+
+        // === TUNE THIS CONSTANT ===
+        double SHOOTER_SPEED = 50.0; // inches/sec
+
+        // Angular correction
+        double leadAngle = vPerp / SHOOTER_SPEED;
+
+        // Adjusted target heading
+        double targetHeading = baseHeading - leadAngle;
+        targetHeading = MathFunctions.normalizeAngle(targetHeading);
+
+        // Heading error
+        double error = targetHeading - robot.getHeading();
+
+        // Normalize to [-π, π]
+        while (error > Math.PI) error -= 2 * Math.PI;
+        while (error < -Math.PI) error += 2 * Math.PI;
+
+        // Deadband
+        if (Math.abs(error) < Math.toRadians(1.5)) return 0;
+
+        // Run PID
+        headingController.updateError(error);
+        double turnPower = headingController.run();
+
+        // Optional turn limiting while moving fast
+        double maxTurn = speed > 10 ? 0.25 : 0.4;
+        return MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
     }
 
     public double shootWhileMoving() {

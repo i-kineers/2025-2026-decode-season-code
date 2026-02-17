@@ -1,14 +1,15 @@
 package org.firstinspires.ftc.teamcode.SocalCode.subsystems;
 
-import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Gamepad;
-import org.firstinspires.ftc.teamcode.SocalCode.autonomous.Paths.teleopPath;
-import org.firstinspires.ftc.teamcode.SocalCode.pedroPathing.Constants;
+import com.pedropathing.control.PIDFController;
+import com.pedropathing.math.MathFunctions;
+
+import org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.Paths.teleopPath;
+import org.firstinspires.ftc.teamcode.CodePriorILT.pedroPathing.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,8 @@ public class AutoAimWithOdometry {
 
     // Auto Aim
     private PIDFController headingController;
-    private Pose goalPose = new Pose(8.472, 139.091);
+    private Pose aimGoalPose = new Pose(10.527, 136.505); // Old goal pose 22, 139.091
+    private final Pose shootingGoalPose = new Pose(22, 120);
     private boolean wasAutoAim = false;
 
     // Base default poses (constants)
@@ -30,7 +32,7 @@ public class AutoAimWithOdometry {
     private Pose FAR_TWO = new Pose(85, 11.461, Math.toRadians(120.8));
 
     private final List<Pose> defaultTargets = new ArrayList<>();
-    
+
     // RPMs corresponding to each target
     private final double[] targetTPS = {1213, 1397, 1773, 1820}; // Last 2 values unused
     private double currentTargetTPS = 1200; // Default
@@ -40,15 +42,9 @@ public class AutoAimWithOdometry {
 
     private boolean isBlue;
 
-    // Added FieldCentricDrive member
-    private final FieldCentricDrive fieldCentricDrive;
-
     public AutoAimWithOdometry(HardwareMap hardwareMap, boolean isBlueAlliance) {
         follower = Constants.createFollower(hardwareMap);
         headingController = new PIDFController(follower.constants.coefficientsHeadingPIDF);
-
-        // Initialize FieldCentricDrive
-        fieldCentricDrive = new FieldCentricDrive(hardwareMap);
 
         // Default starting pose if not set before init
         startingPose = new Pose(0, 0, 0);
@@ -56,14 +52,14 @@ public class AutoAimWithOdometry {
         follower.startTeleopDrive();
 
         // Check if Blue or Red alliance
-        isBlue = isBlueAlliance;
+        if (!isBlueAlliance) { isBlue = false; } else { isBlue = true; }
 
         if (!isBlue) {
             CLOSE_ONE = CLOSE_ONE.mirror();
             CLOSE_TWO = CLOSE_TWO.mirror();
             FAR_ONE = FAR_ONE.mirror();
             FAR_TWO = FAR_TWO.mirror();
-            goalPose = goalPose.mirror();
+            aimGoalPose = aimGoalPose.mirror();
         }
 
         // Initialize default targets list for easy iteration
@@ -83,149 +79,209 @@ public class AutoAimWithOdometry {
         follower.update();
     }
 
-    public void drive(Gamepad gamepad, boolean autoAim) {
-        double forward = gamepad.left_stick_y;
-        double strafe = gamepad.left_stick_x;
-        double turn = -gamepad.right_stick_x;
+    /**
+     * Handles TeleOp driving and automated path triggering.
+     * @param forward Forward movement (e.g. gamepad.left_stick_y)
+     * @param strafe Strafe movement (e.g. gamepad.left_stick_x)
+     * @param turn Turn movement (e.g. -gamepad.right_stick_x)
+     */
+    public void drive(double forward, double strafe, double turn,
+                      boolean dpadUp, boolean dpadRight,
+                      boolean dpadDown, boolean dpadLeft, boolean autoAim) {
 
-        boolean manualInput = Math.abs(forward) > 0.1
-                || Math.abs(strafe) > 0.1
-                || Math.abs(turn) > 0.1;
+        boolean manualInput =
+                Math.abs(forward) > 0.1 ||
+                        Math.abs(strafe) > 0.1 ||
+                        Math.abs(turn) > 0.1 ||
+                        autoAim;
 
-        if (autoAim) {
-            manualInput = true;
-        }
+        handlePathing(dpadUp, dpadRight, dpadDown, dpadLeft);
+        handlePathCancel(manualInput);
 
-        handleAutomatedPathing(gamepad, manualInput);
-
-        if (!automatedDrive) {
-            handleManualDrive(gamepad, autoAim);
-        } else {
-            wasAutoAim = false;
-        }
-    }
-
-    private void handleAutomatedPathing(Gamepad gamepad, boolean manualInput) {
+        // Stop Pathing if done or manual override
         if (automatedDrive) {
             if (!follower.isBusy() || manualInput) {
                 follower.startTeleopDrive();
                 automatedDrive = false;
             }
-            return;
         }
+
+        // Manual Drive
+        if (!automatedDrive) {
+            double turnPower = turn;
+
+            if (autoAim) {
+                if (!wasAutoAim) {
+                    headingController.reset();
+                }
+//                turnPower = autoAim();
+                turnPower = aimWhileMoving();
+            }
+            wasAutoAim = autoAim;
+
+            if (isBlue) {
+                follower.setTeleOpDrive(forward, strafe, turnPower, false);
+            } else {
+                follower.setTeleOpDrive(-forward, -strafe, turnPower, false);
+            }
+        } else {
+            wasAutoAim = false;
+        }
+    }
+
+    public void handlePathing(boolean dpadUp, boolean dpadRight,
+                              boolean dpadDown, boolean dpadLeft) {
+
+        if (automatedDrive) return;
 
         int selectedIndex = -1;
-        if (gamepad.dpad_up) selectedIndex = 0;
-        else if (gamepad.dpad_left) selectedIndex = 1;
-        else if (gamepad.dpad_right) selectedIndex = 2;
-        else if (gamepad.dpad_down) selectedIndex = 3;
 
-        if (selectedIndex != -1 && targetPoseList != null && selectedIndex < targetPoseList.size()) {
-            Pose selectedTarget = targetPoseList.get(selectedIndex);
-            currentTargetTPS = targetTPS[selectedIndex];
+        if (dpadUp) {
+            selectedIndex = 0;
+        } else if (dpadLeft) {
+            selectedIndex = 1;
+        } else if (dpadRight) {
+            selectedIndex = 2;
+        } else if (dpadDown) {
+            selectedIndex = 3;
+        }
 
-            if (selectedTarget != null) {
-                PathChain path = teleopPath.getPath(follower, selectedTarget);
-                follower.followPath(path);
-                automatedDrive = true;
-            }
+        if (selectedIndex == -1) return;
+        if (targetPoseList == null || selectedIndex >= targetPoseList.size()) return;
+
+        Pose selectedTarget = targetPoseList.get(selectedIndex);
+        if (selectedTarget == null) return;
+
+        currentTargetTPS = targetTPS[selectedIndex];
+
+        PathChain path = teleopPath.getPath(follower, selectedTarget);
+        follower.followPath(path);
+        automatedDrive = true;
+    }
+
+    public void handlePathCancel(boolean manualInput) {
+        if (!automatedDrive) return;
+
+        if (!follower.isBusy() || manualInput) {
+            follower.startTeleopDrive();
+            automatedDrive = false;
         }
     }
 
-    private void handleManualDrive(Gamepad gamepad, boolean autoAim) {
-        double forward = gamepad.left_stick_y;
-        double strafe = gamepad.left_stick_x;
-        double turn = -gamepad.right_stick_x;
-
-        double turnPower = turn;
-
-        if (autoAim) {
-            turnPower = getAutoAimTurnPower();
-        }
-        wasAutoAim = autoAim;
-
-        if (isBlue) {
-            if (autoAim) {
-                fieldCentricDrive.drive(forward, strafe, turnPower);
-            } else {
-                fieldCentricDrive.drive(gamepad);
-            }
-        } else { // Red Alliance
-            if (autoAim) {
-                fieldCentricDrive.drive(-forward, -strafe, turnPower);
-            } else {
-                fieldCentricDrive.drive(-forward, -strafe, turn);
-            }
-        }
-    }
-
-    private double getAutoAimTurnPower() {
-        if (!wasAutoAim) {
-            headingController.reset();
-        }
-
+    public double autoAim() {
         Pose robot = follower.getPose();
-        double dx = goalPose.getX() - robot.getX();
-        double dy = goalPose.getY() - robot.getY();
-        double targetHeading = MathFunctions.normalizeAngle(Math.atan2(dy, dx));
 
+        double dx = aimGoalPose.getX() - robot.getX();
+        double dy = aimGoalPose.getY() - robot.getY();
+
+        double targetHeading = MathFunctions.normalizeAngle(Math.atan2(dy, dx));
         double currentHeading = robot.getHeading();
+
         double error = targetHeading - currentHeading;
 
-        if (error > Math.PI) error -= 2 * Math.PI;
-        else if (error < -Math.PI) error += 2 * Math.PI;
+        // Normalize error to [-π, π]
+        if (error > Math.PI) {
+            error -= 2 * Math.PI;
+        } else if (error < -Math.PI) {
+            error += 2 * Math.PI;
+        }
 
-        double turnPower;
+        // Deadband
         if (Math.abs(error) < Math.toRadians(1.5)) {
-            turnPower = 0;
-        } else {
-            headingController.updateError(error);
-            turnPower = headingController.run();
-
-            double maxTurn = 0.4;
-            if (Math.abs(error) < Math.toRadians(10)) {
-                maxTurn = 0.2;
-            }
-            turnPower = MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
+            return 0;
         }
-        return turnPower;
+
+        headingController.updateError(error);
+        double turnPower = headingController.run();
+
+        // Ramp down near target
+        double maxTurn = Math.abs(error) < Math.toRadians(10) ? 0.2 : 0.4;
+        return MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
     }
 
-    public void NEWdynamicTargetTPS(double goalDist) {
-        // need to create a model that helps find target tps for different locations
+    public double aimWhileMoving() {
+        Pose robot = follower.getPose();
+        Vector velocity = follower.getVelocity();
+
+        if (robot == null || velocity == null) return 0;
+
+        // Robot position
+        double rx = robot.getX();
+        double ry = robot.getY();
+
+        // Goal position
+        double gx = aimGoalPose.getX();
+        double gy = aimGoalPose.getY();
+
+        // Vector to goal
+        double dx = gx - rx;
+        double dy = gy - ry;
+
+        double distance = Math.hypot(dx, dy);
+        if (distance < 1e-6) return 0;
+
+        // Normal aim heading
+        double baseHeading = Math.atan2(dy, dx);
+
+        // Unit vector toward goal
+        double ux = dx / distance;
+        double uy = dy / distance;
+
+        // --- Extract velocity components from Vector ---
+        double speed = velocity.getMagnitude();
+        double vx = velocity.getXComponent();
+        double vy = velocity.getYComponent();
+
+        // Perpendicular (sideways) velocity relative to target
+        double vPerp = vx * (-uy) + vy * (ux);
+
+        // === TUNE THIS CONSTANT ===
+        double SHOOTER_SPEED = 50.0; // inches/sec
+
+        // Angular correction
+        double leadAngle = vPerp / SHOOTER_SPEED;
+
+        // Adjusted target heading
+        double targetHeading = baseHeading - leadAngle;
+        targetHeading = MathFunctions.normalizeAngle(targetHeading);
+
+        // Heading error
+        double error = targetHeading - robot.getHeading();
+
+        // Normalize to [-π, π]
+        while (error > Math.PI) error -= 2 * Math.PI;
+        while (error < -Math.PI) error += 2 * Math.PI;
+
+        // Deadband
+        if (Math.abs(error) < Math.toRadians(1.5)) return 0;
+
+        // Run PID
+        headingController.updateError(error);
+        double turnPower = headingController.run();
+
+        // Optional turn limiting while moving fast
+        double maxTurn = speed > 10 ? 0.25 : 0.4;
+        return MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
     }
 
-    public double getGoalDistance() {
+    public double shootWhileMoving() {
+        return 0;
+    }
+
+
+    public double getDistanceFromGoal() {
         double robotPoseX = follower.getPose().getX();
         double robotPoseY = follower.getPose().getY();
 
-        double goalPoseX = goalPose.getX();
-        double goalPoseY = goalPose.getY();
+        double goalPoseX = shootingGoalPose.getX();
+        double goalPoseY = shootingGoalPose.getY();
 
         double nonAbsDistance = Math.sqrt(Math.pow(goalPoseX - robotPoseX, 2) + Math.pow(goalPoseY - robotPoseY, 2));
-        double finalDistance = Math.abs(nonAbsDistance);
-
-        return finalDistance;
+        return Math.abs(nonAbsDistance);
     }
 
-    public void dynamicTargetTPS() {
-        // Distance formula between 2 points: sqrt((x2-x1)^2 + (y2-y1)^2)
-        double thresholdRange = 85;
-
-        double robotPoseX = follower.getPose().getX();
-        double robotPoseY = follower.getPose().getY();
-
-        double goalPoseX = goalPose.getX();
-        double goalPoseY = goalPose.getY();
-
-        double nonAbsDistance = Math.sqrt(Math.pow(goalPoseX - robotPoseX, 2) + Math.pow(goalPoseY - robotPoseY, 2));
-        double finalDistance = Math.abs(nonAbsDistance);
-
-        if (finalDistance < thresholdRange) {
-            currentTargetTPS = targetTPS[0];
-        } else {
-            currentTargetTPS = targetTPS[1];
-        }
+    public double newDynamicTargetTPS(double goalDist) {
+        return MathFunctions.clamp((0.0000287687 * Math.pow(goalDist, 4)) - (0.00868119 * Math.pow(goalDist, 3)) + (0.925959 * Math.pow(goalDist, 2)) - (35.75174 * goalDist) + 1592.26017, 0, 2000);
     }
 
     public void setStartingPose(double x, double y, double h) {
@@ -243,7 +299,7 @@ public class AutoAimWithOdometry {
     public void resetTargetPose() {
         if (follower.getPose() != null) {
             Pose currentPose = follower.getPose();
-            
+
             // Find the closest default target
             int closestIndex = -1;
             double minDistance = Double.MAX_VALUE;
@@ -286,7 +342,7 @@ public class AutoAimWithOdometry {
         double dy = Math.sin(theta);
 
         // Backdrop Y (constant)
-        double backdropY = goalPose.getY();
+        double backdropY = aimGoalPose.getY();
 
         // Prevent divide-by-zero if robot is facing nearly horizontal
         if (Math.abs(dy) < 1e-6) {
@@ -301,17 +357,17 @@ public class AutoAimWithOdometry {
         double intersectY = backdropY;
 
         // Update goal pose (keep same Y, slide X)
-        goalPose = new Pose(intersectX, intersectY);
+        aimGoalPose = new Pose(intersectX, intersectY);
 
         // Reset controller so it doesn't fight the new target
         headingController.reset();
     }
-    
+
     private Pose applyOffset(Pose base, double offX, double offY, double offH) {
         return new Pose(
-            base.getX() + offX,
-            base.getY() + offY,
-            base.getHeading() + offH
+                base.getX() + offX,
+                base.getY() + offY,
+                base.getHeading() + offH
         );
     }
 
@@ -322,7 +378,8 @@ public class AutoAimWithOdometry {
         if (follower != null) {
             Pose currentPose = follower.getPose();
             if (currentPose != null) {
-                fieldCentricDrive.resetIMU();
+                // Create a new pose with the same X and Y, but a heading of 0
+                follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), 0));
             }
         }
     }
@@ -334,13 +391,13 @@ public class AutoAimWithOdometry {
     public Pose getStartingPose() {
         return startingPose;
     }
-    
+
     public double getCurrentTargetTPS() {
         return currentTargetTPS;
     }
 
-    public double getBackdropPoseX() { return goalPose.getX(); }
-    public double getBackdropPoseY() { return goalPose.getY(); }
+    public double getBackdropPoseX() { return aimGoalPose.getX(); }
+    public double getBackdropPoseY() { return aimGoalPose.getY(); }
 
     public boolean isAutomated() {
         return automatedDrive;
