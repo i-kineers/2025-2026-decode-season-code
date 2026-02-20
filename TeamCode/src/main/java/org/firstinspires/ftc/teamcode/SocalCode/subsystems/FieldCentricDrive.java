@@ -41,10 +41,18 @@ public class FieldCentricDrive {
     }
 
     /**
-     * Convenience method for simple teleop control.
+     * Handles all teleop drive logic from a gamepad, including IMU reset.
+     * This should be called in the main loop.
+     * @param gamepad The gamepad to read inputs from.
      */
-    public void drive(Gamepad gamepad) {
-        drive(gamepad.left_stick_y, gamepad.left_stick_x, gamepad.right_stick_x);
+    public void update(Gamepad gamepad) {
+        // Standard drive controls, with turning inverted for intuitive control
+        drive(gamepad.left_stick_y, gamepad.left_stick_x, -gamepad.right_stick_x);
+
+        // Handle IMU reset on 'A' button press
+        if (gamepad.a) {
+            resetIMU();
+        }
     }
 
     /**

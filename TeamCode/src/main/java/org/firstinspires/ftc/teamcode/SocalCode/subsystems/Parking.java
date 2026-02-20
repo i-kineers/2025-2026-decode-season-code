@@ -8,20 +8,20 @@ public class Parking {
 
     private final Servo parkingServo;
 
-    private static final double PARK_POSITION = 0.0;
-    private static final double DEPLOY_POSITION = 1.0;
+    private static final double DRIVE_POSITION = 0.0;
+    private static final double PARK_POSITION = 1.0;
 
     private enum State {
-        PARKED,
-        DEPLOYED
+        DRIVE,
+        PARK
     }
 
-    private State currentState = State.PARKED;
+    private State currentState = State.DRIVE;
     private boolean lastButtonState = false;
 
     public Parking(HardwareMap hardwareMap) {
         parkingServo = hardwareMap.get(Servo.class, "parkingServo");
-        parkingServo.setPosition(PARK_POSITION);
+        parkingServo.setPosition(DRIVE_POSITION);
     }
 
     public void update(Gamepad gamepad) {
@@ -37,27 +37,27 @@ public class Parking {
 
     private void toggleState() {
         switch (currentState) {
-            case PARKED:
-                currentState = State.DEPLOYED;
+            case DRIVE:
+                currentState = State.PARK;
                 break;
-            case DEPLOYED:
-                currentState = State.PARKED;
+            case PARK:
+                currentState = State.DRIVE;
                 break;
         }
     }
 
     private void applyState() {
         switch (currentState) {
-            case PARKED:
-                parkingServo.setPosition(PARK_POSITION);
+            case DRIVE:
+                parkingServo.setPosition(DRIVE_POSITION);
                 break;
-            case DEPLOYED:
-                parkingServo.setPosition(DEPLOY_POSITION);
+            case PARK:
+                parkingServo.setPosition(PARK_POSITION);
                 break;
         }
     }
 
     public boolean isDeployed() {
-        return currentState == State.DEPLOYED;
+        return currentState == State.PARK;
     }
 }

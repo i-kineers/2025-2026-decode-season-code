@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
 import android.os.Environment;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -30,6 +31,7 @@ import java.util.Map;
  * 6. Data Logging
  */
 @TeleOp(name = "Production Flywheel", group = "Production")
+@Disabled
 public class ProductionFlywheel extends OpMode {
 
     // ==================================================================
