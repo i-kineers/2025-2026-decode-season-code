@@ -8,8 +8,8 @@ public class Parking {
 
     private final Servo parkingServo;
 
-    private static final double DRIVE_POSITION = 0.0;
-    private static final double PARK_POSITION = 1.0;
+    private static double DRIVE_POSITION = 0.0;
+    private static double PARK_POSITION = 1.0;
 
     private enum State {
         DRIVE,
@@ -33,6 +33,9 @@ public class Parking {
 
         lastButtonState = buttonPressed;
         applyState();
+
+        adjustParkPosition(gamepad);
+        adjustDrivePosition(gamepad);
     }
 
     private void toggleState() {
@@ -59,5 +62,29 @@ public class Parking {
 
     public boolean isDeployed() {
         return currentState == State.PARK;
+    }
+
+    public void adjustDrivePosition(Gamepad gamepad1) {
+        if (gamepad1.dpadUpWasPressed()) {
+            DRIVE_POSITION += 0.1;
+        } else if (gamepad1.dpadDownWasPressed()) {
+            DRIVE_POSITION -= 0.1;
+        }
+    }
+
+    public void adjustParkPosition(Gamepad gamepad1) {
+        if (gamepad1.dpadRightWasPressed()) {
+            PARK_POSITION += 0.1;
+        } else if (gamepad1.dpadLeftWasPressed()) {
+            PARK_POSITION -= 0.1;
+        }
+    }
+
+    public double getDrivePosition() {
+        return DRIVE_POSITION;
+    }
+
+    public double getParkPosition() {
+        return PARK_POSITION;
     }
 }

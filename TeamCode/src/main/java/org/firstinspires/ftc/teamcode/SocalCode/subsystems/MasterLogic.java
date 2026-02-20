@@ -30,13 +30,15 @@ public class MasterLogic {
         fieldCentricDrive.update(gamepad1);
 
         intake.runIntake(gamepad1);
-//        parking.update(gamepad1);
+        parking.update(gamepad1);
         updateTelemetry(telemetry);
     }
 
     private void updateTelemetry(Telemetry telemetry) {
         // Telemetry is simplified as odometry and auto-aim are removed.
         telemetry.addData("Mode", "MANUAL (Field Centric)");
+        telemetry.addData("Park Position", parking.getParkPosition());
+        telemetry.addData("Drive Position", parking.getDrivePosition());
         // You can add back other subsystem telemetry here if needed
         // e.g., telemetry.addData("Intake State", intake.getState());
         telemetry.update();

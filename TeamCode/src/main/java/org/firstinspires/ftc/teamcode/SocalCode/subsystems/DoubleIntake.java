@@ -88,7 +88,7 @@ public class DoubleIntake {
         leftIntakeMotor.setPower(power);
     }
     public void setRightIntake(double power) {
-        rightIntakeMotor.setPower(-power);
+        rightIntakeMotor.setPower(power);
     }
 
     public void setBothIntakePower (double power) {
