@@ -195,12 +195,12 @@ public class AutoAimWithOdometry {
 
         double nonAbsDistance = Math.sqrt(Math.pow(goalPoseX - robotPoseX, 2) + Math.pow(goalPoseY - robotPoseY, 2));
         double finalDistance = Math.abs(nonAbsDistance);
-
-        if (finalDistance < thresholdRange) {
-            currentTargetTPS = targetTPS[0];
-        } else {
-            currentTargetTPS = targetTPS[1];
-        }
+        newdynamicTargetTPS(finalDistance);
+//        if (finalDistance < thresholdRange) {
+//            currentTargetTPS = targetTPS[0];
+//        } else {
+//            currentTargetTPS = targetTPS[1];
+//        }
     }
 
     public static double newdynamicTargetTPS(double goalDist) {
