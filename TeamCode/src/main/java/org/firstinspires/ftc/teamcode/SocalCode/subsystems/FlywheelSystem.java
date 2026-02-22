@@ -11,7 +11,8 @@ public class FlywheelSystem {
 
     private final DcMotorEx flywheel;
     private final DcMotorEx flywheel2;
-    private final DcMotorEx kicker;
+    private final Servo legKicker;
+    private final CRServo wheelKicker;
     private final VoltageSensor batteryVoltage;
 
     public double kP = 0.003;
@@ -45,14 +46,16 @@ public class FlywheelSystem {
     private final ElapsedTime shotTimer = new ElapsedTime();
 
     private final List<Double> recoveryLog = new ArrayList<>();
-
-    public enum ShotState { OFF, IDLE, FIRING}
+    public enum ShotState { OFF, IDLE, FIRING }
     private ShotState shotState = ShotState.OFF;
+    public enum ShooterState {SHOOTING, INTAKING}
+    private ShooterState shooterState = ShooterState.INTAKING;
 
     public FlywheelSystem(HardwareMap hardwareMap) {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
-        kicker = hardwareMap.get(DcMotorEx.class, "kicker");
+        legKicker = hardwareMap.get(Servo.class, "legKicker");
+        wheelKicker = hardwareMap.get(CRServo.class, "wheelKicker");
 
         batteryVoltage = hardwareMap.voltageSensor.iterator().next();
 
@@ -68,24 +71,7 @@ public class FlywheelSystem {
         pidTimer.reset();
     }
 
-    public void runFlywheel(Gamepad gamepad1, Gamepad gamepad2) {
-        if (gamepad1.a) {
-            setFlywheelState(ShotState.FIRING);
-        } else if (gamepad1.startWasPressed()) {
-            setFlywheelState(ShotState.OFF);
-            idleMode = false;
-        } else if (idleMode) {
-            setFlywheelState(ShotState.IDLE);
-        }
-
-        if (gamepad2.dpadUpWasPressed()) {
-            normalTPS += 50;
-        } else if (gamepad2.dpadDownWasPressed()) {
-            normalTPS  -= 50;
-        }
-    }
-
-    public void update() {
+    public void update(Gamepad gamepad) {
         if (targetTPS < 0) {
             setFlywheelPower(0);
             return;
@@ -94,7 +80,7 @@ public class FlywheelSystem {
         double finalPower = calculateCompensatedPower();
 
         monitorRecovery();
-        handleShotLogic(finalPower);
+        handleShotLogic(finalPower, gamepad);
     }
 
     private double calculatePIDF(double target, double current) {
@@ -124,22 +110,6 @@ public class FlywheelSystem {
         return feedforward + (kP * error) + (kI * integralSum) + (kD * derivative);
     }
 
-    // Shot awareness LOGGER function
-    private void monitorRecovery() {
-        double ratio = getVelocity() / targetTPS;
-
-        if (!isRecovering && ratio < DANGER_THRESHOLD) {
-            isRecovering = true;
-            recoveryTimer.reset();
-        }
-
-        if (isRecovering && ratio >= 0.98) {
-            isRecovering = false;
-            lastRecoveryTime = recoveryTimer.milliseconds();
-            recoveryLog.add(lastRecoveryTime);
-        }
-    }
-
     private double applySlew(double targetPower) {
         double delta = targetPower - lastPower;
         if (Math.abs(delta) > RECOVERY_SLEW) {
@@ -159,44 +129,48 @@ public class FlywheelSystem {
         return applySlew(compensated);
     }
 
-    private void handleShotLogic(double finalPower) {
-        boolean wheelReady = getVelocity() >= targetTPS * 0.95;
+    private void monitorRecovery() {
+        double ratio = getVelocity() / targetTPS;
 
-        switch (shotState) {
-            case OFF:
-                setTargetTPS(0);
+        if (!isRecovering && ratio < DANGER_THRESHOLD) {
+            isRecovering = true;
+            recoveryTimer.reset();
+        }
+
+        if (isRecovering && ratio >= 0.98) {
+            isRecovering = false;
+            lastRecoveryTime = recoveryTimer.milliseconds();
+            recoveryLog.add(lastRecoveryTime);
+        }
+    }
+
+    private void handleShotLogic(double finalPower, Gamepad gamepad) {
+        switch (shooterState)  {
+            case INTAKING:
+                setFlywheelPower(finalPower*0.9);
+                legKicker.setPosition(0);
+                wheelKicker.setPower(0);
                 break;
-
-            case IDLE:
-                setTargetTPS(idleTPS);
-                setFlywheelPower(Range.clip(finalPower, 0, 1));
-                stopKicker();
-                break;
-
-            case FIRING:
-                setTargetTPS(normalTPS);
-                setFlywheelPower(Range.clip(finalPower, 0, 1));
-                if (wheelReady) {
-                    if (getVelocity() < (targetTPS * DANGER_THRESHOLD)) {
-                        stopKicker();
-                        shotTimer.reset();
-                    } else {
-                        runKicker();
-                    }
+            case SHOOTING:
+                setFlywheelPower(finalPower);
+                wheelKicker.setPower(1);
+                if (gamepad.right_trigger > 0.5 || gamepad.left_trigger > 0.5) {
+                    legKicker.setPosition(1);
+                } else {
+                    legKicker.setPosition(0);
                 }
                 break;
         }
     }
 
-
-    public void autoRapidShoot() {
-
-    }
-
-    public void stop() {
-        stopKicker();
-        setFlywheelPower(0);
-        targetTPS = 0;
+    public void cycleShootingState(Gamepad gamepad) {
+        if (gamepad.yWasPressed()) {
+            if (shooterState == ShooterState.INTAKING) {
+                shooterState = ShooterState.SHOOTING;
+            } else if (shooterState == ShooterState.SHOOTING) {
+                shooterState = ShooterState.INTAKING;
+            }
+        }
     }
 
     private void setFlywheelPower(double power) {
@@ -204,15 +178,16 @@ public class FlywheelSystem {
         flywheel2.setPower(power);
     }
 
+    private void runWheelServo(double position) {
+        wheelKicker.setPower(position);
+    }
+
+    private void runLegServo(double position) {
+        legKicker.setPosition(position);
+    }
+
+
     public void setTargetTPS(double tps) { targetTPS = Math.max(0, tps); }
-
-    public void runKicker() {
-        kicker.setPower(1);
-    }
-
-    public void stopKicker() {
-        kicker.setPower(0);
-    }
 
     public void setFlywheelState(ShotState state) {
         shotState = state;
@@ -230,9 +205,5 @@ public class FlywheelSystem {
 
     public ShotState getShotState() {
         return shotState;
-    }
-
-    public List<Double> getRecoveryLog() {
-        return recoveryLog;
     }
 }
