@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class DoubleIntake {
 
@@ -15,7 +16,7 @@ public class DoubleIntake {
 
     public enum autoIntakeState {IDLE, INTAKE, SHOOTING}
     private autoIntakeState currentAutoIntakeState = autoIntakeState.IDLE;
-    private Timer autoTimer = new Timer();
+    private ElapsedTime autoTimer = new ElapsedTime();
 
     public DoubleIntake(HardwareMap hardwaremap){
         leftIntakeMotor = hardwaremap.get(DcMotor.class, "leftIntake");
@@ -53,29 +54,37 @@ public class DoubleIntake {
         }
     }
 
-    public void autoIntakeOn(boolean isBlue) {
+    public boolean autoIntakeOn(boolean isBlue) {
         switch (currentAutoIntakeState) {
             case IDLE:
                 autoIntakeOff();
-                break;
+                return true;
+
             case INTAKE:
                 if (isBlue) {
                     setLeftIntake(1);
                 } else {
                     setRightIntake(1);
                 }
-                break;
+                return false;
+
             case SHOOTING:
-                if (autoTimer.getElapsedTimeSeconds() < 0.8) {
+                if (autoTimer.milliseconds() < 800) {
                     setLeftIntake(1);
                     setRightIntake(0);
-                } else if (autoTimer.getElapsedTimeSeconds() < 1.6) {
+                    return false;
+                } else if (autoTimer.milliseconds() < 1600) {
                     setLeftIntake(0);
                     setRightIntake(1);
+                    return false;
                 } else {
                     autoIntakeOff();
+                    setAutoIntakeState(autoIntakeState.IDLE);
+                    return true;
                 }
-                break;
+
+            default:
+                return true;
         }
     }
 
@@ -102,7 +111,7 @@ public class DoubleIntake {
 
     public void setAutoIntakeState(autoIntakeState autoState) {
         if (autoState == autoIntakeState.SHOOTING && currentAutoIntakeState != autoIntakeState.SHOOTING) {
-            autoTimer.resetTimer();
+            autoTimer.reset();
         }
         currentAutoIntakeState = autoState;
     }

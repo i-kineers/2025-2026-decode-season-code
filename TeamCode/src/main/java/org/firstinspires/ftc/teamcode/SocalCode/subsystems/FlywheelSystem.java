@@ -83,6 +83,16 @@ public class FlywheelSystem {
         handleShotLogic(finalPower, gamepad);
     }
 
+    public void autoShootLogic() {
+        if (targetTPS <= 0) {
+            setFlywheelPower(0);
+        }
+
+        double finalPower = calculateCompensatedPower();
+
+        autoShoot(finalPower);
+    }
+
     private double calculatePIDF(double target, double current) {
 
         double slope = (kF_HIGH - kF_LOW) / (HIGH_TARGET_TPS - LOW_TARGET_TPS);
@@ -170,6 +180,27 @@ public class FlywheelSystem {
             } else if (shooterState == ShooterState.SHOOTING) {
                 shooterState = ShooterState.INTAKING;
             }
+        }
+    }
+
+    public void autoShoot(double finalPower) {
+        setFlywheelPower(finalPower);
+        shotTimer.reset();
+        if (shotTimer.milliseconds() > 200) {
+            wheelKicker.setPower(-1);
+            legKicker.setPosition(0);
+        } else if (shotTimer.milliseconds() > 1600) {
+            setFlywheelPower(0);
+            wheelKicker.setPower(0);
+            legKicker.setPosition(1);
+        }
+    }
+
+    public void sleep(long milli) {
+        try {
+            Thread.sleep(milli);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
