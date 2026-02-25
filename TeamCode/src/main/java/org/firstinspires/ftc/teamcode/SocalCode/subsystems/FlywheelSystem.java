@@ -15,15 +15,15 @@ public class FlywheelSystem {
     private final CRServo wheelKicker;
     private final VoltageSensor batteryVoltage;
 
-    public double kP = 0.003;
+    public double kP = 0.004;
     public double kI = 0.0; // Old value 0.0001
     public double kD = 0.0; // Old value 0.0004
 
-    public double kF_LOW  = 0.000463;
-    public double kF_HIGH = 0.000408;
+    public double kF_LOW  = 0.000490;
+    public double kF_HIGH = 0.000426;
 
-    public double LOW_TARGET_TPS  = 710; // Old values 1213.0
-    public double HIGH_TARGET_TPS = 1800; // Old values 1540.0
+    public double LOW_TARGET_TPS  = 700;
+    public double HIGH_TARGET_TPS = 1780;
 
     public double DANGER_THRESHOLD = 0.93;
     public double RECOVERY_SLEW = 1.0;
@@ -72,7 +72,7 @@ public class FlywheelSystem {
     }
 
     public void update(Gamepad gamepad) {
-        if (targetTPS < 0) {
+        if (targetTPS <= 0) {
             setFlywheelPower(0);
             return;
         }
@@ -147,17 +147,17 @@ public class FlywheelSystem {
     private void handleShotLogic(double finalPower, Gamepad gamepad) {
         switch (shooterState)  {
             case INTAKING:
-                setFlywheelPower(finalPower*0.9);
-                legKicker.setPosition(0);
-                wheelKicker.setPower(0);
+                setFlywheelPower(finalPower);
+                legKicker.setPosition(1);
+                wheelKicker.setPower(1);
                 break;
             case SHOOTING:
                 setFlywheelPower(finalPower);
-                wheelKicker.setPower(1);
+                wheelKicker.setPower(-1);
                 if (gamepad.right_trigger > 0.5 || gamepad.left_trigger > 0.5) {
-                    legKicker.setPosition(1);
-                } else {
                     legKicker.setPosition(0);
+                } else {
+                    legKicker.setPosition(1);
                 }
                 break;
         }
@@ -173,7 +173,8 @@ public class FlywheelSystem {
         }
     }
 
-    private void setFlywheelPower(double power) {
+    public void setFlywheelPower(double power) {
+        power = Range.clip(power, 0, 1);
         flywheel.setPower(power);
         flywheel2.setPower(power);
     }
