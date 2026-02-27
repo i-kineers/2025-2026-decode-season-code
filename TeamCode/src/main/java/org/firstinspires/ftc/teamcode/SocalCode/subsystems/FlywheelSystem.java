@@ -163,10 +163,11 @@ public class FlywheelSystem {
                 break;
             case SHOOTING:
                 setFlywheelPower(finalPower);
-                wheelKicker.setPower(-1);
                 if (gamepad.right_trigger > 0.5 || gamepad.left_trigger > 0.5) {
+                    wheelKicker.setPower(-1);
                     legKicker.setPosition(0);
                 } else {
+                    wheelKicker.setPower(0);
                     legKicker.setPosition(1);
                 }
                 break;
