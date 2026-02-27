@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -7,6 +8,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.Camera;
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.FieldCentricDrive;
 @TeleOp(name= "Apriltag camera teleop")
+@Disabled
 public class ApriltagCameraTeleop extends OpMode {
     private Camera camera;
     private FieldCentricDrive Drive;

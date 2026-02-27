@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 @TeleOp(name = "Voltage Finder")
+@Disabled
 public class VoltageFinder extends OpMode {
 
     private VoltageSensor batteryVoltageSensor;

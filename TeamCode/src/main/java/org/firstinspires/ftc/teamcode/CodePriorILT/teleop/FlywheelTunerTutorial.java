@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
 import android.os.Environment;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.Locale;
 
 @TeleOp(name = "Flywheel Tuner Tutorial", group = "Tuning")
+@Disabled
 public class FlywheelTunerTutorial extends OpMode {
 
     private PanelsTelemetry panelsTelemetry;

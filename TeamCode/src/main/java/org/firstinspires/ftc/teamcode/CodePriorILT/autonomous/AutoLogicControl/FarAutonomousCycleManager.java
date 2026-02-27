@@ -1,23 +1,23 @@
-package org.firstinspires.ftc.teamcode.SocalCode.subsystems;
+package org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.AutoLogicControl;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.Paths.closePaths;
+import org.firstinspires.ftc.teamcode.CodePriorILT.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.DoubleMotorOuttakePID;
+import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.FlywheelSystem;
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.SocalCode.autonomous.Paths.closePaths;
-import org.firstinspires.ftc.teamcode.SocalCode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.SocalCode.subsystems.FlywheelSystem;
-import org.firstinspires.ftc.teamcode.SocalCode.subsystems.DoubleIntake;
 
 import static android.os.SystemClock.sleep;
 
-public class AutonomousCycleManager {
+public class FarAutonomousCycleManager {
 
     // Subsystems
     private final Follower follower;
-    private final DoubleIntake intake;
+    private final Intake intake;
+    private final DoubleMotorOuttakePID outtake;
     private final FlywheelSystem flywheelSystem;
     private final closePaths paths;
 
@@ -41,28 +41,21 @@ public class AutonomousCycleManager {
     private boolean intake3 = false;
     private boolean useGate = false;
     private boolean gateTriggered = false;
-
-    private static boolean isBlue;
-
-    private boolean shootingInitialized = false;
-
-    ElapsedTime shotTimer = new ElapsedTime();
+    private boolean alignedForPath6 = false;
 
     private Pose blueStartPose = new Pose(22,120, Math.toRadians(135));
     private Pose redStartPose = new Pose(122, 120, Math.toRadians(45));
 
-
-    public AutonomousCycleManager(HardwareMap hardwareMap, boolean isBlueSide) {
-        isBlue = isBlueSide;
-
+    public FarAutonomousCycleManager(HardwareMap hardwareMap, boolean isBlueSide) {
         // Initialize subsystems
-        intake = new DoubleIntake(hardwareMap);
+        intake = new Intake(hardwareMap);
+        outtake = new DoubleMotorOuttakePID(hardwareMap);
         flywheelSystem = new FlywheelSystem(hardwareMap);
         follower = Constants.createFollower(hardwareMap);
-        paths = new closePaths(follower, isBlue);
+        paths = new closePaths(follower, isBlueSide);
 
         // Set starting pose
-        if (isBlue) {
+        if (isBlueSide) {
             follower.setStartingPose(blueStartPose);
         } else {
             follower.setStartingPose(redStartPose);
@@ -89,7 +82,6 @@ public class AutonomousCycleManager {
      */
     public void update() {
         follower.update();
-        intake.autoIntakeOn(isBlue);
         cycleRoutine();
     }
 
@@ -114,7 +106,8 @@ public class AutonomousCycleManager {
                 if (beginningState == 0 && !follower.isBusy()) {
                     follower.followPath(paths.Path1);
                     beginningState = 1;
-                } else if (beginningState == 1 && !follower.isBusy() && handleShooting()) {
+                } else if (beginningState == 1 && !follower.isBusy()) {
+                    flywheelSystem.autoRapidShoot(1200, 3000, 500);
                     beginningState = -1; // Mark as done
                     nextState();
                 }
@@ -123,38 +116,43 @@ public class AutonomousCycleManager {
             case INTAKING:
                 if (!follower.isBusy()) {
                     if (currentSelection == 0) {
-                        intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
+                        intake.autoIntakeOn();
                         follower.followPath(paths.Path2);
                         nextState();
                     } else if (currentSelection == 1) {
-                        intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
+                        intake.autoIntakeOn();
                         follower.followPath(paths.Path4);
                         nextState();
-                    }
-                    else if (currentSelection == 2) {
-                        intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
-                        follower.followPath(paths.Path6);
-                        nextState();
+                    } else if (currentSelection == 2) {
+                        if (!alignedForPath6) {
+                            follower.followPath(paths.prePath6);
+                            alignedForPath6 = true;
+                        } else {
+                            intake.autoIntakeOn();
+                            follower.followPath(paths.Path6);
+                            alignedForPath6 = false;
+                            nextState();
+                        }
                     }
                 }
                 break;
 
             case PRESHOOTING:
                 if (!follower.isBusy()) {
-                    intake.setAutoIntakeState(DoubleIntake.autoIntakeState.IDLE);
+                    intake.autoIntakeOff();
                     follower.setMaxPower(1.0);
 
                     if (currentSelection == 0) {
                         // Check if we need to START the gate path
                         if (useGate) {
-                            follower.setMaxPower(0.6);
+                            follower.setMaxPower(0.4);
                             follower.followPath(paths.Path9);
                             useGate = false;        // "Consumes" the instruction from the OpMode
                             gateTriggered = true;   // REMEMBERS we are currently in the gate sequence
                         }
                         // If we are already mid-gate sequence, return to shoot
                         else if (gateTriggered) {
-                            flywheelSystem.sleep(200);
+                            flywheelSystem.sleep(500);
                             follower.setMaxPower(1.0);
                             follower.followPath(paths.Path10);
                             gateTriggered = false;  // Reset for next time
@@ -175,7 +173,12 @@ public class AutonomousCycleManager {
                 break;
 
             case SHOOTING:
-                if (!follower.isBusy() && handleShooting()) {
+                if (!follower.isBusy()) {
+                    intake.autoIntakeOn();
+                    sleep(200);
+                    intake.autoIntakeOff();
+                    flywheelSystem.autoRapidShoot(1200, 2000, 500);
+
                     // Mark current task as done
                     if (currentSelection == 0) intake1 = false;
                     else if (currentSelection == 1) intake2 = false;
@@ -217,22 +220,6 @@ public class AutonomousCycleManager {
             case SHOOTING:
                 // This is handled inside the SHOOTING case now
                 break;
-        }
-    }
-
-    private boolean handleShooting() {
-        if (!shootingInitialized) {
-            shotTimer.reset();
-            intake.setAutoIntakeState(DoubleIntake.autoIntakeState.SHOOTING);
-            shootingInitialized = true;
-        }
-
-        if (shotTimer.milliseconds() < 2000) {
-            flywheelSystem.autoShootLogic();
-            return false;
-        } else {
-            shootingInitialized = false; // Reset for the next cycle
-            return true;
         }
     }
 
