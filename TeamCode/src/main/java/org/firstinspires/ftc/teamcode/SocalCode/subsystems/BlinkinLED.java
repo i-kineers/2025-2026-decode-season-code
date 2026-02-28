@@ -37,11 +37,11 @@ public class BlinkinLED {
         int CurRPM = getCurrentRPM();
 
         if (ballDetected && ballDetected2 && CurRPM>=TargetRPM) {
-            pattern = RevBlinkinLedDriver.BlinkinPattern.DARK_GREEN;
+            pattern = RevBlinkinLedDriver.BlinkinPattern.DARK_BLUE;
             blinkinLedDriver.setPattern(pattern);
 
         } else if (ballDetected && ballDetected2 && CurRPM < TargetRPM){
-            pattern = RevBlinkinLedDriver.BlinkinPattern.LIME;
+            pattern = RevBlinkinLedDriver.BlinkinPattern.SKY_BLUE;
             blinkinLedDriver.setPattern(pattern);
 
         } else if ((ballDetected||ballDetected2) && CurRPM>=TargetRPM) {
