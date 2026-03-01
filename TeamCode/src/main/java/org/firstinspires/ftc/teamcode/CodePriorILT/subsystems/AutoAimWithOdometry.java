@@ -9,7 +9,7 @@ import com.pedropathing.control.PIDFController;
 import com.pedropathing.math.MathFunctions;
 
 import org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.Paths.teleopPath;
-import org.firstinspires.ftc.teamcode.CodePriorILT.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +47,7 @@ public class AutoAimWithOdometry {
         headingController = new PIDFController(follower.constants.coefficientsHeadingPIDF);
 
         // Default starting pose if not set before init
-        startingPose = new Pose(0, 0, 0);
+        startingPose = new Pose(22, 120, 135);
         follower.setStartingPose(startingPose);
         follower.startTeleopDrive();
 

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
+package org.firstinspires.ftc.teamcode.SocalCode.teleop;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
@@ -6,14 +6,12 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
+import org.firstinspires.ftc.teamcode.SocalCode.subsystems.AutoAimWithOdometry;
+import org.firstinspires.ftc.teamcode.SocalCode.subsystems.FlywheelSystem;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.AutoAimWithOdometry;
-import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.FlywheelSystem;
 
 
 @TeleOp(name = "Dynamic TPS Flywheel Test")
-@Disabled
 public class DynamicTPSFlywheelTest extends LinearOpMode {
     private FlywheelSystem flywheel;
     private Follower follower;
@@ -32,7 +30,7 @@ public class DynamicTPSFlywheelTest extends LinearOpMode {
         odometryControl = new AutoAimWithOdometry(hardwareMap, true);
         follower = Constants.createFollower(hardwareMap);;
 
-        startPose = new Pose(22, 120, 135);
+        startPose = new Pose(19.5, 122.6, 135);
         follower.setStartingPose(startPose);
 
         telemetry.addData("Status", "Initialized and Ready");
@@ -53,8 +51,8 @@ public class DynamicTPSFlywheelTest extends LinearOpMode {
             goalDist = odometryControl.getDistanceFromGoal();
 //            targetTPS = odometryControl.newDynamicTargetTPS(goalDist);
 
-            flywheel.handleTriggerInput(gamepad1.right_trigger, targetTPS, idleTPS);
-            flywheel.update();
+            flywheel.cycleShootingState(gamepad1);
+            flywheel.update(gamepad1);
 
             follower.update();
             odometryControl.update();

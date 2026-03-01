@@ -6,7 +6,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.CodePriorILT.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.Paths.testPathFarRed;
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.FlywheelSystem;
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.Intake;

@@ -48,7 +48,7 @@ public class FlywheelSystem {
     private final List<Double> recoveryLog = new ArrayList<>();
     public enum ShotState { OFF, IDLE, FIRING }
     private ShotState shotState = ShotState.OFF;
-    public enum ShooterState {SHOOTING, INTAKING}
+    public enum ShooterState {OFF, SHOOTING, INTAKING}
     private ShooterState shooterState = ShooterState.INTAKING;
 
     public FlywheelSystem(HardwareMap hardwareMap) {
@@ -156,6 +156,11 @@ public class FlywheelSystem {
 
     private void handleShotLogic(double finalPower, Gamepad gamepad) {
         switch (shooterState)  {
+            case OFF:
+                setFlywheelPower(0);
+                legKicker.setPosition(1);
+                wheelKicker.setPower(0);
+                break;
             case INTAKING:
                 setFlywheelPower(finalPower);
                 legKicker.setPosition(1);
@@ -178,9 +183,13 @@ public class FlywheelSystem {
         if (gamepad.yWasPressed()) {
             if (shooterState == ShooterState.INTAKING) {
                 shooterState = ShooterState.SHOOTING;
-            } else if (shooterState == ShooterState.SHOOTING) {
+            } else if (shooterState == ShooterState.SHOOTING || shooterState == ShooterState.OFF) {
                 shooterState = ShooterState.INTAKING;
             }
+        }
+
+        if (gamepad.startWasPressed()) {
+            shooterState = ShooterState.OFF;
         }
     }
 

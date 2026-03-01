@@ -25,7 +25,7 @@ public class Parking {
     }
 
     public void update(Gamepad gamepad) {
-        boolean buttonPressed = gamepad.x;
+        boolean buttonPressed = gamepad.optionsWasPressed();
 
         if (buttonPressed && !lastButtonState) {
             toggleState();

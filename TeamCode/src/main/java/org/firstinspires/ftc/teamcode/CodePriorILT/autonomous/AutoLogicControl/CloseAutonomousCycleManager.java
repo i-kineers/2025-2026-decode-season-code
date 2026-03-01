@@ -5,7 +5,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.Paths.closePaths;
-import org.firstinspires.ftc.teamcode.CodePriorILT.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.DoubleMotorOuttakePID;
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.FlywheelSystem;
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.Intake;
