@@ -3,10 +3,9 @@ package org.firstinspires.ftc.teamcode.SocalCode.teleop;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import org.firstinspires.ftc.teamcode.SocalCode.subsystems.AutoAimWithOdometry;
+import org.firstinspires.ftc.teamcode.SocalCode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.FlywheelSystem;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -15,7 +14,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 public class DynamicTPSFlywheelTest extends LinearOpMode {
     private FlywheelSystem flywheel;
     private Follower follower;
-    private AutoAimWithOdometry odometryControl;
+    private DriveSubsystem odometryControl;
     private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
     double targetTPS = 1200;
     double idleTPS = 0;
@@ -27,7 +26,7 @@ public class DynamicTPSFlywheelTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         flywheel = new FlywheelSystem(hardwareMap);
-        odometryControl = new AutoAimWithOdometry(hardwareMap, true);
+        odometryControl = new DriveSubsystem(hardwareMap, true);
         follower = Constants.createFollower(hardwareMap);;
 
         startPose = new Pose(19.5, 122.6, 135);
