@@ -34,16 +34,18 @@ public class DriveSubsystem {
 
     // Auto Aim
     private PIDFController headingController;
+    private double error;
+    private double angleToGoal;
     private Pose aimGoalPose = new Pose(10.527, 136.505); // Old goal pose 22, 139.091
-    private final Pose shootingGoalPose = new Pose(22, 120);
+    private final Pose shootingGoalPose = new Pose(19.5, 122.6);
     private boolean wasAutoAim = false;
     final double SHOOTER_OFFSET = Math.toRadians(90);
 
     // Base default poses (constants)
-    private Pose CLOSE_ONE = new Pose(48, 95, Math.toRadians(135));
-    private Pose CLOSE_TWO = new Pose(100.295, 99.999, Math.toRadians(160));
-    private Pose FAR_ONE = new Pose(55.580, 11.282, Math.toRadians(110));
-    private Pose FAR_TWO = new Pose(85, 11.461, Math.toRadians(120.8));
+    private Pose CLOSE_ONE = new Pose(48, 95, Math.toRadians(225));
+    private Pose CLOSE_TWO = new Pose(100.295, 99.999, Math.toRadians(250));
+    private Pose FAR_ONE = new Pose(55.580, 11.282, Math.toRadians(200));
+    private Pose FAR_TWO = new Pose(85, 11.461, Math.toRadians(210.8));
 
     private final List<Pose> defaultTargets = new ArrayList<>();
 
@@ -73,10 +75,8 @@ public class DriveSubsystem {
         follower = Constants.createFollower(hardwareMap);
         headingController = new PIDFController(follower.constants.coefficientsHeadingPIDF);
 
-        // Default starting pose if not set before init
-        startingPose = new Pose(22, 120, 135);
-        follower.setStartingPose(startingPose);
         follower.startTeleopDrive();
+        follower.update();
 
         // Check if Blue or Red alliance
         if (!isBlueAlliance) { isBlue = false; } else { isBlue = true; }
@@ -137,19 +137,33 @@ public class DriveSubsystem {
         if (!automatedDrive) {
             double turnPower = turn;
 
+            double f = forward;
+            double s = strafe;
+            double t = turn;
+
             if (autoAim) {
                 if (!wasAutoAim) {
                     headingController.reset();
+                    yRamper.reset();
+                    xRamper.reset();
+                    rxRamper.reset();
                 }
                 turnPower = autoAim();
-//                turnPower = aimWhileMoving();
+                f = forward;
+                s = strafe;
+                t = turnPower;
+            } else {
+                f = yRamper.rampInput(forward);
+                s = xRamper.rampInput(strafe);
+                t = rxRamper.rampInput(turn);
             }
+
             wasAutoAim = autoAim;
 
             if (isBlue) {
-                follower.setTeleOpDrive(forward, strafe, turnPower, false);
+                follower.setTeleOpDrive(f, s, t, false);
             } else {
-                follower.setTeleOpDrive(-forward, -strafe, turnPower, false);
+                follower.setTeleOpDrive(-f, -s, t, false);
             }
         } else {
             wasAutoAim = false;
@@ -201,12 +215,12 @@ public class DriveSubsystem {
         double dx = aimGoalPose.getX() - robot.getX();
         double dy = aimGoalPose.getY() - robot.getY();
 
-        double angleToGoal = Math.atan2(dy, dx);
+        angleToGoal = Math.atan2(dy, dx);
 
         double targetHeading = MathFunctions.normalizeAngle(angleToGoal + SHOOTER_OFFSET);
 
         double currentHeading = robot.getHeading();
-        double error = targetHeading - currentHeading;
+        error = targetHeading - currentHeading;
 
         // Normalize error to [-π, π]
         if (error > Math.PI) {
@@ -310,7 +324,10 @@ public class DriveSubsystem {
     }
 
     public double newDynamicTargetTPS(double goalDist) {
-        return MathFunctions.clamp((0.0000287687 * Math.pow(goalDist, 4)) - (0.00868119 * Math.pow(goalDist, 3)) + (0.925959 * Math.pow(goalDist, 2)) - (35.75174 * goalDist) + 1592.26017, 0, 2000);
+        // Equation: y = 0.000259225x^3 - 0.0360079x^2 + 3.28688x + 1068.56046
+        double tps = (0.000259225 * Math.pow(goalDist, 3)) - (0.0360079 * Math.pow(goalDist, 2)) + (3.28688 * goalDist) + 1068.56046;
+
+        return MathFunctions.clamp(tps, 0, 2000);
     }
 
     public void setStartingPose(double x, double y, double h) {
@@ -491,6 +508,16 @@ public class DriveSubsystem {
     }
 
     // Extra Methods
+    public double getRobotX() { return follower.getPose().getX(); }
+    public double getRobotY() { return follower.getPose().getY(); }
+
+    public double getError() {
+        return error;
+    }
+
+    public double getHeading() { return follower.getHeading(); }
+    public double getGoalAngle() { return angleToGoal; }
+
     public Follower getFollower() {
         return follower;
     }

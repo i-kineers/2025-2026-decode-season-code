@@ -11,17 +11,21 @@ public class MasterLogic {
     private final DriveSubsystem odometry;
     private final FlywheelSystem flywheel;
     private final DoubleIntake intake;
-    private final Parking parking;
 
-    public MasterLogic(HardwareMap hardwareMap, boolean isBlueAlliance) {
+    private double targetTPS;
+
+    private double goalDist;
+//    private final Parking parking;
+
+    public MasterLogic(HardwareMap hardwareMap, double startingX, double startingY, double startingH, boolean isBlueAlliance) {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
         flywheel = new FlywheelSystem(hardwareMap);
         intake = new DoubleIntake(hardwareMap);
-        parking = new Parking(hardwareMap);
+//        parking = new Parking(hardwareMap);
         odometry = new DriveSubsystem(hardwareMap, isBlueAlliance);
 
-        odometry.setStartingPose(19.5, 122.6, 135);
+        odometry.setStartingPose(startingX,startingY,startingH);
     }
 
     public void mainLogic(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
@@ -30,17 +34,23 @@ public class MasterLogic {
 
         // Drive Controls
         odometry.drive(
-                -gamepad1.left_stick_y, // Forward
-                -gamepad1.left_stick_x, // Strafe
+                gamepad1.left_stick_y, // Forward
+                gamepad1.left_stick_x, // Strafe
                 -gamepad1.right_stick_x, // Turn
                 gamepad1.dpad_up, gamepad1.dpad_right, gamepad1.dpad_down, gamepad1.dpad_left, // Pathing
-                gamepad1.right_bumper // Auto Aim
+                gamepad1.b // Auto Aim
         );
+
+
+        goalDist = odometry.getDistanceFromGoal();
+        targetTPS = odometry.newDynamicTargetTPS(goalDist);
+
 
         // Subsystems
         intake.runIntake(gamepad1);
-        parking.update(gamepad1);
-        flywheel.cycleShootingState(gamepad1);
+//        parking.update(gamepad1);
+        flywheel.cycleShootingState(gamepad1, gamepad2);
+        flywheel.setTargetTPS(targetTPS);
         flywheel.update(gamepad1);
 
         updateTelemetry(telemetry);
@@ -50,8 +60,17 @@ public class MasterLogic {
         telemetry.addData("Mode", "MANUAL (Field Centric)");
         telemetry.addData("Shooter State", flywheel.getShotState());
         telemetry.addData("Flywheel Velocity", flywheel.getVelocity());
-        telemetry.addData("Park Position", parking.getParkPosition());
-        telemetry.addData("Drive Position", parking.getDrivePosition());
+        telemetry.addData("Target Heading", Math.toDegrees(odometry.getGoalAngle()));
+        telemetry.addData("Current Heading", Math.toDegrees(odometry.getHeading()));
+        telemetry.addData("Error Degrees", Math.toDegrees(odometry.getError()));
+        telemetry.addData("Drive X", odometry.getRobotX());
+        telemetry.addData("Drive Y", odometry.getRobotY());
+        telemetry.addData("Hood Pos", flywheel.getHoodPos());
+        telemetry.addData("Target Velocity", flywheel.getTargetTPS());
+        telemetry.addData("Goal Dist", goalDist);
+
+//        telemetry.addData("Park Position", parking.getParkPosition());
+//        telemetry.addData("Drive Position", parking.getDrivePosition());
         telemetry.update();
     }
 }

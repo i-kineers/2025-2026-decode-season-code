@@ -12,10 +12,11 @@ public class FlywheelSystem {
     private final DcMotorEx flywheel;
     private final DcMotorEx flywheel2;
     private final Servo legKicker;
+    private final Servo hoodServo;
     private final CRServo wheelKicker;
     private final VoltageSensor batteryVoltage;
 
-    public double kP = 0.004;
+    public double kP = 0.0035;
     public double kI = 0.0; // Old value 0.0001
     public double kD = 0.0; // Old value 0.0004
 
@@ -30,6 +31,7 @@ public class FlywheelSystem {
 
     private double normalTPS = 1213;
     private double idleTPS = 1000;
+    private double hoodPos = 1;
     private double targetTPS = normalTPS;
 
     private boolean idleMode = true;
@@ -56,6 +58,7 @@ public class FlywheelSystem {
         flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel2");
         legKicker = hardwareMap.get(Servo.class, "legKicker");
         wheelKicker = hardwareMap.get(CRServo.class, "wheelKicker");
+        hoodServo = hardwareMap.get(Servo.class, "hoodServo");
 
         batteryVoltage = hardwareMap.voltageSensor.iterator().next();
 
@@ -179,7 +182,7 @@ public class FlywheelSystem {
         }
     }
 
-    public void cycleShootingState(Gamepad gamepad) {
+    public void cycleShootingState(Gamepad gamepad, Gamepad gamepad2) {
         if (gamepad.yWasPressed()) {
             if (shooterState == ShooterState.INTAKING) {
                 shooterState = ShooterState.SHOOTING;
@@ -187,6 +190,13 @@ public class FlywheelSystem {
                 shooterState = ShooterState.INTAKING;
             }
         }
+
+        if (gamepad2.dpadUpWasPressed()) {
+            hoodPos += 0.1;
+        } else if (gamepad2.dpadDownWasPressed()) {
+            hoodPos -= 0.1;
+        }
+        hoodControl(hoodPos);
 
         if (gamepad.startWasPressed()) {
             shooterState = ShooterState.OFF;
@@ -220,6 +230,10 @@ public class FlywheelSystem {
         flywheel2.setPower(power);
     }
 
+    public void hoodControl(double position) {
+        hoodServo.setPosition(position);
+    }
+
     private void runWheelServo(double position) {
         wheelKicker.setPower(position);
     }
@@ -231,11 +245,15 @@ public class FlywheelSystem {
 
     public void setTargetTPS(double tps) { targetTPS = Math.max(0, tps); }
 
+    public double getTargetTPS() {return targetTPS;}
+
     public void setFlywheelState(ShotState state) {
         shotState = state;
     }
 
     public void setNormalTPS(double tps) { this.normalTPS = tps; }
+
+    public double getHoodPos() { return hoodPos; }
 
     public double getLastRecoveryTime() {
         return lastRecoveryTime;
