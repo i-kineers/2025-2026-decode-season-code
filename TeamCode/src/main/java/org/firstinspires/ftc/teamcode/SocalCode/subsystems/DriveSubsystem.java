@@ -1,10 +1,13 @@
-package org.firstinspires.ftc.teamcode.CodePriorILT.subsystems;
+package org.firstinspires.ftc.teamcode.SocalCode.subsystems;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.pedropathing.control.PIDFController;
 import com.pedropathing.math.MathFunctions;
 
@@ -15,24 +18,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class AutoAimWithOdometry {
+public class DriveSubsystem {
     private Follower follower;
     private boolean automatedDrive = false;
 
+    // FieldCentricDrive Components
+    private final DcMotor frontLeftMotor;
+    private final DcMotor backLeftMotor;
+    private final DcMotor frontRightMotor;
+    private final DcMotor backRightMotor;
+
+    private final InputRamper yRamper;
+    private final InputRamper xRamper;
+    private final InputRamper rxRamper;
+
     // Auto Aim
     private PIDFController headingController;
+    private double error;
+    private double angleToGoal;
     private Pose aimGoalPose = new Pose(10.527, 136.505); // Old goal pose 22, 139.091
-    private final Pose shootingGoalPose = new Pose(22, 120);
+    private final Pose shootingGoalPose = new Pose(19.5, 122.6);
     private boolean wasAutoAim = false;
+    final double SHOOTER_OFFSET = Math.toRadians(90);
 
     // Base default poses (constants)
-    private Pose CLOSE_ONE = new Pose(48, 95, Math.toRadians(135));
-    private Pose CLOSE_TWO = new Pose(100.295, 99.999, Math.toRadians(160));
-    private Pose FAR_ONE = new Pose(55.580, 11.282, Math.toRadians(110));
-    private Pose FAR_TWO = new Pose(85, 11.461, Math.toRadians(120.8));
+    private Pose CLOSE_ONE = new Pose(48, 95, Math.toRadians(225));
+    private Pose CLOSE_TWO = new Pose(100.295, 99.999, Math.toRadians(250));
+    private Pose FAR_ONE = new Pose(55.580, 11.282, Math.toRadians(200));
+    private Pose FAR_TWO = new Pose(85, 11.461, Math.toRadians(210.8));
 
     private final List<Pose> defaultTargets = new ArrayList<>();
-    
+
     // RPMs corresponding to each target
     private final double[] targetTPS = {1213, 1397, 1773, 1820}; // Last 2 values unused
     private double currentTargetTPS = 1200; // Default
@@ -42,14 +58,25 @@ public class AutoAimWithOdometry {
 
     private boolean isBlue;
 
-    public AutoAimWithOdometry(HardwareMap hardwareMap, boolean isBlueAlliance) {
+    public DriveSubsystem(HardwareMap hardwareMap, boolean isBlueAlliance) {
+        // Initialize FieldCentricDrive Motors
+        frontLeftMotor = hardwareMap.get(DcMotor.class, "flmotor");
+        backLeftMotor = hardwareMap.get(DcMotor.class, "blmotor");
+        frontRightMotor = hardwareMap.get(DcMotor.class, "frmotor");
+        backRightMotor = hardwareMap.get(DcMotor.class, "brmotor");
+
+        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        yRamper = new InputRamper();
+        xRamper = new InputRamper();
+        rxRamper = new InputRamper();
+
         follower = Constants.createFollower(hardwareMap);
         headingController = new PIDFController(follower.constants.coefficientsHeadingPIDF);
 
-        // Default starting pose if not set before init
-        startingPose = new Pose(22, 120, 135);
-        follower.setStartingPose(startingPose);
         follower.startTeleopDrive();
+        follower.update();
 
         // Check if Blue or Red alliance
         if (!isBlueAlliance) { isBlue = false; } else { isBlue = true; }
@@ -110,19 +137,33 @@ public class AutoAimWithOdometry {
         if (!automatedDrive) {
             double turnPower = turn;
 
+            double f = forward;
+            double s = strafe;
+            double t = turn;
+
             if (autoAim) {
                 if (!wasAutoAim) {
                     headingController.reset();
+                    yRamper.reset();
+                    xRamper.reset();
+                    rxRamper.reset();
                 }
-//                turnPower = autoAim();
-                turnPower = aimWhileMoving();
+                turnPower = autoAim();
+                f = forward;
+                s = strafe;
+                t = turnPower;
+            } else {
+                f = yRamper.rampInput(forward);
+                s = xRamper.rampInput(strafe);
+                t = rxRamper.rampInput(turn);
             }
+
             wasAutoAim = autoAim;
 
             if (isBlue) {
-                follower.setTeleOpDrive(forward, strafe, turnPower, false);
+                follower.setTeleOpDrive(f, s, t, false);
             } else {
-                follower.setTeleOpDrive(-forward, -strafe, turnPower, false);
+                follower.setTeleOpDrive(-f, -s, t, false);
             }
         } else {
             wasAutoAim = false;
@@ -174,10 +215,12 @@ public class AutoAimWithOdometry {
         double dx = aimGoalPose.getX() - robot.getX();
         double dy = aimGoalPose.getY() - robot.getY();
 
-        double targetHeading = MathFunctions.normalizeAngle(Math.atan2(dy, dx));
-        double currentHeading = robot.getHeading();
+        angleToGoal = Math.atan2(dy, dx);
 
-        double error = targetHeading - currentHeading;
+        double targetHeading = MathFunctions.normalizeAngle(angleToGoal + SHOOTER_OFFSET);
+
+        double currentHeading = robot.getHeading();
+        error = targetHeading - currentHeading;
 
         // Normalize error to [-π, π]
         if (error > Math.PI) {
@@ -199,70 +242,70 @@ public class AutoAimWithOdometry {
         return MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
     }
 
-    public double aimWhileMoving() {
-        Pose robot = follower.getPose();
-        Vector velocity = follower.getVelocity();
-
-        if (robot == null || velocity == null) return 0;
-
-        // Robot position
-        double rx = robot.getX();
-        double ry = robot.getY();
-
-        // Goal position
-        double gx = aimGoalPose.getX();
-        double gy = aimGoalPose.getY();
-
-        // Vector to goal
-        double dx = gx - rx;
-        double dy = gy - ry;
-
-        double distance = Math.hypot(dx, dy);
-        if (distance < 1e-6) return 0;
-
-        // Normal aim heading
-        double baseHeading = Math.atan2(dy, dx);
-
-        // Unit vector toward goal
-        double ux = dx / distance;
-        double uy = dy / distance;
-
-        // --- Extract velocity components from Vector ---
-        double speed = velocity.getMagnitude();
-        double vx = velocity.getXComponent();
-        double vy = velocity.getYComponent();
-
-        // Perpendicular (sideways) velocity relative to target
-        double vPerp = vx * (-uy) + vy * (ux);
-
-        // === TUNE THIS CONSTANT ===
-        double SHOOTER_SPEED = 50.0; // inches/sec
-
-        // Angular correction
-        double leadAngle = vPerp / SHOOTER_SPEED;
-
-        // Adjusted target heading
-        double targetHeading = baseHeading - leadAngle;
-        targetHeading = MathFunctions.normalizeAngle(targetHeading);
-
-        // Heading error
-        double error = targetHeading - robot.getHeading();
-
-        // Normalize to [-π, π]
-        while (error > Math.PI) error -= 2 * Math.PI;
-        while (error < -Math.PI) error += 2 * Math.PI;
-
-        // Deadband
-        if (Math.abs(error) < Math.toRadians(1.5)) return 0;
-
-        // Run PID
-        headingController.updateError(error);
-        double turnPower = headingController.run();
-
-        // Optional turn limiting while moving fast
-        double maxTurn = speed > 10 ? 0.25 : 0.4;
-        return MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
-    }
+//    public double aimWhileMoving() {
+//        Pose robot = follower.getPose();
+//        Vector velocity = follower.getVelocity();
+//
+//        if (robot == null || velocity == null) return 0;
+//
+//        // Robot position
+//        double rx = robot.getX();
+//        double ry = robot.getY();
+//
+//        // Goal position
+//        double gx = aimGoalPose.getX();
+//        double gy = aimGoalPose.getY();
+//
+//        // Vector to goal
+//        double dx = gx - rx;
+//        double dy = gy - ry;
+//
+//        double distance = Math.hypot(dx, dy);
+//        if (distance < 1e-6) return 0;
+//
+//        // Normal aim heading
+//        double baseHeading = Math.atan2(dy, dx);
+//
+//        // Unit vector toward goal
+//        double ux = dx / distance;
+//        double uy = dy / distance;
+//
+//        // --- Extract velocity components from Vector ---
+//        double speed = velocity.getMagnitude();
+//        double vx = velocity.getXComponent();
+//        double vy = velocity.getYComponent();
+//
+//        // Perpendicular (sideways) velocity relative to target
+//        double vPerp = vx * (-uy) + vy * (ux);
+//
+//        // === TUNE THIS CONSTANT ===
+//        double SHOOTER_SPEED = 50.0; // inches/sec
+//
+//        // Angular correction
+//        double leadAngle = vPerp / SHOOTER_SPEED;
+//
+//        // Adjusted target heading
+//        double targetHeading = baseHeading - leadAngle;
+//        targetHeading = MathFunctions.normalizeAngle(targetHeading);
+//
+//        // Heading error
+//        double error = targetHeading - robot.getHeading();
+//
+//        // Normalize to [-π, π]
+//        while (error > Math.PI) error -= 2 * Math.PI;
+//        while (error < -Math.PI) error += 2 * Math.PI;
+//
+//        // Deadband
+//        if (Math.abs(error) < Math.toRadians(1.5)) return 0;
+//
+//        // Run PID
+//        headingController.updateError(error);
+//        double turnPower = headingController.run();
+//
+//        // Optional turn limiting while moving fast
+//        double maxTurn = speed > 10 ? 0.25 : 0.4;
+//        return MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
+//    }
 
     public double shootWhileMoving() {
         return 0;
@@ -281,7 +324,10 @@ public class AutoAimWithOdometry {
     }
 
     public double newDynamicTargetTPS(double goalDist) {
-        return MathFunctions.clamp((0.0000287687 * Math.pow(goalDist, 4)) - (0.00868119 * Math.pow(goalDist, 3)) + (0.925959 * Math.pow(goalDist, 2)) - (35.75174 * goalDist) + 1592.26017, 0, 2000);
+        // Equation: y = 0.000259225x^3 - 0.0360079x^2 + 3.28688x + 1068.56046
+        double tps = (0.000259225 * Math.pow(goalDist, 3)) - (0.0360079 * Math.pow(goalDist, 2)) + (3.28688 * goalDist) + 1068.56046;
+
+        return MathFunctions.clamp(tps, 0, 2000);
     }
 
     public void setStartingPose(double x, double y, double h) {
@@ -292,14 +338,10 @@ public class AutoAimWithOdometry {
         }
     }
 
-    /**
-     * Resets all target poses based on the offset between the current robot pose
-     * and the CLOSEST default target pose.
-     */
     public void resetTargetPose() {
         if (follower.getPose() != null) {
             Pose currentPose = follower.getPose();
-            
+
             // Find the closest default target
             int closestIndex = -1;
             double minDistance = Double.MAX_VALUE;
@@ -335,7 +377,7 @@ public class AutoAimWithOdometry {
         // Robot pose
         double x0 = robot.getX();
         double y0 = robot.getY();
-        double theta = robot.getHeading();
+        double theta = robot.getHeading() + SHOOTER_OFFSET;
 
         // Direction vector from heading
         double dx = Math.cos(theta);
@@ -362,12 +404,12 @@ public class AutoAimWithOdometry {
         // Reset controller so it doesn't fight the new target
         headingController.reset();
     }
-    
+
     private Pose applyOffset(Pose base, double offX, double offY, double offH) {
         return new Pose(
-            base.getX() + offX,
-            base.getY() + offY,
-            base.getHeading() + offH
+                base.getX() + offX,
+                base.getY() + offY,
+                base.getHeading() + offH
         );
     }
 
@@ -384,6 +426,98 @@ public class AutoAimWithOdometry {
         }
     }
 
+
+
+    // --- FieldCentricDrive Logic Integration ---
+    public void driveFieldCentric(double leftStickY, double leftStickX, double rightStickX) {
+        double heading = follower.getPose().getHeading();
+
+        // Ramp joystick inputs
+        double rampedLeftStickY = yRamper.rampInput(leftStickY);
+        double rampedLeftStickX = xRamper.rampInput(leftStickX);
+        double rampedRightStickX = rxRamper.rampInput(rightStickX);
+
+        // Call the static calculation method
+        double[] powers = calculatePowers(rampedLeftStickY, rampedLeftStickX, rampedRightStickX, heading);
+
+        frontLeftMotor.setPower(powers[0]);
+        backLeftMotor.setPower(powers[1]);
+        frontRightMotor.setPower(powers[2]);
+        backRightMotor.setPower(powers[3]);
+    }
+
+    public void driveFieldCentricAutoAim(double leftStickY, double leftStickX, double turnPower) {
+        double heading = follower.getPose().getHeading();
+
+        double[] powers = calculatePowers(leftStickY, leftStickX, turnPower, heading);
+
+        frontLeftMotor.setPower(powers[0]);
+        backLeftMotor.setPower(powers[1]);
+        frontRightMotor.setPower(powers[2]);
+        backRightMotor.setPower(powers[3]);
+    }
+
+    public static double[] calculatePowers(double leftStickY, double leftStickX, double rightStickX, double botHeading) {
+        double y = -leftStickY;
+        double x = leftStickX;
+        double rx = rightStickX;
+
+        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+
+        rotX = rotX * 1.1;
+
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1.0);
+
+        return new double[]{
+                (rotY + rotX + rx) / denominator,
+                (rotY - rotX + rx) / denominator,
+                (rotY - rotX - rx) / denominator,
+                (rotY + rotX - rx) / denominator
+        };
+    }
+
+    private static class InputRamper {
+        private final double MAX_DELTA_PER_SEC = 4.0;
+        private final ElapsedTime timer = new ElapsedTime();
+
+        private double currentOutput = 0.0;
+        private final double DEADBAND = 0.05;
+
+        public double rampInput(double input) {
+            double target = Math.abs(input) > DEADBAND ? input : 0.0;
+
+            double dt = timer.seconds();
+            timer.reset();
+
+            double maxDelta = MAX_DELTA_PER_SEC * dt;
+            double delta = target - currentOutput;
+
+            if (Math.abs(delta) > maxDelta) {
+                delta = Math.signum(delta) * maxDelta;
+            }
+
+            currentOutput += delta;
+            return currentOutput;
+        }
+
+        public void reset() {
+            currentOutput = 0.0;
+            timer.reset();
+        }
+    }
+
+    // Extra Methods
+    public double getRobotX() { return follower.getPose().getX(); }
+    public double getRobotY() { return follower.getPose().getY(); }
+
+    public double getError() {
+        return error;
+    }
+
+    public double getHeading() { return follower.getHeading(); }
+    public double getGoalAngle() { return angleToGoal; }
+
     public Follower getFollower() {
         return follower;
     }
@@ -391,7 +525,7 @@ public class AutoAimWithOdometry {
     public Pose getStartingPose() {
         return startingPose;
     }
-    
+
     public double getCurrentTargetTPS() {
         return currentTargetTPS;
     }

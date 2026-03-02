@@ -90,7 +90,7 @@ public class FlywheelTeleOp extends LinearOpMode {
 //                flywheel.kD = Math.max(0, flywheel.kD - 0.0001);
 //            }
 
-            fieldCentricDrive.update(gamepad1);
+//            fieldCentricDrive.update(gamepad1);
 
             intake.runIntake(gamepad1);
             parking.update(gamepad1);

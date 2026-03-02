@@ -11,8 +11,8 @@ public class closePaths {
     private Pose lastPose = null;
 
     // Heading angles are set to favor blue
-    private double shootHeading = Math.toRadians(135);
-    private double pickUpHeading = Math.toRadians(90);
+    private double shootHeading = Math.toRadians(225);
+    private double pickUpHeading = Math.toRadians(180);
 
     private double resetHeading = Math.toRadians(180);
 
@@ -68,7 +68,7 @@ public class closePaths {
         // From shooting to intaking first rows of balls
         Path2 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl1, pickUpPose1))
-                .addParametricCallback(0.3, () -> follower.setMaxPower(0.3))
+//                .addParametricCallback(0.3, () -> follower.setMaxPower(0.3))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.8)
                 .build();
 
@@ -82,7 +82,7 @@ public class closePaths {
         // Move from shooting position to intake 2nd row of balls
         Path4 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl2, pickUpPose2))
-                .addParametricCallback(0.45, () -> follower.setMaxPower(0.3))
+//                .addParametricCallback(0.45, () -> follower.setMaxPower(0.3))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.5)
                 .build();
         // Move from intake 2nd row of balls to shooting position
@@ -95,7 +95,7 @@ public class closePaths {
         // Move from shooting position to intake 3rd row of balls
         Path6 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl3, pickUpPose3))
-                .addParametricCallback(0.25, () -> follower.setMaxPower(0.4))
+//                .addParametricCallback(0.25, () -> follower.setMaxPower(0.4))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.8)
                 .build();
         // Move from intake 3rd row of balls to shooting position

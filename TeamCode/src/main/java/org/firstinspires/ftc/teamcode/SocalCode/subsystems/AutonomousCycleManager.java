@@ -5,9 +5,8 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.SocalCode.autonomous.Paths.closePaths;
-import org.firstinspires.ftc.teamcode.SocalCode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.FlywheelSystem;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.DoubleIntake;
 

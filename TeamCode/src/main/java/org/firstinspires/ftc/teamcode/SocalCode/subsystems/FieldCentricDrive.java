@@ -45,20 +45,20 @@ public class FieldCentricDrive {
      * This should be called in the main loop.
      * @param gamepad The gamepad to read inputs from.
      */
-    public void update(Gamepad gamepad) {
-        // Standard drive controls, with turning inverted for intuitive control
-        drive(gamepad.left_stick_y, gamepad.left_stick_x, gamepad.right_stick_x);
-
-        // Handle IMU reset on 'A' button press
-        if (gamepad.a) {
-            resetIMU();
-        }
-    }
+//    public void update(Gamepad gamepad) {
+//        // Standard drive controls, with turning inverted for intuitive control
+//        drive(gamepad.left_stick_y, gamepad.left_stick_x, gamepad.right_stick_x);
+//
+//        // Handle IMU reset on 'A' button press
+//        if (gamepad.a) {
+//            resetIMU();
+//        }
+//    }
 
     /**
      * Main drive method for use with custom inputs (like auto-aim).
      */
-    public void drive(double leftStickY, double leftStickX, double rightStickX) {
+    public void drive(double leftStickY, double leftStickX, double rightStickX, Gamepad gamepad) {
         double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
         // Ramp joystick inputs
@@ -73,6 +73,30 @@ public class FieldCentricDrive {
         backLeftMotor.setPower(powers[1]);
         frontRightMotor.setPower(powers[2]);
         backRightMotor.setPower(powers[3]);
+
+        if (gamepad.a) {
+            resetIMU();
+        }
+    }
+
+    /**
+     * Special drive method for Auto-Aim.
+     * Ramps translation (Forward/Strafe) for smoothness, but passes Turn directly for PID control.
+     */
+    public void driveAutoAim(double leftStickY, double leftStickX, double turnPower, Gamepad gamepad) {
+        double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+
+        // Use raw inputs for translation (no ramping) and raw PID output for turn
+        double[] powers = calculatePowers(leftStickY, leftStickX, turnPower, heading);
+
+        frontLeftMotor.setPower(powers[0]);
+        backLeftMotor.setPower(powers[1]);
+        frontRightMotor.setPower(powers[2]);
+        backRightMotor.setPower(powers[3]);
+
+        if (gamepad.a) {
+            resetIMU();
+        }
     }
 
     /**

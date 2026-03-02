@@ -6,8 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.AutonomousCycleManager;
 
-@Autonomous(name = "Close Auto", group = "Main")
-@Disabled
+@Autonomous(name = "SOCAL Close Auto", group = "Main")
 public class dynamicClose extends OpMode {
 
     private AutonomousCycleManager autoManager;
