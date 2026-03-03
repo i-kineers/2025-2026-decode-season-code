@@ -50,6 +50,9 @@ public class MasterLogic {
         autoAimWithOdometry = new AutoAimWithOdometry(hardwareMap, isBlue);
         autoAimWithOdometry.setStartingPose(startingX,startingY,startingH);
     }
+    public void LEDLogic(){
+
+    }
     public void mainLogic(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
         autoAimWithOdometry.update();
 

@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.SocalCode.subsystems;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -16,6 +18,7 @@ public class MasterLogic {
 //    private final FlywheelSystem flywheel;
     private final DoubleIntake intake;
     private final AutoAimWithOdometry autoAimWithOdometry;
+    private final BlinkinLED blinkinLED;
 
     private double targetTPS = 1200;
 
@@ -30,6 +33,7 @@ public class MasterLogic {
 
         // Initialize all subsystems
         intake = new DoubleIntake(hardwareMap);
+        blinkinLED = new BlinkinLED(hardwareMap);
 //        flywheel = new FlywheelSystem(hardwareMap);
 
         isBlue = isBlueAlliance;
@@ -37,6 +41,10 @@ public class MasterLogic {
         // Initialize Pathing Manager with a default starting pose
         autoAimWithOdometry = new AutoAimWithOdometry(hardwareMap, isBlue);
         autoAimWithOdometry.setStartingPose(startingX,startingY,startingH);
+    }
+
+    public void runblinkinLED() {
+        blinkinLED.runLED();
     }
 
     public void mainLogic(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
