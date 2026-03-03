@@ -11,16 +11,8 @@ public class BlinkinLED {
     private DistanceSensor distanceSensor2;
     RevBlinkinLedDriver blinkinLedDriver;
     RevBlinkinLedDriver.BlinkinPattern pattern;
-    private static final double DETECTION_THRESHOLD_CM = 5.0;
-    private static final double TargetRPM = 3500;
-    private int Counter= 0;
-    public int getCurrentRPM(){
-        Counter+=100;
-        if(Counter>=5000){
-            Counter = 0;
-        }
-        return Counter;
-    }
+    private static final double DETECTION_THRESHOLD_CM = 10.0;
+
     public BlinkinLED(HardwareMap hardwareMap){
         distanceSensor = hardwareMap.get(DistanceSensor.class, "ds");
         distanceSensor2 = hardwareMap.get(DistanceSensor.class, "ds2");
@@ -30,30 +22,19 @@ public class BlinkinLED {
         double distance = distanceSensor.getDistance(DistanceUnit.CM);
         double distance2 = distanceSensor2.getDistance(DistanceUnit.CM);
 
-        // Step 3: Check if the distance is within our detection threshold
         boolean ballDetected = distance < DETECTION_THRESHOLD_CM;
         boolean ballDetected2 = distance2 < DETECTION_THRESHOLD_CM;
 
-        int CurRPM = getCurrentRPM();
+        if (ballDetected && ballDetected2) {
+            pattern = RevBlinkinLedDriver.BlinkinPattern.GREEN; // ALL BALLS DETECTED
+            blinkinLedDriver.setPattern(pattern);
 
-        if (ballDetected && ballDetected2 && CurRPM>=TargetRPM) {
+        } else if (ballDetected || ballDetected2) {
             pattern = RevBlinkinLedDriver.BlinkinPattern.DARK_BLUE;
             blinkinLedDriver.setPattern(pattern);
 
-        } else if (ballDetected && ballDetected2 && CurRPM < TargetRPM){
-            pattern = RevBlinkinLedDriver.BlinkinPattern.SKY_BLUE;
-            blinkinLedDriver.setPattern(pattern);
-
-        } else if ((ballDetected||ballDetected2) && CurRPM>=TargetRPM) {
-            pattern = RevBlinkinLedDriver.BlinkinPattern.ORANGE;
-            blinkinLedDriver.setPattern(pattern);
-
-        } else if ((ballDetected2 || ballDetected) && CurRPM<TargetRPM){
-            pattern = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
-            blinkinLedDriver.setPattern(pattern);
-
         } else {
-            pattern = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_WITH_GLITTER;
+            pattern = RevBlinkinLedDriver.BlinkinPattern.RED;
             blinkinLedDriver.setPattern(pattern);
         }
     }

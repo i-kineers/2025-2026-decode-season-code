@@ -11,17 +11,19 @@ public class MasterLogic {
     private final DriveSubsystem odometry;
     private final FlywheelSystem flywheel;
     private final DoubleIntake intake;
+    //    private final Parking parking;
+    private final BlinkinLED blinkinLED;
 
     private double targetTPS;
 
     private double goalDist;
-//    private final Parking parking;
 
     public MasterLogic(HardwareMap hardwareMap, double startingX, double startingY, double startingH, boolean isBlueAlliance) {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
         flywheel = new FlywheelSystem(hardwareMap);
         intake = new DoubleIntake(hardwareMap);
+        blinkinLED = new BlinkinLED(hardwareMap);
 //        parking = new Parking(hardwareMap);
         odometry = new DriveSubsystem(hardwareMap, isBlueAlliance);
 
@@ -29,33 +31,30 @@ public class MasterLogic {
     }
 
     public void mainLogic(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
-        // Update Localization
         odometry.update();
 
-        // Drive Controls
         odometry.drive(
-                gamepad1.left_stick_y, // Forward
-                gamepad1.left_stick_x, // Strafe
-                -gamepad1.right_stick_x, // Turn
-                gamepad1.dpad_up, gamepad1.dpad_right, gamepad1.dpad_down, gamepad1.dpad_left, // Pathing
-                gamepad1.b // Auto Aim
+                gamepad1.left_stick_y,
+                gamepad1.left_stick_x,
+                -gamepad1.right_stick_x,
+                gamepad1.dpad_up, gamepad1.dpad_right, gamepad1.dpad_down, gamepad1.dpad_left,
+                gamepad1.b
         );
 
         if (gamepad1.xWasPressed()) {
             odometry.resetAim();
         }
 
-
         goalDist = odometry.getDistanceFromGoal();
         targetTPS = odometry.newDynamicTargetTPS(goalDist);
 
-
-        // Subsystems
         intake.runIntake(gamepad1);
 //        parking.update(gamepad1);
         flywheel.cycleShootingState(gamepad1, gamepad2);
         flywheel.setTargetTPS(targetTPS);
         flywheel.update(gamepad1);
+
+        blinkinLED.runLED();
 
         updateTelemetry(telemetry);
     }

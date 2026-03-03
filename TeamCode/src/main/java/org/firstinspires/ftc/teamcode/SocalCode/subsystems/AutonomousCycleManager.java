@@ -229,13 +229,12 @@ public class AutonomousCycleManager {
             shootingInitialized = true;
         }
 
-        if (shotTimer.milliseconds() < 2500) {
-            // Flywheel is already handled by the main update() loop
+        if (shotTimer.milliseconds() < 4000) { // If timing is a problem could be this line
             runKickers = true;
             return false;
         } else {
             runKickers = false;
-            shootingInitialized = false; // Reset for the next cycle
+            shootingInitialized = false;
             return true;
         }
     }

@@ -11,9 +11,9 @@ public class closePaths {
     private Pose lastPose = null;
 
     // Heading angles are set to favor blue
+    private double startHeading = Math.toRadians(135);
     private double shootHeading = Math.toRadians(225);
     private double pickUpHeading = Math.toRadians(180);
-
     private double resetHeading = Math.toRadians(180);
 
     // Paths will be set to favor blue
@@ -62,7 +62,7 @@ public class closePaths {
         // From start to shooting
         Path1 = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
-                .setConstantHeadingInterpolation(shootHeading)
+                .setLinearHeadingInterpolation(startHeading, shootHeading, 0.5)
                 .build();
 
         // From shooting to intaking first rows of balls
