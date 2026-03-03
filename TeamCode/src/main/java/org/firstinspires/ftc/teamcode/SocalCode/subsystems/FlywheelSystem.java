@@ -29,7 +29,7 @@ public class FlywheelSystem {
     public double DANGER_THRESHOLD = 0.93;
     public double RECOVERY_SLEW = 1.0;
 
-    private double normalTPS = 1213;
+    private double normalTPS = 1150;
     private double idleTPS = 1000;
     private double hoodPos = 1;
     private double targetTPS = normalTPS;
@@ -52,6 +52,8 @@ public class FlywheelSystem {
     private ShotState shotState = ShotState.OFF;
     public enum ShooterState {OFF, SHOOTING, INTAKING}
     private ShooterState shooterState = ShooterState.INTAKING;
+
+    private boolean autoShootStarted = false;
 
     public FlywheelSystem(HardwareMap hardwareMap) {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
@@ -84,16 +86,6 @@ public class FlywheelSystem {
 
         monitorRecovery();
         handleShotLogic(finalPower, gamepad);
-    }
-
-    public void autoShootLogic() {
-        if (targetTPS <= 0) {
-            setFlywheelPower(0);
-        }
-
-        double finalPower = calculateCompensatedPower();
-
-        autoShoot(finalPower);
     }
 
     private double calculatePIDF(double target, double current) {
@@ -203,17 +195,51 @@ public class FlywheelSystem {
         }
     }
 
+    public void autoShootLogic(boolean kickers) {
+        if (targetTPS <= 0) {
+            setFlywheelPower(0);
+        }
+
+        double finalPower = calculateCompensatedPower();
+
+        autoIdleFlywheel(finalPower, kickers);
+    }
+
     public void autoShoot(double finalPower) {
         setFlywheelPower(finalPower);
-        shotTimer.reset();
-        if (shotTimer.milliseconds() > 200) {
+
+        // Only reset the timer the very first time this is called
+        if (!autoShootStarted) {
+            shotTimer.reset();
+            autoShootStarted = true;
+        }
+
+        double currentTime = shotTimer.milliseconds();
+
+        if (currentTime > 200 && currentTime <= 1600) {
             wheelKicker.setPower(-1);
             legKicker.setPosition(0);
-        } else if (shotTimer.milliseconds() > 1600) {
-            setFlywheelPower(0);
+        } else if (currentTime > 1600) {
             wheelKicker.setPower(0);
             legKicker.setPosition(1);
+            autoShootStarted = false; // Reset the flag for the next shot
         }
+    }
+
+    public void autoIdleFlywheel(double finalPower, boolean runKickers) {
+        setFlywheelPower(finalPower);
+
+        if (runKickers) {
+            wheelKicker.setPower(-1);
+            legKicker.setPosition(0);
+        } else {
+            legKicker.setPosition(1);
+            wheelKicker.setPower(1);
+        }
+    }
+
+    public void setKickerState(boolean on) {
+
     }
 
     public void sleep(long milli) {
