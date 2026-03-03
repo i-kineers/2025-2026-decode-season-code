@@ -241,76 +241,9 @@ public class DriveSubsystem {
         double maxTurn = Math.abs(error) < Math.toRadians(10) ? 0.2 : 0.4;
         return MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
     }
-
-//    public double aimWhileMoving() {
-//        Pose robot = follower.getPose();
-//        Vector velocity = follower.getVelocity();
-//
-//        if (robot == null || velocity == null) return 0;
-//
-//        // Robot position
-//        double rx = robot.getX();
-//        double ry = robot.getY();
-//
-//        // Goal position
-//        double gx = aimGoalPose.getX();
-//        double gy = aimGoalPose.getY();
-//
-//        // Vector to goal
-//        double dx = gx - rx;
-//        double dy = gy - ry;
-//
-//        double distance = Math.hypot(dx, dy);
-//        if (distance < 1e-6) return 0;
-//
-//        // Normal aim heading
-//        double baseHeading = Math.atan2(dy, dx);
-//
-//        // Unit vector toward goal
-//        double ux = dx / distance;
-//        double uy = dy / distance;
-//
-//        // --- Extract velocity components from Vector ---
-//        double speed = velocity.getMagnitude();
-//        double vx = velocity.getXComponent();
-//        double vy = velocity.getYComponent();
-//
-//        // Perpendicular (sideways) velocity relative to target
-//        double vPerp = vx * (-uy) + vy * (ux);
-//
-//        // === TUNE THIS CONSTANT ===
-//        double SHOOTER_SPEED = 50.0; // inches/sec
-//
-//        // Angular correction
-//        double leadAngle = vPerp / SHOOTER_SPEED;
-//
-//        // Adjusted target heading
-//        double targetHeading = baseHeading - leadAngle;
-//        targetHeading = MathFunctions.normalizeAngle(targetHeading);
-//
-//        // Heading error
-//        double error = targetHeading - robot.getHeading();
-//
-//        // Normalize to [-π, π]
-//        while (error > Math.PI) error -= 2 * Math.PI;
-//        while (error < -Math.PI) error += 2 * Math.PI;
-//
-//        // Deadband
-//        if (Math.abs(error) < Math.toRadians(1.5)) return 0;
-//
-//        // Run PID
-//        headingController.updateError(error);
-//        double turnPower = headingController.run();
-//
-//        // Optional turn limiting while moving fast
-//        double maxTurn = speed > 10 ? 0.25 : 0.4;
-//        return MathFunctions.clamp(turnPower, -maxTurn, maxTurn);
-//    }
-
     public double shootWhileMoving() {
         return 0;
     }
-
 
     public double getDistanceFromGoal() {
         double robotPoseX = follower.getPose().getX();
@@ -325,9 +258,11 @@ public class DriveSubsystem {
 
     public double newDynamicTargetTPS(double goalDist) {
         // Equation: y = 0.000259225x^3 - 0.0360079x^2 + 3.28688x + 1068.56046
-        double tps = (0.000259225 * Math.pow(goalDist, 3)) - (0.0360079 * Math.pow(goalDist, 2)) + (3.28688 * goalDist) + 1068.56046;
+        double tps = (0.0321054 * Math.pow(goalDist, 2))
+                - (1.81427 * goalDist)
+                + 1175.51578;
 
-        return MathFunctions.clamp(tps, 0, 2000);
+        return MathFunctions.clamp(tps, 0, 1500);
     }
 
     public void setStartingPose(double x, double y, double h) {
@@ -424,57 +359,6 @@ public class DriveSubsystem {
                 follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), 0));
             }
         }
-    }
-
-
-
-    // --- FieldCentricDrive Logic Integration ---
-    public void driveFieldCentric(double leftStickY, double leftStickX, double rightStickX) {
-        double heading = follower.getPose().getHeading();
-
-        // Ramp joystick inputs
-        double rampedLeftStickY = yRamper.rampInput(leftStickY);
-        double rampedLeftStickX = xRamper.rampInput(leftStickX);
-        double rampedRightStickX = rxRamper.rampInput(rightStickX);
-
-        // Call the static calculation method
-        double[] powers = calculatePowers(rampedLeftStickY, rampedLeftStickX, rampedRightStickX, heading);
-
-        frontLeftMotor.setPower(powers[0]);
-        backLeftMotor.setPower(powers[1]);
-        frontRightMotor.setPower(powers[2]);
-        backRightMotor.setPower(powers[3]);
-    }
-
-    public void driveFieldCentricAutoAim(double leftStickY, double leftStickX, double turnPower) {
-        double heading = follower.getPose().getHeading();
-
-        double[] powers = calculatePowers(leftStickY, leftStickX, turnPower, heading);
-
-        frontLeftMotor.setPower(powers[0]);
-        backLeftMotor.setPower(powers[1]);
-        frontRightMotor.setPower(powers[2]);
-        backRightMotor.setPower(powers[3]);
-    }
-
-    public static double[] calculatePowers(double leftStickY, double leftStickX, double rightStickX, double botHeading) {
-        double y = -leftStickY;
-        double x = leftStickX;
-        double rx = rightStickX;
-
-        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
-
-        rotX = rotX * 1.1;
-
-        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1.0);
-
-        return new double[]{
-                (rotY + rotX + rx) / denominator,
-                (rotY - rotX + rx) / denominator,
-                (rotY - rotX - rx) / denominator,
-                (rotY + rotX - rx) / denominator
-        };
     }
 
     private static class InputRamper {

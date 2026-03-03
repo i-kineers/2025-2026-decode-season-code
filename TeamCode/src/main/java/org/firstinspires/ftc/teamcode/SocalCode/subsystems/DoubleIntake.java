@@ -69,11 +69,11 @@ public class DoubleIntake {
                 return false;
 
             case SHOOTING:
-                if (autoTimer.milliseconds() < 800) {
+                if (autoTimer.milliseconds() < 2000) {
                     setLeftIntake(1);
                     setRightIntake(0);
                     return false;
-                } else if (autoTimer.milliseconds() < 1600) {
+                } else if (autoTimer.milliseconds() < 4000) {
                     setLeftIntake(0);
                     setRightIntake(1);
                     return false;

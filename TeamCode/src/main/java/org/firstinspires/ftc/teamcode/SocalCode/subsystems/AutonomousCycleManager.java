@@ -50,6 +50,8 @@ public class AutonomousCycleManager {
     private Pose blueStartPose = new Pose(22,120, Math.toRadians(135));
     private Pose redStartPose = new Pose(122, 120, Math.toRadians(45));
 
+    private static boolean runKickers = false;
+
 
     public AutonomousCycleManager(HardwareMap hardwareMap, boolean isBlueSide) {
         isBlue = isBlueSide;
@@ -88,6 +90,7 @@ public class AutonomousCycleManager {
      */
     public void update() {
         follower.update();
+        flywheelSystem.autoShootLogic(runKickers);
         intake.autoIntakeOn(isBlue);
         cycleRoutine();
     }
@@ -226,10 +229,12 @@ public class AutonomousCycleManager {
             shootingInitialized = true;
         }
 
-        if (shotTimer.milliseconds() < 2000) {
-            flywheelSystem.autoShootLogic();
+        if (shotTimer.milliseconds() < 2500) {
+            // Flywheel is already handled by the main update() loop
+            runKickers = true;
             return false;
         } else {
+            runKickers = false;
             shootingInitialized = false; // Reset for the next cycle
             return true;
         }

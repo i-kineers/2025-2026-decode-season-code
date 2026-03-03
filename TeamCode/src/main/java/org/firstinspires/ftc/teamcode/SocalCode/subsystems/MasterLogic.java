@@ -41,6 +41,10 @@ public class MasterLogic {
                 gamepad1.b // Auto Aim
         );
 
+        if (gamepad1.xWasPressed()) {
+            odometry.resetAim();
+        }
+
 
         goalDist = odometry.getDistanceFromGoal();
         targetTPS = odometry.newDynamicTargetTPS(goalDist);
