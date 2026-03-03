@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.MasterLogic;
 
 @TeleOp(name = "Blue Far TeleOp", group = "Main")
+@Disabled
 public class blueFarTeleop extends OpMode {
 
     private MasterLogic master;
@@ -13,7 +15,7 @@ public class blueFarTeleop extends OpMode {
     public void init() {
         // Initialize the logic master
         // Starting pose from testFarBlue: (52.969, 11.151, 110 degrees)
-        master = new MasterLogic(hardwareMap, 33.454,11.151, 90, true);
+        master = new MasterLogic(hardwareMap, 36.039,14.079, 90, true);
 
         telemetry.addLine("Blue Far TeleOp Initialized.");
         telemetry.update();

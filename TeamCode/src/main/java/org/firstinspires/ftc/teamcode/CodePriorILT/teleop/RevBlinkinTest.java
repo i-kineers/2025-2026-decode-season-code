@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.LEDControl;
 
 @TeleOp(name = "REV Blinkin LED Test", group = "Test")
+@Disabled
 public class RevBlinkinTest extends OpMode {
 
    LEDControl LED = new LEDControl();

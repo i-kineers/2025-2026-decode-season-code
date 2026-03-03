@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.MasterLogic;
 
 @TeleOp(name = "Main TeleOp", group = "Main")
-@Disabled
 public class MainTeleOp extends OpMode {
 
     private MasterLogic master;
@@ -42,9 +41,9 @@ public class MainTeleOp extends OpMode {
     public void start() {
         // Now master is initialized with the final selection from init_loop
         if (allianceBlue) {
-            master = new MasterLogic(hardwareMap, 22, 120, 135, allianceBlue);
+            master = new MasterLogic(hardwareMap, 19.5, 122.6, 135, allianceBlue);
         } else if (!allianceBlue) {
-            master = new MasterLogic(hardwareMap, 122, 120, 45, allianceBlue);
+            master = new MasterLogic(hardwareMap, 19.5, 122.6, 135, allianceBlue);
         }
     }
 

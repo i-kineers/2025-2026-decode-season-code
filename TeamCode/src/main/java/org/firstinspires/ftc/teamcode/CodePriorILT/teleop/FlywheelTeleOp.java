@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -8,6 +9,7 @@ import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.DoubleMotorOuttake
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.FlywheelSystem;
 
 @TeleOp(name = "Flywheel TeleOp (Panels + PIDF Tuning)")
+@Disabled
 public class FlywheelTeleOp extends LinearOpMode {
 
     private FlywheelSystem flywheel;

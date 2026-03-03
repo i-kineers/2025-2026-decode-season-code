@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
 
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TeleOp(name = "Production Flywheel System with shot awareness")
+@Disabled
 public class ProdFlywheelPIDWithShotAwareness extends LinearOpMode {
     private PanelsTelemetry panelsTelemetry;
 

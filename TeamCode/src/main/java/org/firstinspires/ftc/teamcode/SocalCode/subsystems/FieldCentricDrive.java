@@ -31,8 +31,8 @@ public class FieldCentricDrive {
 
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.BACKWARD,
-                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
+                RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
+                RevHubOrientationOnRobot.UsbFacingDirection.UP));
         imu.initialize(parameters);
 
         yRamper = new InputRamper();
@@ -41,16 +41,24 @@ public class FieldCentricDrive {
     }
 
     /**
-     * Convenience method for simple teleop control.
+     * Handles all teleop drive logic from a gamepad, including IMU reset.
+     * This should be called in the main loop.
+     * @param gamepad The gamepad to read inputs from.
      */
-    public void drive(Gamepad gamepad) {
-        drive(gamepad.left_stick_y, gamepad.left_stick_x, gamepad.right_stick_x);
-    }
+//    public void update(Gamepad gamepad) {
+//        // Standard drive controls, with turning inverted for intuitive control
+//        drive(gamepad.left_stick_y, gamepad.left_stick_x, gamepad.right_stick_x);
+//
+//        // Handle IMU reset on 'A' button press
+//        if (gamepad.a) {
+//            resetIMU();
+//        }
+//    }
 
     /**
      * Main drive method for use with custom inputs (like auto-aim).
      */
-    public void drive(double leftStickY, double leftStickX, double rightStickX) {
+    public void drive(double leftStickY, double leftStickX, double rightStickX, Gamepad gamepad) {
         double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
         // Ramp joystick inputs
@@ -65,6 +73,30 @@ public class FieldCentricDrive {
         backLeftMotor.setPower(powers[1]);
         frontRightMotor.setPower(powers[2]);
         backRightMotor.setPower(powers[3]);
+
+        if (gamepad.a) {
+            resetIMU();
+        }
+    }
+
+    /**
+     * Special drive method for Auto-Aim.
+     * Ramps translation (Forward/Strafe) for smoothness, but passes Turn directly for PID control.
+     */
+    public void driveAutoAim(double leftStickY, double leftStickX, double turnPower, Gamepad gamepad) {
+        double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+
+        // Use raw inputs for translation (no ramping) and raw PID output for turn
+        double[] powers = calculatePowers(leftStickY, leftStickX, turnPower, heading);
+
+        frontLeftMotor.setPower(powers[0]);
+        backLeftMotor.setPower(powers[1]);
+        frontRightMotor.setPower(powers[2]);
+        backRightMotor.setPower(powers[3]);
+
+        if (gamepad.a) {
+            resetIMU();
+        }
     }
 
     /**
@@ -75,7 +107,7 @@ public class FieldCentricDrive {
     public static double[] calculatePowers(double leftStickY, double leftStickX, double rightStickX, double botHeading) {
         double y = -leftStickY;
         double x = leftStickX;
-        double rx = rightStickX * 0.4;
+        double rx = rightStickX;
 
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
@@ -100,52 +132,32 @@ public class FieldCentricDrive {
      * Inner class to handle joystick input ramping for smoother acceleration and deceleration.
      */
     private static class InputRamper {
-        private final double MIN_MULTIPLIER = 0.4;
-        private final double MAX_MULTIPLIER = 1.0;
-        private final double RAMP_RATE = 0.22;
-        private final double TIME_INCREMENT_MS = 200.0;
-        private final double RAMP_PER_MS = RAMP_RATE / TIME_INCREMENT_MS;
+        private final double MAX_DELTA_PER_SEC = 4.0;
+        private final ElapsedTime timer = new ElapsedTime();
 
-        private final ElapsedTime rampTimer = new ElapsedTime();
-        private double currentMultiplier = MIN_MULTIPLIER;
-        private double previousInput = 0.0;
-        private final double DEADBAND = 0.1;
-
-        public InputRamper() {
-            rampTimer.reset();
-        }
+        private double currentOutput = 0.0;
+        private final double DEADBAND = 0.05;
 
         public double rampInput(double input) {
-            double raw = Math.abs(input) > DEADBAND ? input : 0.0;
+            double target = Math.abs(input) > DEADBAND ? input : 0.0;
 
-            double elapsedMs = rampTimer.milliseconds();
-            if (elapsedMs <= 0.0) {
-                previousInput = raw;
-                return raw * currentMultiplier;
+            double dt = timer.seconds();
+            timer.reset();
+
+            double maxDelta = MAX_DELTA_PER_SEC * dt;
+            double delta = target - currentOutput;
+
+            if (Math.abs(delta) > maxDelta) {
+                delta = Math.signum(delta) * maxDelta;
             }
 
-            if (previousInput != 0.0 && raw != 0.0 && Math.signum(previousInput) != Math.signum(raw)) {
-                currentMultiplier = MIN_MULTIPLIER;
-            }
-
-            if (raw != 0.0) {
-                currentMultiplier += RAMP_PER_MS * elapsedMs;
-            } else {
-                currentMultiplier -= RAMP_PER_MS * elapsedMs;
-            }
-
-            currentMultiplier = Math.max(MIN_MULTIPLIER, Math.min(currentMultiplier, MAX_MULTIPLIER));
-
-            rampTimer.reset();
-            previousInput = raw;
-
-            return raw == 0.0 ? 0.0 : raw * currentMultiplier;
+            currentOutput += delta;
+            return currentOutput;
         }
 
         public void reset() {
-            currentMultiplier = MIN_MULTIPLIER;
-            previousInput = 0.0;
-            rampTimer.reset();
+            currentOutput = 0.0;
+            timer.reset();
         }
     }
 }

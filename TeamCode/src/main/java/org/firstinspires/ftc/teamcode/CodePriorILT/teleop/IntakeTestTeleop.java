@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.Intake;
 @TeleOp(name = "Intake Test Teleop")
+@Disabled
 public class IntakeTestTeleop extends OpMode {
     Intake intake;
     private double power = 0;

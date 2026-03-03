@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.Chassis;
 
 @TeleOp(name = "Dummy Chassis Drive")
+@Disabled
 public class DummyChassisDrive extends LinearOpMode {
     private Chassis chassis;
 
