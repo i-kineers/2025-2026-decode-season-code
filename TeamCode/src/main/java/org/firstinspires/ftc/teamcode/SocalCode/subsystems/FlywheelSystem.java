@@ -30,7 +30,7 @@ public class FlywheelSystem {
     public double RECOVERY_SLEW = 1.0;
 
     private double normalTPS = 1100;
-    private double idleTPS = 1000;
+    private double idleTPS = 1100;
     private double hoodPos = 1;
     private double targetTPS = normalTPS;
 
@@ -157,7 +157,7 @@ public class FlywheelSystem {
                 wheelKicker.setPower(0);
                 break;
             case INTAKING:
-                setFlywheelPower(finalPower);
+                setFlywheelPower(idleTPS);
                 if (gamepad.right_trigger > 0.5 || gamepad.left_trigger > 0.5) {
                     wheelKicker.setPower(1);
                     legKicker.setPosition(1);
@@ -297,4 +297,6 @@ public class FlywheelSystem {
     public ShotState getShotState() {
         return shotState;
     }
+
+    public ShooterState getShooterState() { return shooterState; }
 }

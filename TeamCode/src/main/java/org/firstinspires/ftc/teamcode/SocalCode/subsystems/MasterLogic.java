@@ -48,6 +48,10 @@ public class MasterLogic {
         goalDist = odometry.getDistanceFromGoal();
         targetTPS = odometry.newDynamicTargetTPS(goalDist);
 
+        if (gamepad1.aWasPressed()) {
+            odometry.resetRobotPos();
+        }
+
         intake.runIntake(gamepad1);
 //        parking.update(gamepad1);
         flywheel.cycleShootingState(gamepad1, gamepad2);
@@ -61,7 +65,7 @@ public class MasterLogic {
 
     private void updateTelemetry(Telemetry telemetry) {
         telemetry.addData("Mode", "MANUAL (Field Centric)");
-        telemetry.addData("Shooter State", flywheel.getShotState());
+        telemetry.addData("Shooter State", flywheel.getShooterState());
         telemetry.addData("Flywheel Velocity", flywheel.getVelocity());
         telemetry.addData("Target Heading", Math.toDegrees(odometry.getGoalAngle()));
         telemetry.addData("Current Heading", Math.toDegrees(odometry.getHeading()));

@@ -340,6 +340,20 @@ public class DriveSubsystem {
         headingController.reset();
     }
 
+    public void resetRobotPos() {
+        double x = 136.296;
+        double y = 6.788;
+        double heading = Math.toRadians(180);
+
+        if (!isBlue) {
+            // Reflect across the center line x = 72
+            x = 144 - x;
+            heading = Math.toRadians(0);
+        }
+
+        follower.setPose(new Pose(x, y, heading));
+    }
+
     private Pose applyOffset(Pose base, double offX, double offY, double offH) {
         return new Pose(
                 base.getX() + offX,
