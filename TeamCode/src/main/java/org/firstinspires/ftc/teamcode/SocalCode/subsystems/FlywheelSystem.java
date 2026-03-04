@@ -29,7 +29,7 @@ public class FlywheelSystem {
     public double DANGER_THRESHOLD = 0.93;
     public double RECOVERY_SLEW = 1.0;
 
-    private double normalTPS = 1150;
+    private double normalTPS = 1100;
     private double idleTPS = 1000;
     private double hoodPos = 1;
     private double targetTPS = normalTPS;
@@ -158,8 +158,13 @@ public class FlywheelSystem {
                 break;
             case INTAKING:
                 setFlywheelPower(finalPower);
-                legKicker.setPosition(1);
-                wheelKicker.setPower(1);
+                if (gamepad.right_trigger > 0.5 || gamepad.left_trigger > 0.5) {
+                    wheelKicker.setPower(1);
+                    legKicker.setPosition(1);
+                } else {
+                    wheelKicker.setPower(0);
+                    legKicker.setPosition(1);
+                }
                 break;
             case SHOOTING:
                 setFlywheelPower(finalPower);

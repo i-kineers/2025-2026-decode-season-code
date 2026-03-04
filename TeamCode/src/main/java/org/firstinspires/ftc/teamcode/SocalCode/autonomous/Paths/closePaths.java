@@ -17,7 +17,7 @@ public class closePaths {
     private double resetHeading = Math.toRadians(180);
 
     // Paths will be set to favor blue
-    private Pose startPose = new Pose(22, 120);
+    private Pose startPose = new Pose(19.5, 122.6);
     private Pose shootPose = new Pose(48,95);
     private Pose homePose = new Pose(58, 112);
     private Pose gatePose = new Pose(16, 70);
@@ -95,7 +95,7 @@ public class closePaths {
         // Move from shooting position to intake 3rd row of balls
         Path6 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl3, pickUpPose3))
-                .addParametricCallback(0.25, () -> follower.setMaxPower(0.4))
+                .addParametricCallback(0.2, () -> follower.setMaxPower(0.5))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.8)
                 .build();
         // Move from intake 3rd row of balls to shooting position

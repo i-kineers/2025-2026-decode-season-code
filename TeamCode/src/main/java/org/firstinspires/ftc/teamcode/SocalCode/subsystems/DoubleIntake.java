@@ -69,15 +69,15 @@ public class DoubleIntake {
                 return false;
 
             case SHOOTING: // ADJUST TIMING ACCORDINGLY... BE MINDFUL OF TIME USED SHOOTING!
-                if (autoTimer.milliseconds() < 1500) {
+                if (autoTimer.milliseconds() < 1000) {
                     setLeftIntake(1);
                     setRightIntake(0);
                     return false;
-                } else if (autoTimer.milliseconds() < 3000) {
+                } else if (autoTimer.milliseconds() < 2000) {
                     setLeftIntake(0);
                     setRightIntake(1);
                     return false;
-                } else if (autoTimer.milliseconds() < 4000) {
+                } else if (autoTimer.milliseconds() < 2500) {
                     setLeftIntake(1);
                     setRightIntake(1);
                 } else {

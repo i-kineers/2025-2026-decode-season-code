@@ -196,6 +196,7 @@ public class AutonomousCycleManager {
             case PARKING:
                 if (!follower.isBusy()) {
                     currentState = GeneralStates.DONE; // Final state
+                    flywheelSystem.setTargetTPS(0);
                 }
                 break;
 
@@ -229,7 +230,7 @@ public class AutonomousCycleManager {
             shootingInitialized = true;
         }
 
-        if (shotTimer.milliseconds() < 4000) { // If timing is a problem could be this line
+        if (shotTimer.milliseconds() < 2500) { // If timing is a problem could be this line
             runKickers = true;
             return false;
         } else {

@@ -11,7 +11,7 @@ public class BlinkinLED {
     private DistanceSensor distanceSensor2;
     RevBlinkinLedDriver blinkinLedDriver;
     RevBlinkinLedDriver.BlinkinPattern pattern;
-    private static final double DETECTION_THRESHOLD_CM = 10.0;
+    private static final double DETECTION_THRESHOLD_CM = 13.0;
 
     public BlinkinLED(HardwareMap hardwareMap){
         distanceSensor = hardwareMap.get(DistanceSensor.class, "ds");
