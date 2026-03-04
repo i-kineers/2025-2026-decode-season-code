@@ -6,13 +6,13 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 
-public class closePaths {
+public class farPaths {
 
     private Pose lastPose = null;
 
     // Heading angles are set to favor blue
-    private double shootHeading = Math.toRadians(225);
-    private double pickUpHeading = Math.toRadians(180);
+    private double shootHeading = Math.toRadians(135);
+    private double pickUpHeading = Math.toRadians(90);
 
     private double resetHeading = Math.toRadians(180);
 
@@ -38,7 +38,7 @@ public class closePaths {
     // PathChain member variables, to be initialized in the constructor
     public PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9, Path10;
 
-    public closePaths(Follower follower, boolean teamColor) {
+    public farPaths(Follower follower, boolean teamColor) {
 
         // Check if team color is red to reverse coordinates
         if (!teamColor) {
@@ -68,7 +68,7 @@ public class closePaths {
         // From shooting to intaking first rows of balls
         Path2 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl1, pickUpPose1))
-                .addParametricCallback(0.3, () -> follower.setMaxPower(0.5))
+                .addParametricCallback(0.3, () -> follower.setMaxPower(0.3))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.8)
                 .build();
 
@@ -82,7 +82,7 @@ public class closePaths {
         // Move from shooting position to intake 2nd row of balls
         Path4 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl2, pickUpPose2))
-                .addParametricCallback(0.45, () -> follower.setMaxPower(0.5))
+                .addParametricCallback(0.45, () -> follower.setMaxPower(0.3))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.5)
                 .build();
         // Move from intake 2nd row of balls to shooting position

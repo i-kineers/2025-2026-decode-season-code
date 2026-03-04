@@ -1,15 +1,16 @@
-package org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.AutoOpMode;
+package org.firstinspires.ftc.teamcode.SocalCode.autonomous.AutoOpMode;
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import org.firstinspires.ftc.teamcode.SocalCode.subsystems.AutonomousCycleManager;
 
-import org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.AutoLogicControl.CloseAutonomousCycleManager;
+@Autonomous(name = "Far Auto", group = "Main")
+@Disabled
+public class dynamicFar extends OpMode {
 
-@Autonomous(name = "Close Auto", group = "Main")
-public class dynamicClose extends OpMode {
-
-    private CloseAutonomousCycleManager autoManager;
+    private AutonomousCycleManager autoManager;
 
     // UI variables for path selection
     private boolean[] toggles = {false, false, false, false};
@@ -43,11 +44,11 @@ public class dynamicClose extends OpMode {
         telemetry.addLine();
 
         // Intake Path Selection
-        for (int i = 0; i < 4; i++) { // Changed 3 to 4
+        for (int i = 0; i < 4; i++) {
             String arrow = (i == cursor) ? ">" : " ";
             String state = toggles[i] ? "ON" : "off";
-            String label = (i < 3) ? " Intake " + (i + 1) : " Open Gate"; // Added gate label
-            telemetry.addData(arrow + label, state); // Changed "Intake" to label
+            String label = (i < 3) ? " Intake " + (i + 1) : " Open Gate";
+            telemetry.addData(arrow + label, state);
         }
         telemetry.update();
 
@@ -60,11 +61,11 @@ public class dynamicClose extends OpMode {
 
         // Move cursor up
         if (gamepad1.dpad_up && !upPrev) {
-            cursor = (cursor - 1 + 4) % 4; // Changed 3 to 4
+            cursor = (cursor - 1 + 4) % 4;
         }
         // Move cursor down
         if (gamepad1.dpad_down && !downPrev) {
-            cursor = (cursor + 1) % 4; // Changed 3 to 4
+            cursor = (cursor + 1) % 4;
         }
         // Toggle current intake path
         if (gamepad1.a && !aPrev) {
@@ -80,7 +81,7 @@ public class dynamicClose extends OpMode {
 
     @Override
     public void start() {
-        autoManager = new CloseAutonomousCycleManager(hardwareMap, isBlueAlliance);
+        autoManager = new AutonomousCycleManager(hardwareMap, isBlueAlliance);
         autoManager.setCycles(toggles[0], toggles[1], toggles[2], toggles[3]);
     }
 

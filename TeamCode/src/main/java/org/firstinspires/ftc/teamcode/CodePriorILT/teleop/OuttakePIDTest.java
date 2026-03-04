@@ -1,12 +1,14 @@
 package org.firstinspires.ftc.teamcode.CodePriorILT.teleop;
 
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.DoubleMotorOuttakePID;
 
 @TeleOp(name = "Find Ideal RPM")
+@Disabled
 public class OuttakePIDTest extends LinearOpMode {
     private DoubleMotorOuttakePID outtake;
     private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;

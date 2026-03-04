@@ -4,109 +4,113 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.teamcode.SocalCode.subsystems.DoubleIntake;
+import org.firstinspires.ftc.teamcode.SocalCode.subsystems.FieldCentricDrive;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.FlywheelSystem;
+import org.firstinspires.ftc.teamcode.SocalCode.subsystems.Parking;
 
 @TeleOp(name = "Flywheel TeleOp (Panels + PIDF Tuning)")
-@Disabled
 public class FlywheelTeleOp extends LinearOpMode {
 
     private FlywheelSystem flywheel;
+    private DoubleIntake intake;
+    private Parking parking;
+    private FieldCentricDrive fieldCentricDrive;
     private final PanelsTelemetry panelsTelemetry = PanelsTelemetry.INSTANCE;
 
-    private double targetTPS;
+    boolean stop = false;
 
-    private boolean servoOn;
+    private double targetTPS;
+    private double LOW_TARGET_TPS;
+    private double HIGH_TARGET_TPS;
 
     @Override
     public void runOpMode() {
 
         flywheel = new FlywheelSystem(hardwareMap);
+        intake = new DoubleIntake(hardwareMap);
+        parking = new Parking(hardwareMap);
+        fieldCentricDrive = new FieldCentricDrive(hardwareMap);
         targetTPS = flywheel.LOW_TARGET_TPS;
+        LOW_TARGET_TPS = 1213;
+        HIGH_TARGET_TPS = 1500;
+        flywheel.setTargetTPS(targetTPS);
 
-        telemetry.addData("Status", "Initialized and Ready");
-        telemetry.addData(">", "Connect to Panels dashboard");
-        telemetry.addData(">", "DPad Up/Down = Target TPS");
-        telemetry.addData(">", "RB = Start | LB = Stop");
-        telemetry.addData(">", "X/Y = P +/- | DPad L/R = I +/- | DPad U/D = D +/-");
+        telemetry.addData("Status", "Initialized");
         telemetry.update();
 
         waitForStart();
 
         while (opModeIsActive()) {
-
-            /* ===================== INPUT ===================== */
-
-            // --- Target selection ---
             if (gamepad1.dpadUpWasPressed()) {
-                targetTPS = 1400;
+                targetTPS += 10;
                 flywheel.setTargetTPS(targetTPS);
-            } else if (gamepad1.dpadDownWasPressed()) {
-                targetTPS = 1260;
+            }
+            else if (gamepad1.dpadDownWasPressed()) {
+                targetTPS = Math.max(0, targetTPS - 10);
                 flywheel.setTargetTPS(targetTPS);
             }
 
-            if (gamepad1.leftBumperWasPressed()) {
-                if (!servoOn) {
-                    servoOn = true;
-//                    flywheel.runLoader();
-                } else {
-                    servoOn = false;
-//                    flywheel.stopLoader();
-                }
+            if (gamepad1.aWasPressed()) {
+                targetTPS = LOW_TARGET_TPS;
+                flywheel.setTargetTPS(targetTPS);
+            }
+            else if (gamepad1.bWasPressed()) {
+                targetTPS = HIGH_TARGET_TPS;
+                flywheel.setTargetTPS(targetTPS);
             }
 
-            // --- Firing control ---
             if (gamepad1.rightBumperWasPressed()) {
-                targetTPS = 0;
-                flywheel.setTargetTPS(targetTPS);
+                flywheel.setTargetTPS(0);
+//                if (!stop) { stop = true; }
+//                else { stop = false; }
             }
 
-            // --- PIDF Tuning ---
-            // P tuning
-            if (gamepad1.xWasPressed()) {
-                flywheel.kP += 0.0001;
-            } else if (gamepad1.yWasPressed()) {
-                flywheel.kP = Math.max(0, flywheel.kP - 0.0001);
-            }
+//            if (gamepad1.xWasPressed()) {
+//                flywheel.kP += 0.0001;
+//            }
+//            else if (gamepad1.bWasPressed()) {
+//                flywheel.kP = Math.max(0, flywheel.kP - 0.0001);
+//            }
 
-            // I tuning (Left/Right DPad)
             if (gamepad1.dpadRightWasPressed()) {
-                flywheel.kD += 0.00001;
-            } else if (gamepad1.dpadLeftWasPressed()) {
-                flywheel.kD = Math.max(0, flywheel.kI - 0.00001);
+                flywheel.kP += 0.0001;
+//                flywheel.kI += 0.00001;
+            }
+            else if (gamepad1.dpadLeftWasPressed()) {
+                flywheel.kP = Math.max(0, flywheel.kP - 0.0001);
+//                flywheel.kI = Math.max(0, flywheel.kI - 0.00001);
             }
 
-            // D tuning (Up/Down DPad)
-            if (gamepad1.dpadUpWasPressed()) {
-                flywheel.kD += 0.0001;
-            } else if (gamepad1.dpadDownWasPressed()) {
-                flywheel.kD = Math.max(0, flywheel.kD - 0.0001);
-            }
+//            if (gamepad1.leftBumperWasPressed()) {
+//                flywheel.kD += 0.0001;
+//            }
+//
+//            if (gamepad1.startWasPressed()) {
+//                flywheel.kD = Math.max(0, flywheel.kD - 0.0001);
+//            }
 
-            // F tuning (bumpers)
-            if (gamepad1.right_trigger > 0.5) {
-                flywheel.kF_HIGH += 0.00001;
-            } else if (gamepad1.left_trigger > 0.5) {
-                flywheel.kF_HIGH = Math.max(0, flywheel.kF_HIGH - 0.00001);
-            }
+//            fieldCentricDrive.update(gamepad1);
 
-            /* ===================== UPDATE ===================== */
-            flywheel.update();
+            intake.runIntake(gamepad1);
+            parking.update(gamepad1);
 
-            /* ===================== PANELS TELEMETRY ===================== */
+//            if (!stop) {
+//            flywheel.cycleShootingState(gamepad1);
+            flywheel.update(gamepad1);
+//            } else if (stop) {
+//                flywheel.setFlywheelPower(0);
+//            }
+
             panelsTelemetry.getTelemetry().addData("Target TPS", targetTPS);
             panelsTelemetry.getTelemetry().addData("Current TPS", flywheel.getVelocity());
-            panelsTelemetry.getTelemetry().addData("Shot State", flywheel.getShotState());
+            panelsTelemetry.getTelemetry().addData("Shooter State", flywheel.getShotState());
             panelsTelemetry.getTelemetry().addData("Last Recovery (ms)", flywheel.getLastRecoveryTime());
-            panelsTelemetry.getTelemetry().addData("Shots Fired", flywheel.getRecoveryLog().size());
-            panelsTelemetry.getTelemetry().addData("Danger Threshold", flywheel.DANGER_THRESHOLD);
-
-            // PIDF values
             panelsTelemetry.getTelemetry().addData("kP", flywheel.kP);
+            panelsTelemetry.getTelemetry().addData("stop", stop);
             panelsTelemetry.getTelemetry().addData("kI", flywheel.kI);
             panelsTelemetry.getTelemetry().addData("kD", flywheel.kD);
             panelsTelemetry.getTelemetry().addData("kF_HIGH", flywheel.kF_HIGH);
-
             panelsTelemetry.getTelemetry().update();
         }
     }

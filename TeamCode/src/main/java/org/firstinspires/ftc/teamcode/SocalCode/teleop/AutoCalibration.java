@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -19,7 +20,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @TeleOp(name="Flywheel kF Calibration", group="Calibration")
-@Disabled
 public class AutoCalibration extends LinearOpMode {
 
     private DcMotorEx flywheel;
@@ -32,14 +32,15 @@ public class AutoCalibration extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Initialize Hardware
-        flywheel = hardwareMap.get(DcMotorEx.class, "launcher");
-        flywheel2 = hardwareMap.get(DcMotorEx.class, "launcher2");
+        flywheel = hardwareMap.get(DcMotorEx.class, "flywheel2");
+        flywheel2 = hardwareMap.get(DcMotorEx.class, "flywheel");
         batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         // Ensure motor is in the right mode for raw testing
         flywheel2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flywheel2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         flywheel2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheel.setDirection(DcMotor.Direction.REVERSE);
 
 
 

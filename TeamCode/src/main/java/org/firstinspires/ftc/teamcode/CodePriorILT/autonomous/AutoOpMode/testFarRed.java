@@ -6,9 +6,9 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.CodePriorILT.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.CodePriorILT.autonomous.Paths.testPathFarRed;
-import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.DoubleMotorOuttakePID;
+import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.FlywheelSystem;
 import org.firstinspires.ftc.teamcode.CodePriorILT.subsystems.Intake;
 
 @Autonomous(name = "testFarRed", group = "Examples")
@@ -21,7 +21,7 @@ public class testFarRed extends OpMode {
 
     private testPathFarRed paths;
 
-    DoubleMotorOuttakePID outtake;
+    FlywheelSystem flywheelSystem;
     Intake intake;
 
     @Override
@@ -32,21 +32,39 @@ public class testFarRed extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         paths = new testPathFarRed(follower);
-        follower.setStartingPose(new Pose(91.031, 11.2525, Math.toRadians(65)));
+        follower.setStartingPose(new Pose(88.727, 7.516, Math.toRadians(90)));
 
-        outtake = new DoubleMotorOuttakePID(hardwareMap);
+        flywheelSystem = new FlywheelSystem(hardwareMap);
         intake = new Intake(hardwareMap);
     }
 
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
+                // 1. Start the path ONCE
                 follower.followPath(paths.Path1);
-                setPathState(1);
+                setPathState(1); // Immediately move to the next state to wait
                 break;
+
             case 1:
+                // 2. Wait until Path 1 is done
                 if (!follower.isBusy()) {
-                    setPathState(-1);
+                    // 3. Perform action
+                    flywheelSystem.autoRapidShoot(1540, 3000, 500);
+                    setPathState(2);
+                }
+                break;
+
+            case 2:
+                // 4. Start Path 2 ONCE
+                follower.followPath(paths.Path2);
+                setPathState(3);
+                break;
+
+            case 3:
+                // 5. Wait for Path 2 to finish
+                if (!follower.isBusy()) {
+                    setPathState(-1); // Finished
                 }
                 break;
         }
