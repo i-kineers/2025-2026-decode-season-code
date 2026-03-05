@@ -1,102 +1,83 @@
 package org.firstinspires.ftc.teamcode.SocalCode.subsystems;
 
 import com.bylazar.telemetry.PanelsTelemetry;
-import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-/**
- * MasterLogic handles the coordination between all subsystems during TeleOp.
- * It encapsulates all the logic so the main OpMode remains clean.
- */
 public class MasterLogic {
 
     private final PanelsTelemetry panelsTelemetry;
-//    private final FlywheelSystem flywheel;
+    private final DriveSubsystem odometry;
+    private final FlywheelSystem flywheel;
     private final DoubleIntake intake;
-    private final AutoAimWithOdometry autoAimWithOdometry;
+    //    private final Parking parking;
+    private final BlinkinLED blinkinLED;
 
-    private double targetTPS = 1200;
+    private double targetTPS;
 
-    // Auto Aim Toggle State
-    private boolean autoAimActive = false;
-    private boolean previousYState = false;
-
-    private boolean isBlue;
+    private double goalDist;
 
     public MasterLogic(HardwareMap hardwareMap, double startingX, double startingY, double startingH, boolean isBlueAlliance) {
         panelsTelemetry = PanelsTelemetry.INSTANCE;
 
-        // Initialize all subsystems
+        flywheel = new FlywheelSystem(hardwareMap);
         intake = new DoubleIntake(hardwareMap);
-//        flywheel = new FlywheelSystem(hardwareMap);
+        blinkinLED = new BlinkinLED(hardwareMap);
+//        parking = new Parking(hardwareMap);
+        odometry = new DriveSubsystem(hardwareMap, isBlueAlliance);
 
-        isBlue = isBlueAlliance;
-
-        // Initialize Pathing Manager with a default starting pose
-        autoAimWithOdometry = new AutoAimWithOdometry(hardwareMap, isBlue);
-        autoAimWithOdometry.setStartingPose(startingX,startingY,startingH);
+        odometry.setStartingPose(startingX,startingY,startingH);
     }
 
     public void mainLogic(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
-        autoAimWithOdometry.update();
+        odometry.update();
 
-        // --- 1. Drive & Pathing Control ---
-
-        // Toggle Auto Aim with Y
-        if (gamepad1.y && !previousYState) {
-            autoAimActive = !autoAimActive;
-        }
-        previousYState = gamepad1.y;
+        odometry.drive(
+                gamepad1.left_stick_y,
+                gamepad1.left_stick_x,
+                -gamepad1.right_stick_x,
+                gamepad1.dpad_up, gamepad1.dpad_right, gamepad1.dpad_down, gamepad1.dpad_left,
+                gamepad1.b
+        );
 
         if (gamepad1.xWasPressed()) {
-            autoAimWithOdometry.resetAim();
+            odometry.resetAim();
         }
 
-        autoAimWithOdometry.drive(gamepad1, autoAimActive);
+        goalDist = odometry.getDistanceFromGoal();
+        targetTPS = odometry.newDynamicTargetTPS(goalDist);
 
-        if (autoAimWithOdometry.isAutomated()) {
-            targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
-            autoAimActive = false;
-        } else {
-            autoAimWithOdometry.dynamicTargetTPS();
-            targetTPS = autoAimWithOdometry.getCurrentTargetTPS();
-        }
-
-        if (gamepad1.b) {
-            autoAimWithOdometry.resetTargetPose();
-        }
-
-        // Reset IMU heading with A button
-        if (gamepad1.a) {
-            autoAimWithOdometry.resetHeading();
-            telemetry.addLine("Heading Reset.");
+        if (gamepad1.aWasPressed()) {
+            odometry.resetRobotPos();
         }
 
         intake.runIntake(gamepad1);
-//        flywheel.runFlywheel(gamepad1, gamepad2);
-//        flywheel.setNormalTPS(targetTPS);
-//        flywheel.update();
+//        parking.update(gamepad1);
+        flywheel.cycleShootingState(gamepad1, gamepad2);
+        flywheel.setTargetTPS(targetTPS);
+        flywheel.update(gamepad1);
+
+        blinkinLED.runLED();
 
         updateTelemetry(telemetry);
     }
 
     private void updateTelemetry(Telemetry telemetry) {
-        Pose currentPose = autoAimWithOdometry.getFollower().getPose();
+        telemetry.addData("Mode", "MANUAL (Field Centric)");
+        telemetry.addData("Shooter State", flywheel.getShooterState());
+        telemetry.addData("Flywheel Velocity", flywheel.getVelocity());
+        telemetry.addData("Target Heading", Math.toDegrees(odometry.getGoalAngle()));
+        telemetry.addData("Current Heading", Math.toDegrees(odometry.getHeading()));
+        telemetry.addData("Error Degrees", Math.toDegrees(odometry.getError()));
+        telemetry.addData("Drive X", odometry.getRobotX());
+        telemetry.addData("Drive Y", odometry.getRobotY());
+        telemetry.addData("Hood Pos", flywheel.getHoodPos());
+        telemetry.addData("Target Velocity", flywheel.getTargetTPS());
+        telemetry.addData("Goal Dist", goalDist);
 
-        telemetry.addData("Mode", autoAimWithOdometry.isAutomated() ? "PATHING" : "MANUAL");
-//        telemetry.addData("Robot State", flywheel.getShotState());
-        telemetry.addData("Auto Aim", autoAimActive ? "ACTIVE" : "INACTIVE");
-        telemetry.addData("Target TPS", targetTPS);
-//        telemetry.addData("Actual TPS", flywheel.getVelocity());
-        telemetry.addData("Goal X", autoAimWithOdometry.getBackdropPoseX());
-        telemetry.addData("Goal Y", autoAimWithOdometry.getBackdropPoseY());
-        if (currentPose != null) {
-            telemetry.addData("Robot X", currentPose.getX());
-            telemetry.addData("Robot Y", currentPose.getY());
-            telemetry.addData("Robot H", Math.toDegrees(currentPose.getHeading()));
-        }
+//        telemetry.addData("Park Position", parking.getParkPosition());
+//        telemetry.addData("Drive Position", parking.getDrivePosition());
         telemetry.update();
     }
 }
