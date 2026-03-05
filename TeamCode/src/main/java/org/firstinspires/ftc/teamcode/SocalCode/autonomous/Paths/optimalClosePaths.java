@@ -26,8 +26,8 @@ public class optimalClosePaths {
     // All end poses for pickup in each 3 rows
     private Pose spike1 = new Pose(13.34, 84.572);
     private Pose spike2 = new Pose(8, 59.345);
-    private Pose midSpike2 = new Pose(55.315, 61.200);
     private Pose gatePickupPose = new Pose(7.353, 59.535);
+    private Pose backupGatePickupPose = new Pose(7.353, 55.535);
 
     // This is assuming the robot will always be going from the shooting to pick up
     private Pose spike2Control = new Pose(62.453, 62.453);
@@ -73,18 +73,16 @@ public class optimalClosePaths {
                 .build();
 
         Path2 = follower.pathBuilder().addPath(
-                        new BezierLine(
+                        new BezierCurve(
                                 shootPose,
-                                midSpike2
-                        )
-                ).setLinearHeadingInterpolation(shootHeading, 0, 0.1)
-                .addPath(
-                        new BezierLine(
-                                midSpike2,
+                                spike2Control,
                                 spike2
                         )
-                ).setConstantHeadingInterpolation(0)
-                .addParametricCallback(0.2, () -> follower.setMaxPower(0.5))
+                )
+                .addParametricCallback(0.4, () -> follower.setMaxPower(0.5))
+//                .setConstantHeadingInterpolation(0)
+                .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.1)
+
                 .build();
 
         Path3 = follower.pathBuilder().addPath(
@@ -93,7 +91,7 @@ public class optimalClosePaths {
                                 spike2Control,
                                 shootPose
                         )
-                ).setLinearHeadingInterpolation(0, shootHeading)
+                ).setLinearHeadingInterpolation(pickUpHeading, shootHeading)
 
                 .build();
 
@@ -104,12 +102,18 @@ public class optimalClosePaths {
                                 gatePickupPose
                         )
                 ).setLinearHeadingInterpolation(shootHeading, gatePickUpHeading)
+                .addPath(
+                        new BezierLine(
+                                gatePickupPose,
+                                backupGatePickupPose
+                        )
+                ).setConstantHeadingInterpolation(gatePickUpHeading)
 
                 .build();
 
         Path5 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                gatePickupPose,
+                                backupGatePickupPose,
                                 gateControl,
                                 shootPose
                         )
@@ -124,12 +128,18 @@ public class optimalClosePaths {
                                 gatePickupPose
                         )
                 ).setLinearHeadingInterpolation(shootHeading, gatePickUpHeading)
+                .addPath(
+                        new BezierLine(
+                                gatePickupPose,
+                                backupGatePickupPose
+                        )
+                ).setConstantHeadingInterpolation(gatePickUpHeading)
 
                 .build();
 
         Path7 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                gatePickupPose,
+                                backupGatePickupPose,
                                 gateControl,
                                 shootPose
                         )
@@ -143,7 +153,8 @@ public class optimalClosePaths {
                                 spike1Control,
                                 spike1
                         )
-                ).setLinearHeadingInterpolation(shootHeading, pickUpHeading)
+                ).addParametricCallback(0.3, () -> follower.setMaxPower(0.6))
+                .setLinearHeadingInterpolation(shootHeading, pickUpHeading)
 
                 .build();
 
