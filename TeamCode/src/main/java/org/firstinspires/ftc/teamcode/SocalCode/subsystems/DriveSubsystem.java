@@ -376,11 +376,15 @@ public class DriveSubsystem {
     }
 
     private static class InputRamper {
-        private final double MAX_DELTA_PER_SEC = 4.0;
+        private final double MAX_DELTA_PER_SEC = 3; // adjust variable higher for faster ramp lower for smoother ramp.
         private final ElapsedTime timer = new ElapsedTime();
 
         private double currentOutput = 0.0;
         private final double DEADBAND = 0.05;
+
+        public InputRamper() {
+            timer.reset();
+        }
 
         public double rampInput(double input) {
             double target = Math.abs(input) > DEADBAND ? input : 0.0;

@@ -11,10 +11,11 @@ public class MasterLogic {
     private final DriveSubsystem odometry;
     private final FlywheelSystem flywheel;
     private final DoubleIntake intake;
-    //    private final Parking parking;
+    private final Parking parking;
     private final BlinkinLED blinkinLED;
 
     private double targetTPS;
+    private double idleTPS = 1100;
 
     private double goalDist;
 
@@ -24,7 +25,7 @@ public class MasterLogic {
         flywheel = new FlywheelSystem(hardwareMap);
         intake = new DoubleIntake(hardwareMap);
         blinkinLED = new BlinkinLED(hardwareMap);
-//        parking = new Parking(hardwareMap);
+        parking = new Parking(hardwareMap);
         odometry = new DriveSubsystem(hardwareMap, isBlueAlliance);
 
         odometry.setStartingPose(startingX,startingY,startingH);
@@ -45,15 +46,21 @@ public class MasterLogic {
             odometry.resetAim();
         }
 
-        goalDist = odometry.getDistanceFromGoal();
-        targetTPS = odometry.newDynamicTargetTPS(goalDist);
-
-        if (gamepad1.aWasPressed()) {
-            odometry.resetRobotPos();
+        if (flywheel.getShooterState() == FlywheelSystem.ShooterState.INTAKING) {
+            targetTPS = idleTPS;
+        } else if (flywheel.getShooterState() == FlywheelSystem.ShooterState.SHOOTING) {
+            goalDist = odometry.getDistanceFromGoal();
+            targetTPS = odometry.newDynamicTargetTPS(goalDist);
         }
 
+//        if (gamepad1.aWasPressed()) {
+//            odometry.resetRobotPos();
+//        }
+
+
+
         intake.runIntake(gamepad1);
-//        parking.update(gamepad1);
+        parking.update(gamepad1);
         flywheel.cycleShootingState(gamepad1, gamepad2);
         flywheel.setTargetTPS(targetTPS);
         flywheel.update(gamepad1);
@@ -75,9 +82,11 @@ public class MasterLogic {
         telemetry.addData("Hood Pos", flywheel.getHoodPos());
         telemetry.addData("Target Velocity", flywheel.getTargetTPS());
         telemetry.addData("Goal Dist", goalDist);
+        telemetry.addData("Distance Sensor (CM)", blinkinLED.sensorDistance());
+        telemetry.addData("Ball Detected", blinkinLED.isBallDetected());
 
-//        telemetry.addData("Park Position", parking.getParkPosition());
-//        telemetry.addData("Drive Position", parking.getDrivePosition());
+        telemetry.addData("Park Position", parking.getParkPosition());
+        telemetry.addData("Drive Position", parking.getDrivePosition());
         telemetry.update();
     }
 }

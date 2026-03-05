@@ -13,6 +13,7 @@ public class optimalClosePaths {
     private double gatePickUpHeading = Math.toRadians(135);
     private double shootHeading = Math.toRadians(225);
     private double pickUpHeading = Math.toRadians(180);
+    private double angledPickUpHeading = Math.toRadians(225);
     private double resetHeading = Math.toRadians(180);
 
     // Paths will be set to favor blue
@@ -23,8 +24,9 @@ public class optimalClosePaths {
 
 
     // All end poses for pickup in each 3 rows
-    private Pose spike1 = new Pose(8, 58);
-    private Pose spike2 = new Pose(15.345, 65.308);
+    private Pose spike1 = new Pose(13.34, 84.572);
+    private Pose spike2 = new Pose(8, 59.345);
+    private Pose midSpike2 = new Pose(55.315, 61.200);
     private Pose gatePickupPose = new Pose(7.353, 59.535);
 
     // This is assuming the robot will always be going from the shooting to pick up
@@ -66,18 +68,23 @@ public class optimalClosePaths {
 
                                 shootPose
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(startHeading), Math.toRadians(shootHeading))
+                ).setLinearHeadingInterpolation(startHeading, shootHeading)
 
                 .build();
 
         Path2 = follower.pathBuilder().addPath(
-                        new BezierCurve(
+                        new BezierLine(
                                 shootPose,
-                                spike2Control,
+                                midSpike2
+                        )
+                ).setLinearHeadingInterpolation(shootHeading, 0, 0.1)
+                .addPath(
+                        new BezierLine(
+                                midSpike2,
                                 spike2
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(shootHeading), Math.toRadians(pickUpHeading))
-
+                ).setConstantHeadingInterpolation(0)
+                .addParametricCallback(0.2, () -> follower.setMaxPower(0.5))
                 .build();
 
         Path3 = follower.pathBuilder().addPath(
@@ -86,7 +93,7 @@ public class optimalClosePaths {
                                 spike2Control,
                                 shootPose
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(pickUpHeading), Math.toRadians(shootHeading))
+                ).setLinearHeadingInterpolation(0, shootHeading)
 
                 .build();
 
@@ -96,7 +103,7 @@ public class optimalClosePaths {
                                 gateControl,
                                 gatePickupPose
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(shootHeading), Math.toRadians(gatePickUpHeading))
+                ).setLinearHeadingInterpolation(shootHeading, gatePickUpHeading)
 
                 .build();
 
@@ -106,7 +113,7 @@ public class optimalClosePaths {
                                 gateControl,
                                 shootPose
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(gatePickUpHeading), Math.toRadians(shootHeading))
+                ).setLinearHeadingInterpolation(gatePickUpHeading, shootHeading)
 
                 .build();
 
@@ -116,7 +123,7 @@ public class optimalClosePaths {
                                 gateControl,
                                 gatePickupPose
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(shootHeading), Math.toRadians(gatePickUpHeading))
+                ).setLinearHeadingInterpolation(shootHeading, gatePickUpHeading)
 
                 .build();
 
@@ -126,7 +133,7 @@ public class optimalClosePaths {
                                 gateControl,
                                 shootPose
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(gatePickUpHeading), Math.toRadians(shootHeading))
+                ).setLinearHeadingInterpolation(gatePickUpHeading, shootHeading)
 
                 .build();
 
@@ -136,7 +143,7 @@ public class optimalClosePaths {
                                 spike1Control,
                                 spike1
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(shootHeading), Math.toRadians(pickUpHeading))
+                ).setLinearHeadingInterpolation(shootHeading, pickUpHeading)
 
                 .build();
 
@@ -146,7 +153,7 @@ public class optimalClosePaths {
 
                                 shootPose
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(pickUpHeading), Math.toRadians(shootHeading))
+                ).setLinearHeadingInterpolation(pickUpHeading, shootHeading)
 
                 .build();
 
@@ -156,7 +163,7 @@ public class optimalClosePaths {
 
                                 homePose
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(shootHeading), Math.toRadians(pickUpHeading))
+                ).setLinearHeadingInterpolation(shootHeading, pickUpHeading)
 
                 .build();
     }

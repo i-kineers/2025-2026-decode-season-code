@@ -150,6 +150,7 @@ public class FlywheelSystem {
     }
 
     private void handleShotLogic(double finalPower, Gamepad gamepad) {
+//        finalPower = Math.clamp(finalPower, 0, 1500);
         switch (shooterState)  {
             case OFF:
                 setFlywheelPower(0);
@@ -157,7 +158,7 @@ public class FlywheelSystem {
                 wheelKicker.setPower(0);
                 break;
             case INTAKING:
-                setFlywheelPower(idleTPS);
+                setFlywheelPower(finalPower);
                 if (gamepad.right_trigger > 0.5 || gamepad.left_trigger > 0.5) {
                     wheelKicker.setPower(1);
                     legKicker.setPosition(1);
