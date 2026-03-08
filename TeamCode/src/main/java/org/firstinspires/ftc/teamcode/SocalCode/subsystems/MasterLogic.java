@@ -53,9 +53,9 @@ public class MasterLogic {
             targetTPS = odometry.newDynamicTargetTPS(goalDist);
         }
 
-//        if (gamepad1.aWasPressed()) {
-//            odometry.resetRobotPos();
-//        }
+        if (gamepad1.aWasPressed()) {
+            odometry.resetRobotPos();
+        }
 
 
 

@@ -36,11 +36,11 @@ public class BlinkinLED {
             blinkinLedDriver.setPattern(pattern);
 
         } else if (ballDetected || ballDetected2) {
-            pattern = RevBlinkinLedDriver.BlinkinPattern.DARK_BLUE;
+            pattern = RevBlinkinLedDriver.BlinkinPattern.HOT_PINK;
             blinkinLedDriver.setPattern(pattern);
 
         } else {
-            pattern = RevBlinkinLedDriver.BlinkinPattern.RED;
+            pattern = RevBlinkinLedDriver.BlinkinPattern.WHITE;
             blinkinLedDriver.setPattern(pattern);
         }
     }

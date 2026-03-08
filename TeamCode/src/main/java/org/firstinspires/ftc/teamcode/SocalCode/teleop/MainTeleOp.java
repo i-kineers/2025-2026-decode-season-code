@@ -41,9 +41,9 @@ public class MainTeleOp extends OpMode {
     public void start() {
         // Now master is initialized with the final selection from init_loop
         if (allianceBlue) {
-            master = new MasterLogic(hardwareMap, 19.5, 122.6, 135, allianceBlue);
+            master = new MasterLogic(hardwareMap, 20.570, 122.064, 135, allianceBlue);
         } else if (!allianceBlue) {
-            master = new MasterLogic(hardwareMap, 19.5, 122.6, 135, allianceBlue);
+            master = new MasterLogic(hardwareMap, 20.570, 122.064, 135, allianceBlue);
         }
     }
 

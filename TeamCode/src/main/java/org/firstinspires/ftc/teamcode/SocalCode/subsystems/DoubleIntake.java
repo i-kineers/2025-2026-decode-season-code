@@ -78,10 +78,10 @@ public class DoubleIntake {
                     setRightIntake(1);
                     return false;
                 }
-//                else if (autoTimer.milliseconds() < 2000) {
-//                    setLeftIntake(1);
-//                    setRightIntake(1);
-//                }
+                else if (autoTimer.milliseconds() < 2000) {
+                    setLeftIntake(1);
+                    setRightIntake(1);
+                }
                 else {
                     autoIntakeOff();
                     setAutoIntakeState(autoIntakeState.IDLE);

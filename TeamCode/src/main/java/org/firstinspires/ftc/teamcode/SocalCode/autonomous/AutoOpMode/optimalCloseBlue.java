@@ -12,8 +12,8 @@
     import org.firstinspires.ftc.teamcode.SocalCode.subsystems.FlywheelSystem;
     import org.firstinspires.ftc.teamcode.SocalCode.subsystems.DoubleIntake;
 
-    @Autonomous(name = "OptimalCloseNonDynamic", group = "Examples")
-    public class optimalClose extends OpMode {
+    @Autonomous(name = "Optimal Close BLUE", group = "Examples")
+    public class optimalCloseBlue extends OpMode {
 
         private Follower follower;
         private Timer pathTimer, opmodeTimer;
@@ -23,6 +23,9 @@
         private optimalClosePaths paths;
 
         private boolean blueTeam = true;
+
+        private double gateWait = 1000;
+        private double pushGateWait = 0;
 
         FlywheelSystem flywheelSystem;
         DoubleIntake intake;
@@ -41,12 +44,13 @@
 
             follower = Constants.createFollower(hardwareMap);
             paths = new optimalClosePaths(follower, blueTeam);
-            follower.setStartingPose(new Pose(19.5, 122.6, Math.toRadians(135)));
+            follower.setStartingPose(new Pose(20.570, 122.064, Math.toRadians(135)));
 
             flywheelSystem = new FlywheelSystem(hardwareMap);
             intake = new DoubleIntake(hardwareMap);
         }
 
+        // Update the auto pathing so it uses the new paths from optimalClosePaths. They paths sshould be placed between 4,5 and 6,7 like how it is named.
         public void autonomousPathUpdate() {
             switch (pathState) {
                 case 0:
@@ -71,47 +75,82 @@
                     }
                     break;
                 case 3:
-                    // This is your "Sleep" after Path 3
                     if (!follower.isBusy() && handleShooting()) {
-                        intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
+                        intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE); // was idle
                         follower.followPath(paths.Path4);
+                        follower.setMaxPower(1);
                         setPathState(4);
                     }
                     break;
                 case 4:
                     if (!follower.isBusy()) {
+                        // Start intake immediately upon arrival
+                        intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
+
                         if (!pathTimerReset) {
                             pathTimer.resetTimer();
                             pathTimerReset = true;
                         }
 
-                        if (pathTimer.getElapsedTime() > 2000) {
-                            intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
-                            follower.followPath(paths.Path5);
-                            pathTimerReset = false;
-                            setPathState(5);
-                        }
+//                        if (pathTimer.getElapsedTime() > pushGateWait) {
+                            pathTimerReset = false; // Reset ONLY when moving to next state
+                            follower.followPath(paths.Path45);
+                            setPathState(45);
+//                        }
                     }
                     break;
-                case 5:
-                    // This is your "Sleep" after Path 5
-                    if (!follower.isBusy() && handleShooting()) {
-                        intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
-                        follower.followPath(paths.Path6);
-                        setPathState(6);
-                    }
-                    break;
-                case 6:
+                case 45:
                     if (!follower.isBusy()) {
                         if (!pathTimerReset) {
                             pathTimer.resetTimer();
                             pathTimerReset = true;
                         }
 
-                        if (pathTimer.getElapsedTime() > 2000) {
-                            intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
-                            follower.followPath(paths.Path7);
+                        if (pathTimer.getElapsedTime() > gateWait) {
                             pathTimerReset = false;
+                            intake.setAutoIntakeState(DoubleIntake.autoIntakeState.IDLE);
+                            follower.setMaxPower(1);
+                            follower.followPath(paths.Path5);
+                            setPathState(5);
+                        }
+                    }
+                    break;
+                case 5:
+                    if (!follower.isBusy() && handleShooting()) {
+                        intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE); // was idle
+                        follower.followPath(paths.Path6);
+                        follower.setMaxPower(1);
+                        setPathState(6);
+                    }
+                    break;
+                case 6:
+                    if (!follower.isBusy()) {
+                        intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
+
+                        if (!pathTimerReset) {
+                            pathTimer.resetTimer();
+                            pathTimerReset = true;
+                        }
+
+//                        if (pathTimer.getElapsedTime() > pushGateWait) {
+                            pathTimerReset = false;
+                            follower.followPath(paths.Path67);
+                            setPathState(67); // Fixed: Go to 67, not 7
+//                        }
+                    }
+                    break;
+                case 67:
+                    if (!follower.isBusy()) {
+                        if (!pathTimerReset) {
+                            pathTimer.resetTimer();
+                            pathTimerReset = true;
+                        }
+
+                        if (pathTimer.getElapsedTime() > gateWait) {
+                            pathTimerReset = false;
+                            intake.setAutoIntakeState(DoubleIntake.autoIntakeState.IDLE);
+                            follower.setMaxPower(1);
+                            follower.followPath(paths.Path7);
                             setPathState(7);
                         }
                     }
@@ -126,6 +165,7 @@
                 case 8:
                     if (!follower.isBusy()) {
                         intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
+                        follower.setMaxPower(1);
                         follower.followPath(paths.Path9);
                         setPathState(9);
                     }
@@ -140,8 +180,6 @@
                 case 10:
                     if (!follower.isBusy()) {
                         flywheelSystem.setTargetTPS(0);
-                        // Note: You had this setting back to Case 2,
-                        // which creates a loop. I left it as is.
                         setPathState(-1);
                     }
                     break;
@@ -174,7 +212,7 @@
                 shootingInitialized = true;
             }
 
-            if (shotTimer.milliseconds() < 1600) { // If timing is a problem could be this line
+            if (shotTimer.milliseconds() < 2000) { // If timing is a problem could be this line
                 runKickers = true;
                 return false;
             } else {
