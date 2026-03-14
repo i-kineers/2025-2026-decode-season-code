@@ -10,6 +10,8 @@ public class closePaths {
 
     private Pose lastPose = null;
 
+    private double HEADINGOFFSET = Math.toRadians(90);
+
     // Heading angles are set to favor blue
     private double startHeading = Math.toRadians(135);
     private double shootHeading = Math.toRadians(225);
@@ -24,7 +26,7 @@ public class closePaths {
 
 
     // All end poses for pickup in each 3 rows
-    private Pose pickUpPose1 = new Pose(14, 80);
+    private Pose pickUpPose1 = new Pose(14, 83);
     private Pose pickUpPose2 = new Pose(8, 58);
     private Pose pickUpPose3 = new Pose(16, 35.71);
 
@@ -42,9 +44,10 @@ public class closePaths {
 
         // Check if team color is red to reverse coordinates
         if (!teamColor) {
-            shootHeading = reflect(shootHeading);
-            pickUpHeading = reflect(pickUpHeading);
-            resetHeading = reflect(resetHeading);
+            startHeading = Math.toRadians(225);
+            shootHeading = Math.toRadians(135);
+            pickUpHeading = Math.toRadians(180);
+            resetHeading = Math.toRadians(0);
             startPose = reflect(startPose);
             shootPose = reflect(shootPose);
             gatePose = reflect(gatePose);
@@ -68,7 +71,7 @@ public class closePaths {
         // From shooting to intaking first rows of balls
         Path2 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl1, pickUpPose1))
-                .addParametricCallback(0.3, () -> follower.setMaxPower(0.5))
+                .addParametricCallback(0.3, () -> follower.setMaxPower(0.4))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.8)
                 .build();
 
@@ -82,7 +85,7 @@ public class closePaths {
         // Move from shooting position to intake 2nd row of balls
         Path4 = follower.pathBuilder()
                 .addPath(new BezierCurve(shootPose, pickupControl2, pickUpPose2))
-                .addParametricCallback(0.45, () -> follower.setMaxPower(0.5))
+                .addParametricCallback(0.45, () -> follower.setMaxPower(0.4))
                 .setLinearHeadingInterpolation(shootHeading, pickUpHeading, 0.5)
                 .build();
         // Move from intake 2nd row of balls to shooting position
@@ -129,7 +132,7 @@ public class closePaths {
     }
 
     private double reflect(double angleInRadians) {
-        return Math.PI - angleInRadians;
+        return (Math.PI - angleInRadians);
     }
 
 }

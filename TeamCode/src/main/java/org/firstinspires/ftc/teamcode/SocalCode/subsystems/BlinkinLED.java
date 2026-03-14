@@ -11,7 +11,13 @@ public class BlinkinLED {
     private DistanceSensor distanceSensor2;
     RevBlinkinLedDriver blinkinLedDriver;
     RevBlinkinLedDriver.BlinkinPattern pattern;
-    private static final double DETECTION_THRESHOLD_CM = 13.0;
+    private static final double DETECTION_THRESHOLD_CM = 11.0;
+
+    private double distance;
+    private double distance2;
+
+    private boolean ballDetected;
+    private boolean ballDetected2;
 
     public BlinkinLED(HardwareMap hardwareMap){
         distanceSensor = hardwareMap.get(DistanceSensor.class, "ds");
@@ -19,23 +25,31 @@ public class BlinkinLED {
         blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
     }
     public void runLED(){
-        double distance = distanceSensor.getDistance(DistanceUnit.CM);
-        double distance2 = distanceSensor2.getDistance(DistanceUnit.CM);
+        distance = distanceSensor.getDistance(DistanceUnit.CM);
+        distance2 = distanceSensor2.getDistance(DistanceUnit.CM);
 
-        boolean ballDetected = distance < DETECTION_THRESHOLD_CM;
-        boolean ballDetected2 = distance2 < DETECTION_THRESHOLD_CM;
+        ballDetected = distance < DETECTION_THRESHOLD_CM;
+        ballDetected2 = distance2 < DETECTION_THRESHOLD_CM;
 
         if (ballDetected && ballDetected2) {
             pattern = RevBlinkinLedDriver.BlinkinPattern.GREEN; // ALL BALLS DETECTED
             blinkinLedDriver.setPattern(pattern);
 
         } else if (ballDetected || ballDetected2) {
-            pattern = RevBlinkinLedDriver.BlinkinPattern.DARK_BLUE;
+            pattern = RevBlinkinLedDriver.BlinkinPattern.HOT_PINK;
             blinkinLedDriver.setPattern(pattern);
 
         } else {
-            pattern = RevBlinkinLedDriver.BlinkinPattern.RED;
+            pattern = RevBlinkinLedDriver.BlinkinPattern.WHITE;
             blinkinLedDriver.setPattern(pattern);
         }
+    }
+
+    public double sensorDistance() {
+        return distance;
+    }
+
+    public boolean isBallDetected() {
+        return ballDetected;
     }
 }
