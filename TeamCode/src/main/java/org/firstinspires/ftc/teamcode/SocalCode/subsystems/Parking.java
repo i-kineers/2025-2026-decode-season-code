@@ -65,19 +65,19 @@ public class Parking {
     }
 
     public void adjustDrivePosition(Gamepad gamepad1) {
-        if (gamepad1.dpadUpWasPressed()) {
-            DRIVE_POSITION += 0.1;
-        } else if (gamepad1.dpadDownWasPressed()) {
-            DRIVE_POSITION -= 0.1;
-        }
+//        if (gamepad1.dpadUpWasPressed()) {
+//            DRIVE_POSITION += 0.1;
+//        } else if (gamepad1.dpadDownWasPressed()) {
+//            DRIVE_POSITION -= 0.1;
+//        }
     }
 
     public void adjustParkPosition(Gamepad gamepad1) {
-        if (gamepad1.dpadRightWasPressed()) {
-            PARK_POSITION += 0.1;
-        } else if (gamepad1.dpadLeftWasPressed()) {
-            PARK_POSITION -= 0.1;
-        }
+//        if (gamepad1.dpadRightWasPressed()) {
+//            PARK_POSITION += 0.1;
+//        } else if (gamepad1.dpadLeftWasPressed()) {
+//            PARK_POSITION -= 0.1;
+//        }
     }
 
     public double getDrivePosition() {
