@@ -5,24 +5,24 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.SocalCode.autonomous.Paths.optimalClosePaths;
+import org.firstinspires.ftc.teamcode.SocalCode.autonomous.Paths.SimpleFarPath;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.FlywheelSystem;
 import org.firstinspires.ftc.teamcode.SocalCode.subsystems.DoubleIntake;
 
-@Autonomous(name = "OptimalCloseNonDynamic", group = "Examples")
-public class optimalClose extends OpMode {
+@Autonomous(name = "SimpleFarAutoRed", group = "Autonomous")
+public class simpleFarAutoRed extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
 
     private int pathState;
+    private SimpleFarPath paths;
 
-    private optimalClosePaths paths;
-
-    private boolean blueTeam = true;
+    // Set to false for Red
+    private boolean blueTeam = false;
 
     FlywheelSystem flywheelSystem;
     DoubleIntake intake;
@@ -38,8 +38,12 @@ public class optimalClose extends OpMode {
         opmodeTimer.resetTimer();
 
         follower = Constants.createFollower(hardwareMap);
-        paths = new optimalClosePaths(follower, blueTeam);
-        follower.setStartingPose(new Pose(19.5, 122.6, Math.toRadians(135)));
+        paths = new SimpleFarPath(follower);
+
+        // Starting pose mirrored for Red Alliance
+        // Blue: (54.833, 5.799, 180)
+        // Red: (144 - 54.833, 5.799, 0) -> (89.167, 5.799, 0)
+        follower.setStartingPose(new Pose(89.167, 5.799, Math.toRadians(0)));
 
         flywheelSystem = new FlywheelSystem(hardwareMap);
         intake = new DoubleIntake(hardwareMap);
@@ -48,78 +52,29 @@ public class optimalClose extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
+                // Move from Start
                 if (!follower.isBusy()) {
                     follower.followPath(paths.Path1);
                     setPathState(1);
                 }
                 break;
+
             case 1:
+                // Once at the end of Path 1, run shooting logic
                 if (!follower.isBusy() && handleShooting()) {
                     intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
                     follower.followPath(paths.Path2);
                     setPathState(2);
                 }
                 break;
+
             case 2:
+                // Move to final position
                 if (!follower.isBusy()) {
+                    // Final state logic
                     intake.setAutoIntakeState(DoubleIntake.autoIntakeState.IDLE);
-                    follower.followPath(paths.Path3);
-                    setPathState(3);
-                }
-                break;
-            case 3:
-                if (!follower.isBusy() && handleShooting()) {
-                    intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
-                    follower.followPath(paths.Path4);
-                    setPathState(4);
-                }
-                break;
-            case 4:
-                if (!follower.isBusy()) {
-                    intake.setAutoIntakeState(DoubleIntake.autoIntakeState.IDLE);
-                    follower.followPath(paths.Path5);
-                    setPathState(5);
-                }
-                break;
-            case 5:
-                if (!follower.isBusy() && handleShooting()) {
-                    intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
-                    follower.followPath(paths.Path6);
-                    setPathState(6);
-                }
-                break;
-            case 6:
-                if (!follower.isBusy()) {
-                    intake.setAutoIntakeState(DoubleIntake.autoIntakeState.IDLE);
-                    follower.followPath(paths.Path7);
-                    setPathState(7);
-                }
-                break;
-            case 7:
-                if (!follower.isBusy() && handleShooting()) {
-                    intake.setAutoIntakeState(DoubleIntake.autoIntakeState.INTAKE);
-                    follower.followPath(paths.Path8);
-                    setPathState(8);
-                }
-                break;
-            case 8:
-                if (!follower.isBusy()) {
-                    intake.setAutoIntakeState(DoubleIntake.autoIntakeState.IDLE);
-                    follower.followPath(paths.Path9);
-                    setPathState(9);
-                }
-                break;
-            case 9:
-                if (!follower.isBusy() && handleShooting()) {
-                    intake.setAutoIntakeState(DoubleIntake.autoIntakeState.IDLE);
-                    follower.followPath(paths.Path10);
-                    setPathState(10);
-                }
-                break;
-            case 10:
-                if (!follower.isBusy()) {
                     flywheelSystem.setTargetTPS(0);
-                    setPathState(2);
+                    setPathState(-1); // End of Auto
                 }
                 break;
         }
@@ -132,6 +87,7 @@ public class optimalClose extends OpMode {
 
     @Override
     public void loop() {
+        flywheelSystem.setTargetTPS(1450);
         follower.update();
         autonomousPathUpdate();
         flywheelSystem.autoShootLogic(runKickers);
@@ -151,7 +107,7 @@ public class optimalClose extends OpMode {
             shootingInitialized = true;
         }
 
-        if (shotTimer.milliseconds() < 2500) { // If timing is a problem could be this line
+        if (shotTimer.milliseconds() < 2000) {
             runKickers = true;
             return false;
         } else {
@@ -162,8 +118,7 @@ public class optimalClose extends OpMode {
     }
 
     @Override
-    public void init_loop() {
-    }
+    public void init_loop() {}
 
     @Override
     public void start() {
@@ -172,10 +127,5 @@ public class optimalClose extends OpMode {
     }
 
     @Override
-    public void stop() {
-    }
-
-    public void autoShoot() {
-
-    }
+    public void stop() {}
 }

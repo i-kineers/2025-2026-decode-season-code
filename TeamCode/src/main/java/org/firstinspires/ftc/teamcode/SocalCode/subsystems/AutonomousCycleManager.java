@@ -47,8 +47,8 @@ public class AutonomousCycleManager {
 
     ElapsedTime shotTimer = new ElapsedTime();
 
-    private Pose blueStartPose = new Pose(22,120, Math.toRadians(135));
-    private Pose redStartPose = new Pose(122, 120, Math.toRadians(45));
+    private Pose blueStartPose = new Pose(20.570, 122.064, Math.toRadians(135));
+    private Pose redStartPose = new Pose(123.43, 122.064, Math.toRadians(225));
 
     private static boolean runKickers = false;
 
@@ -156,7 +156,7 @@ public class AutonomousCycleManager {
                         }
                         // If we are already mid-gate sequence, return to shoot
                         else if (gateTriggered) {
-                            flywheelSystem.sleep(200);
+                            flywheelSystem.sleep(100);
                             follower.setMaxPower(1.0);
                             follower.followPath(paths.Path10);
                             gateTriggered = false;  // Reset for next time

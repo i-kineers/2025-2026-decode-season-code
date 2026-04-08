@@ -65,6 +65,11 @@ public class DriveSubsystem {
         frontRightMotor = hardwareMap.get(DcMotor.class, "frmotor");
         backRightMotor = hardwareMap.get(DcMotor.class, "brmotor");
 
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -257,10 +262,14 @@ public class DriveSubsystem {
     }
 
     public double newDynamicTargetTPS(double goalDist) {
-        // Equation: y = 0.000259225x^3 - 0.0360079x^2 + 3.28688x + 1068.56046
-        double tps = (0.0321054 * Math.pow(goalDist, 2))
-                - (1.81427 * goalDist)
-                + 1175.51578;
+
+        // Equation: y = 0.0367196x^2 - 2.41117x + 1192.83181
+        double x = goalDist;
+
+        double tps =
+                (0.0367196 * x * x) -
+                        (2.41117 * x) +
+                        1192.83181;
 
         return MathFunctions.clamp(tps, 0, 1500);
     }
@@ -348,7 +357,7 @@ public class DriveSubsystem {
         if (!isBlue) {
             // Reflect across the center line x = 72
             x = 144 - x;
-            heading = Math.toRadians(0);
+            heading = Math.toRadians(180);
         }
 
         follower.setPose(new Pose(x, y, heading));
@@ -376,32 +385,37 @@ public class DriveSubsystem {
     }
 
     private static class InputRamper {
-        private final double MAX_DELTA_PER_SEC = 4.0;
-        private final ElapsedTime timer = new ElapsedTime();
+        private final double MIN_MULTIPLIER = 0.4;
+        private final double MAX_MULTIPLIER = 1.0;
+        private final double increment = 0.4;
+        private final double timeIncrementInMs = 100;
 
-        private double currentOutput = 0.0;
-        private final double DEADBAND = 0.05;
+        private final ElapsedTime rampTimer = new ElapsedTime();
+        private double multiplier = MIN_MULTIPLIER;
+
+        public InputRamper() {
+            rampTimer.reset();
+        }
 
         public double rampInput(double input) {
-            double target = Math.abs(input) > DEADBAND ? input : 0.0;
-
-            double dt = timer.seconds();
-            timer.reset();
-
-            double maxDelta = MAX_DELTA_PER_SEC * dt;
-            double delta = target - currentOutput;
-
-            if (Math.abs(delta) > maxDelta) {
-                delta = Math.signum(delta) * maxDelta;
+            if (Math.abs(input) > 0.05) {
+                if (rampTimer.milliseconds() > timeIncrementInMs) {
+                    multiplier += increment;
+                    rampTimer.reset();
+                }
+            } else {
+                multiplier = MIN_MULTIPLIER;
+                rampTimer.reset();
+                return 0.0;
             }
 
-            currentOutput += delta;
-            return currentOutput;
+            multiplier = Math.max(MIN_MULTIPLIER, Math.min(multiplier, MAX_MULTIPLIER));
+            return input * multiplier;
         }
 
         public void reset() {
-            currentOutput = 0.0;
-            timer.reset();
+            multiplier = MIN_MULTIPLIER;
+            rampTimer.reset();
         }
     }
 
