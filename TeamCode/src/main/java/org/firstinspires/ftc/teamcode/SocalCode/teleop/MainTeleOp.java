@@ -50,5 +50,6 @@ public class MainTeleOp extends OpMode {
     @Override
     public void loop() {
         master.mainLogic(gamepad1, gamepad2, telemetry);
+        master.runblinkinLED();
     }
 }
